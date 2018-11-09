@@ -1,0 +1,115 @@
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:descendantFocusability="beforeDescendants"
+    android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="5dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+
+            <TextView
+                android:id="@+id/txtSelectDay"
+                android:onClick="onButtonSelectDay"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:layout_marginRight="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/blue_corners_text"
+                android:gravity="center"
+                android:hint="Выбор дня"
+                android:paddingLeft="5dp"
+                android:textColor="#000000" />
+
+            <ImageButton
+                android:onClick="onButtonClearDay"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/without_corners_text"
+                android:scaleType="fitCenter"
+                android:src="@raw/cross"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="2dp"
+            android:background="#000000"
+            android:layout_marginTop="5dp"/>
+
+        <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="*">
+
+            <TableRow>
+
+                <TextView
+                    style="@style/text_style_spisok"
+                    android:layout_width="15dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="1dip"
+                    android:layout_marginRight="10dp"
+                    android:layout_span="1"
+                    android:gravity="center"
+                    android:minLines="2"
+                    android:text="ФИО клиента"
+                    android:textSize="13dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/text_style_spisok"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="1dip"
+                    android:layout_marginRight="10dp"
+                    android:layout_span="2"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Дата"
+                    android:textSize="13dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/text_style_spisok"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="1dip"
+                    android:layout_span="1"
+                    android:gravity="center"
+                    android:minLines="2"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="10dp"
+                    android:text="Примечание"
+                    android:textSize="13dp"
+                    android:textStyle="bold" />
+            </TableRow>
+        </TableLayout>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="1dp"
+            android:background="#000000" />
+
+        <ListView
+            android:id="@+id/list_client"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+</TableLayout>

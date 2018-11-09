@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_marginTop="15dp"
+    style="@style/background"
+    android:padding="5dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ФИО, название*"
+        android:gravity="center"
+        android:id="@+id/textNameClient"
+        style="@style/text_style"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:hint="ФИО, название"
+        android:gravity="center"
+        android:background="@drawable/blue_corners_text"
+        android:layout_marginTop="5dp"
+        android:id="@+id/nameClient"
+        android:inputType="text"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Телефон"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:id="@+id/textPhoneClient"
+        style="@style/text_style"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:hint="Телефон(7xxxxxxxxx)"
+        android:gravity="center"
+        android:layout_marginTop="5dp"
+        android:maxLength="11"
+        android:background="@drawable/blue_corners_text"
+        android:id="@+id/phoneClient"
+        android:inputType="number"/>
+</LinearLayout>

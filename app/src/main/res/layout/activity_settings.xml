@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Время за которое оповещать о звонке"
+        android:textColor="#000"
+        android:textSize="18dp"
+        android:padding="5dp"
+        android:minLines="2"
+        android:gravity="center|left"
+        android:onClick="onButtonCheckTimeCallback"/>
+
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:background="#848484" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Время с которого начинать запоминать время разговора"
+        android:textColor="#000"
+        android:textSize="18dp"
+        android:padding="5dp"
+        android:gravity="center|left"
+        android:onClick="onButtonCheckTimeCall"/>
+
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:background="#848484" />
+
+</LinearLayout>

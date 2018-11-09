@@ -1,0 +1,152 @@
+package ru.itceiling.telephony;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+public class DBHelper extends SQLiteOpenHelper {
+
+    public static final int DATABASE_VERSION = 1;
+    public static final String DATABASE_NAME = "dbTelephony";
+
+    private Context mContext;
+
+    public static final String TABLE_RGZBN_GM_CEILING_CLIENTS = "rgzbn_gm_ceiling_clients";
+    public static final String KEY_ID = "_id";
+    public static final String KEY_CLIENT_NAME = "client_name";
+    public static final String KEY_CLIENT_DATA_ID = "client_data_id";
+    public static final String KEY_TYPE_ID = "type_id";
+    public static final String KEY_DEALER_ID = "dealer_id";
+    public static final String KEY_MANAGER_ID = "manager_id";
+    public static final String KEY_CREATED = "created";
+    public static final String KEY_SEX = "sex";
+    public static final String KEY_DELETED_BY_USER = "deleted_by_user";
+    public static final String KEY_CLIENT_STATUS = "client_status";
+    public static final String KEY_API_PHONE_ID = "api_phone_id";
+
+    public static final String TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS = "rgzbn_gm_ceiling_clients_contacts";
+    public static final String KEY_CLIENT_ID = "client_id";
+    public static final String KEY_PHONE = "phone";
+
+    public static final String TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS = "rgzbn_gm_ceiling_clients_dop_contacts";
+    public static final String KEY_CONTACT = "contact";
+
+    public static final String TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY = "rgzbn_gm_ceiling_client_history";
+    public static final String KEY_DATE_TIME = "date_time";
+    public static final String KEY_TEXT = "text";
+
+    public static final String TABLE_RGZBN_GM_CEILING_CALLBACK = "rgzbn_gm_ceiling_callback";
+    public static final String KEY_COMMENT = "comment";
+    public static final String KEY_NOTIFY = "notify";
+
+    public static final String TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY = "rgzbn_gm_ceiling_calls_status_history";
+    public static final String KEY_STATUS = "status";
+    public static final String KEY_CALL_LENGTH = "call_length";
+
+    public static final String TABLE_USERS = "rgzbn_users";
+    public static final String KEY_NAME = "name";
+    public static final String KEY_USERNAME = "username";
+    public static final String KEY_EMAIL = "email";
+    public static final String KEY_PASSWORD = "password";
+    public static final String KEY_ASSOCIATED_CLIENT = "associated_client";
+    public static final String KEY_DEALER_TYPE = "dealer_type";
+    public static final String KEY_REFUSED_TO_COOPERATE = "refused_to_cooperate";
+    public static final String KEY_BLOCK = "block";
+    public static final String KEY_SENDEMAIL = "sendEmail";
+    public static final String KEY_REGISTERDATE = "registerDate";
+    public static final String KEY_LASTVISITDATE = "lastvisitDate";
+    public static final String KEY_ACTIVATION = "activation";
+    public static final String KEY_PARAMS = "params";
+    public static final String KEY_LASTRESETTIME = "lastResetTime";
+    public static final String KEY_RESETCOUNT = "resetCount";
+    public static final String KEY_OTPKEY = "otpKey";
+    public static final String KEY_OTEP = "otep";
+    public static final String KEY_REQUIRERESET = "requireReset";
+    public static final String KEY_DISCOUNT = "discount";
+    public static final String KEY_WAGES = "wages";
+    public static final String KEY_CHANGE_TIME = "change_time";
+    public static final String KEY_DEALER_MOUNTERS = "dealer_mounters";
+    public static final String KEY_DEMO_AND_DATE = "demo_end_date";
+
+    public static final String TABLE_RGZBN_GM_CEILING_CALLS_STATUS = "rgzbn_gm_ceiling_calls_status";
+    public static final String KEY_TITLE = "title";
+
+    public static final String TABLE_RGZBN_GM_CEILING_CLIENT_STATUSES = "rgzbn_gm_ceiling_client_statuses";
+
+    public static final String TABLE_RGZBN_GM_CEILING_API_PHONES = "rgzbn_gm_ceiling_api_phones";
+    public static final String KEY_NUMBER = "number";
+    public static final String KEY_DESCRIPTION = "description";
+    public static final String KEY_SITE = "site";
+
+    public DBHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.mContext = context;
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients (_id INTEGER PRIMARY KEY, " +
+                "client_name TEXT, client_data_id INTEGER, type_id INTEGER, dealer_id INTEGER, manager_id INTEGER, " +
+                "created TEXT, sex TEXT, deleted_by_user INTEGER, client_status TEXT, api_phone_id INTEGER, change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_contacts (_id INTEGER PRIMARY KEY, " +
+                "client_id INTEGER, phone TEXT, change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_dop_contacts (_id INTEGER PRIMARY KEY, " +
+                "client_id INTEGER, type_id INTEGER, contact TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_client_history (_id INTEGER PRIMARY KEY, " +
+                "client_id INTEGER, date_time TEXT, text TEXT, change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status_history (_id INTEGER PRIMARY KEY, " +
+                "manager_id INTEGER, client_id INTEGER, status INTEGER, date_time TEXT, call_length TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_callback (_id INTEGER PRIMARY KEY, " +
+                "client_id INTEGER, date_time TEXT, comment TEXT, manager_id INTEGER, notify INTEGER)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_users (_id INTEGER PRIMARY KEY, " +
+                "name TEXT, username TEXT, email TEXT, password TEXT, dealer_id INTEGER, associated_client TEXT," +
+                "dealer_type INTEGER, refused_to_cooperate INTEGER, block INTEGER, sendEmail INTEGER, registerDate TEXT, " +
+                "lastvisitDate TEXT, activation TEXT, params TEXT, lastResetTime TEXT, resetCount INTEGER, otpKey TEXT," +
+                " otep TEXT, requireReset INTEGER, discount INTEGER,  wages TEXT, change_time TEXT, dealer_mounters INTEGER," +
+                " demo_end_date TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status (_id INTEGER PRIMARY KEY, title TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_client_statuses (_id INTEGER PRIMARY KEY, title TEXT," +
+                " change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_api_phones (_id INTEGER PRIMARY KEY, number TEXT," +
+                " name TEXT, description TEXT, site TEXT, dealer_id INTEGER, change_time TEXT)");
+
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 1);
+        values.put(DBHelper.KEY_TITLE, "Исходящий недозвон");
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 2);
+        values.put(DBHelper.KEY_TITLE, "Исходящий дозвон");
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 3);
+        values.put(DBHelper.KEY_TITLE, "Входящий звонок");
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 1);
+        values.put(DBHelper.KEY_TITLE, "Необработанный");
+        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_STATUSES, null, values);
+
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+
+    }
+}
