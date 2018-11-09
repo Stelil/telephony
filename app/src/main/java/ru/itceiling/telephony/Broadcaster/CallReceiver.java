@@ -16,6 +16,9 @@ import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import ru.itceiling.telephony.Activity.ClientsListActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
@@ -39,7 +42,11 @@ public class CallReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+
         ctx = context;
+        dbHelper = new DBHelper(ctx);
+        db = dbHelper.getWritableDatabase();
+
         Log.d(TAG, "onReceive: ");
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             //получаем исходящий номер
@@ -59,21 +66,26 @@ public class CallReceiver extends BroadcastReceiver {
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                    date1 = HelperClass.now_date();
                     newClient();
                     Log.d(TAG, "3: ");
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                     //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                     Log.d(TAG, "4: ");
+                    date2 = HelperClass.now_date();
+                    addHistoryClientCall();
                 }
             }
         }
+
+        Log.d(TAG, "date1: " + date1);
+        Log.d(TAG, "date2: " + date2);
+
     }
 
     private void newClient() {
 
-        dbHelper = new DBHelper(ctx);
-        db = dbHelper.getWritableDatabase();
         phoneNumber = phoneNumber.substring(1, phoneNumber.length());
         int id = 0;
         String sqlQuewy = "SELECT client_id "
@@ -105,7 +117,7 @@ public class CallReceiver extends BroadcastReceiver {
                         .setTicker("Звонок")
                         .setWhen(System.currentTimeMillis())
                         .setDefaults(Notification.DEFAULT_ALL)
-                        .setSmallIcon(R.raw.plus)
+                        .setSmallIcon(R.raw.icon_notification54)
                         .addAction(R.raw.plus, "Добавить", resultPendingIntent)
                         .setStyle(new Notification.BigTextStyle().bigText(message))
                         .setContentTitle("Планер звонков")
@@ -126,7 +138,7 @@ public class CallReceiver extends BroadcastReceiver {
                                 .setTicker("Звонок")
                                 .setWhen(System.currentTimeMillis())
                                 .setDefaults(Notification.DEFAULT_ALL)
-                                .setSmallIcon(R.raw.plus)
+                                .setSmallIcon(R.raw.icon_notification54)
                                 .addAction(R.raw.plus, "Добавить", resultPendingIntent)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                                 .setContentTitle("Планер звонков")
@@ -137,21 +149,66 @@ public class CallReceiver extends BroadcastReceiver {
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(2, notification);
             }
-        } else {
-
-            SharedPreferences SP = ctx.getSharedPreferences("dealer_id", MODE_PRIVATE);
-            String dealer_id = SP.getString("", "");
-
-            int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_calls_status_history", ctx, dealer_id);
-
-            ContentValues values = new ContentValues();
-            values.put(DBHelper.KEY_ID, maxId);
-            values.put(DBHelper.KEY_MANAGER_ID, dealer_id);
-            values.put(DBHelper.KEY_CLIENT_ID, id);
-            values.put(DBHelper.KEY_STATUS, callStatus);
-            values.put(DBHelper.KEY_DATE_TIME, HelperClass.now_date());
-            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, null, values);
         }
+    }
+
+    private void addHistoryClientCall() {
+
+        SharedPreferences SP = ctx.getSharedPreferences("CheckTimeCallback", MODE_PRIVATE);
+        int checkTime = SP.getInt("", 0);
+
+        Date one = null, two = null;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        try {
+            one = format.parse(date1);
+            two = format.parse(date2);
+        } catch (Exception e) {
+        }
+
+        Log.d(TAG, "date1: " + date1);
+        Log.d(TAG, "date2: " + date2);
+
+        Log.d(TAG, "one: " + one);
+        Log.d(TAG, "two: " + two);
+
+        //long difference = one.getTime() - two.getTime();
+
+        //Log.d(TAG, "difference: " + difference);
+
+        //int min = (int) (difference / (60 * 1000)); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
+
+
+        //if(min>=checkTime){
+
+        //    phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+        //    int id = 0;
+        //    String sqlQuewy = "SELECT client_id "
+        //            + "FROM rgzbn_gm_ceiling_clients_contacts" +
+        //            " WHERE phone = ? ";
+        //    Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+        //    if (c != null) {
+        //        if (c.moveToFirst()) {
+        //            id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+        //        }
+        //    }
+        //    c.close();
+
+        //    String text = "";
+        //    switch (callStatus) {
+        //        case 1:
+        //            text = "Исходящий недозвон";
+        //            break;
+        //        case 2:
+        //            text = "Исходящий дозвон";
+        //            break;
+        //        case 3:
+        //            text = "Входящий дозвон";
+        //            break;
+        //    }
+
+        //    HelperClass.addHistory(text, ctx, String.valueOf(id));
+        //}
     }
 
     private void historyClient() {
@@ -199,7 +256,7 @@ public class CallReceiver extends BroadcastReceiver {
                         .setTicker("Звонок")
                         .setWhen(System.currentTimeMillis())
                         .setDefaults(Notification.DEFAULT_ALL)
-                        .setSmallIcon(R.raw.plus)
+                        .setSmallIcon(R.raw.icon_notification54)
                         .setStyle(new Notification.BigTextStyle().bigText(message))
                         .setContentTitle("Планер звонков")
                         .setContentText(message)
@@ -219,7 +276,7 @@ public class CallReceiver extends BroadcastReceiver {
                                 .setTicker("Звонок")
                                 .setWhen(System.currentTimeMillis())
                                 .setDefaults(Notification.DEFAULT_ALL)
-                                .setSmallIcon(R.raw.plus)
+                                .setSmallIcon(R.raw.icon_notification54)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                                 .setContentTitle("Планер звонков")
                                 .setAutoCancel(true)
