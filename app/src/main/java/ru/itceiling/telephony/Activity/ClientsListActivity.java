@@ -7,12 +7,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,13 +29,14 @@ import com.amigold.fundapter.FunDapter;
 import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
-public class ClientsListActivity extends AppCompatActivity {
+public class ClientsListActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -75,7 +79,7 @@ public class ClientsListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        ListClients();
+        ListClients("");
 
     }
 
@@ -88,6 +92,30 @@ public class ClientsListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_search, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(this);
+
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        ListClients(query);
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        ListClients(newText);
+        return false;
+    }
+
     public void onButtonAddClient(View view) {
 
         final Context context = this;
@@ -98,7 +126,7 @@ public class ClientsListActivity extends AppCompatActivity {
         final EditText nameClient = (EditText) promptsView.findViewById(R.id.nameClient);
         final EditText phoneClient = (EditText) promptsView.findViewById(R.id.phoneClient);
 
-        if (!getPhone.equals("")){
+        if (!getPhone.equals("")) {
             phoneClient.setText(getPhone);
         }
 
@@ -156,7 +184,7 @@ public class ClientsListActivity extends AppCompatActivity {
 
                             }
 
-                            ListClients();
+                            ListClients("");
                             dialog.dismiss();
                             Toast.makeText(getApplicationContext(), "Клиент добавлен", Toast.LENGTH_LONG).show();
                         } else {
@@ -170,15 +198,28 @@ public class ClientsListActivity extends AppCompatActivity {
 
     }
 
-    private void ListClients() {
+    private void ListClients(String query) {
+
 
         ListView listView = findViewById(R.id.list_client);
         client_mas.clear();
 
-        String sqlQuewy = "SELECT change_time, client_name, client_status, _id "
-                + "FROM rgzbn_gm_ceiling_clients" +
-                " WHERE dealer_id = ? ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        String sqlQuewy;
+        Cursor c;
+
+        if (!query.equals("")) {
+            sqlQuewy = "SELECT change_time, client_name, client_status, _id "
+                    + "FROM rgzbn_gm_ceiling_clients" +
+                    " WHERE dealer_id = ? and client_name like '%"+query+"%'";
+            c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        } else {
+
+            sqlQuewy = "SELECT change_time, client_name, client_status, _id "
+                    + "FROM rgzbn_gm_ceiling_clients" +
+                    " WHERE dealer_id = ?";
+            c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        }
+
         if (c != null) {
             if (c.moveToFirst()) {
                 do {

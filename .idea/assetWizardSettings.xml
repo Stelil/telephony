@@ -34,7 +34,8 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="scalingPercent" value="51" />
+                                                <entry key="scalingPercent" value="89" />
+                                                <entry key="trimmed" value="true" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -46,8 +47,8 @@
                                     <map>
                                       <entry key="backgroundAssetType" value="COLOR" />
                                       <entry key="backgroundImage" value="C:\Users\vdi\Desktop\Диман иконка\Иконка 3000.jpg" />
-                                      <entry key="foregroundImage" value="C:\Users\vdi\Desktop\Диман иконка\Иконка 3000.jpg" />
-                                      <entry key="foregroundLayerName" value="ic_launcher_foreground2" />
+                                      <entry key="foregroundImage" value="C:\Users\Dmitry\Desktop\Иконка 6000\Иконка 6000 full.png" />
+                                      <entry key="foregroundLayerName" value="ic_launcher_foreground4" />
                                       <entry key="previewDensity" value="HIGH" />
                                     </map>
                                   </option>
