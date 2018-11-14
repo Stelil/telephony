@@ -92,23 +92,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onButtonRecall(View view){
-
         Intent intent = new Intent(this, CallbackListActivity.class);
         startActivity(intent);
     }
 
     public void onButtonClients(View view){
-
         Intent intent = new Intent(this, ClientsListActivity.class);
         startActivity(intent);
     }
 
     public void onButtonAnalytics(View view){
-
+        Intent intent = new Intent(this, AnalyticsActivity.class);
+        startActivity(intent);
     }
 
     public void onButtonSettings(View view){
-
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
@@ -123,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.PROCESS_OUTGOING_CALLS,
                             Manifest.permission.READ_PHONE_STATE, Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAPTURE_AUDIO_OUTPUT},
                     1);
         }
 
@@ -168,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(callRecv);
+        //unregisterReceiver(callRecv);
     }
 
     private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver() {
@@ -222,15 +220,20 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "recordCall: " + formatDateTime);
         if (audiofile == null) {
-            File sampleDir = new File("/storage/emulated/0/" + formatDateTime + ".amr");
+            File sampleDir = new File("/storage/emulated/0/" + formatDateTime + ".flac");
 
             audiofile = sampleDir;
         }
 
         mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+        String manufacturer = Build.MANUFACTURER;
+        if (manufacturer.toLowerCase().contains("samsung")) {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
+        } else {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
+        }
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mediaRecorder.setOutputFile(audiofile.getAbsolutePath());
         Log.d(TAG, "recordCall: " + audiofile);
 
@@ -335,49 +338,41 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
         }
 
-        Log.d(TAG, "date1: " + date1);
-        Log.d(TAG, "date2: " + date2);
-
-        Log.d(TAG, "one: " + one);
-        Log.d(TAG, "two: " + two);
-
         long difference = two.getTime() - one.getTime();
-
-        Log.d(TAG, "difference: " + difference);
 
         int min = (int) (difference / (60 * 1000)); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
 
-        //if(min>=checkTime){
+        if(min==checkTime){
 
-        //    phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-        //    int id = 0;
-        //    String sqlQuewy = "SELECT client_id "
-        //            + "FROM rgzbn_gm_ceiling_clients_contacts" +
-        //            " WHERE phone = ? ";
-        //    Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-        //    if (c != null) {
-        //        if (c.moveToFirst()) {
-        //            id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-        //        }
-        //    }
-        //    c.close();
+            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+            int id = 0;
+            String sqlQuewy = "SELECT client_id "
+                    + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                    " WHERE phone = ? ";
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                }
+            }
+            c.close();
 
-        //    String text = "";
-        //    switch (callStatus) {
-        //        case 1:
-        //            text = "Исходящий недозвон";
-        //            break;
-        //        case 2:
-        //            text = "Исходящий дозвон";
-        //            break;
-        //        case 3:
-        //            text = "Входящий дозвон";
-        //            break;
-        //    }
+            String text = "";
+            switch (callStatus) {
+                case 1:
+                    text = "Исходящий недозвон";
+                    break;
+                case 2:
+                    text = "Исходящий дозвон";
+                    break;
+                case 3:
+                    text = "Входящий дозвон";
+                    break;
+            }
 
-        //    HelperClass.addHistory(text, this, String.valueOf(id));
-        //}
+            HelperClass.addHistory(text, this, String.valueOf(id));
+        }
     }
 
     private void historyClient() {

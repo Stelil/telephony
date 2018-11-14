@@ -118,7 +118,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status (_id INTEGER PRIMARY KEY, title TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_client_statuses (_id INTEGER PRIMARY KEY, title TEXT," +
-                " change_time TEXT)");
+                " change_time TEXT, dealer_id INTEGER)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_api_phones (_id INTEGER PRIMARY KEY, number TEXT," +
                 " name TEXT, description TEXT, site TEXT, dealer_id INTEGER, change_time TEXT)");

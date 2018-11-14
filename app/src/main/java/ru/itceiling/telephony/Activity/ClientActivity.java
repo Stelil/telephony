@@ -47,6 +47,7 @@ import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
+import ru.itceiling.telephony.UnderlineTextView;
 
 public class ClientActivity extends AppCompatActivity {
 
@@ -212,7 +213,7 @@ public class ClientActivity extends AppCompatActivity {
             if (c.moveToFirst()) {
                 do {
                     String phone = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    TextView txt = new TextView(this);
+                    UnderlineTextView txt = new UnderlineTextView(this);
                     txt.setLayoutParams(lin_calc);
                     txt.setTextSize(15);
                     txt.setText(phone);
@@ -408,7 +409,7 @@ public class ClientActivity extends AppCompatActivity {
             if (c.moveToFirst()) {
                 do {
                     String contact = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    TextView txt = new TextView(this);
+                    UnderlineTextView txt = new UnderlineTextView(this);
                     txt.setLayoutParams(lin_calc);
                     txt.setTextSize(15);
                     txt.setText(contact);
@@ -637,6 +638,7 @@ public class ClientActivity extends AppCompatActivity {
                     ContentValues values = new ContentValues();
                     values.put(DBHelper.KEY_ID, maxId);
                     values.put(DBHelper.KEY_TITLE, editText.getText().toString());
+                    values.put(DBHelper.KEY_DEALER_ID, dealer_id);
                     values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                     db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_STATUSES, null, values);
 
@@ -1048,17 +1050,17 @@ public class ClientActivity extends AppCompatActivity {
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                         String editTextDateParam;
                         if (monthOfYear < 9) {
-                            editTextDateParam = year + "-0" + (monthOfYear + 1) + "-" + dayOfMonth;
+                            editTextDateParam = year + "-0" + (monthOfYear + 1);
                         } else {
-                            editTextDateParam = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
+                            editTextDateParam = year + "-" + (monthOfYear + 1);
                         }
                         if (dayOfMonth < 10) {
-                            editTextDateParam = year + "-" + (monthOfYear + 1) + "-0" + dayOfMonth;
+                            editTextDateParam += "-0" + dayOfMonth;
                         } else {
-                            editTextDateParam = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
+                            editTextDateParam += "-" + dayOfMonth;
                         }
                         callbackDate = editTextDateParam;
-                        Log.d("mLog", callbackDate);
+                        Log.d(TAG, callbackDate);
                     }
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
@@ -1089,7 +1091,7 @@ public class ClientActivity extends AppCompatActivity {
     };
 
     private void setInitialDateTimeCall() {
-        txtCallback.setText(txtCallback.getText().toString() + " " +
+        txtCallback.setText(callbackDate + " " +
                 DateUtils.formatDateTime(this,
                         dateAndTime.getTimeInMillis(),
                         DateUtils.FORMAT_SHOW_TIME));

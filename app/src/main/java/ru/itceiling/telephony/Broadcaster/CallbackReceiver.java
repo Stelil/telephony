@@ -86,7 +86,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                         }
 
                         long difference = one.getTime() - two.getTime();
-                        int min = (int) (difference / (60 * 1000)); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
+                        int min = (int) (difference / (60 * 1000 )); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
                         if (min == checkTimeCallback) {
 
