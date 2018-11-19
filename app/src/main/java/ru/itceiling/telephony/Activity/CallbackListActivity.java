@@ -176,14 +176,14 @@ public class CallbackListActivity extends AppCompatActivity {
                         callbackDate = "";
                         String editTextDateParam;
                         if (monthOfYear < 9) {
-                            editTextDateParam = year + "-0" + (monthOfYear + 1) + "-" + dayOfMonth;
+                            editTextDateParam = year + "-0" + (monthOfYear + 1) ;
                         } else {
-                            editTextDateParam = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
+                            editTextDateParam = year + "-" + (monthOfYear + 1);
                         }
                         if (dayOfMonth < 10) {
-                            editTextDateParam = year + "-" + (monthOfYear + 1) + "-0" + dayOfMonth;
+                            editTextDateParam = editTextDateParam + "-0" + dayOfMonth;
                         } else {
-                            editTextDateParam = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
+                            editTextDateParam = editTextDateParam + "-" + dayOfMonth;
                         }
                         txtSelectDay.setText(editTextDateParam);
                         callbackDate = editTextDateParam;

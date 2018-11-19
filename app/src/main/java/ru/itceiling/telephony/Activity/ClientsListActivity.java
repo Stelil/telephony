@@ -79,6 +79,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
     @Override
     protected void onResume() {
         super.onResume();
+
         ListClients("");
 
     }
@@ -153,31 +154,37 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                         String phone = phoneClient.getText().toString();
 
                         if (name.length() > 0) {
-
-                            int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
+                            int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
                                     ClientsListActivity.this, dealer_id);
                             String nowDate = HelperClass.now_date();
                             ContentValues values = new ContentValues();
-                            values.put(DBHelper.KEY_ID, maxId);
+                            values.put(DBHelper.KEY_ID, maxIdClient);
                             values.put(DBHelper.KEY_CLIENT_NAME, name);
                             values.put(DBHelper.KEY_TYPE_ID, "1");
                             values.put(DBHelper.KEY_DEALER_ID, dealer_id);
                             values.put(DBHelper.KEY_MANAGER_ID, dealer_id);
                             values.put(DBHelper.KEY_CREATED, nowDate);
                             values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
-                            values.put(DBHelper.KEY_CLIENT_STATUS, "1");
                             values.put(DBHelper.KEY_API_PHONE_ID, "null");
                             db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
 
-                            HelperClass.addHistory("Новый клиент", ClientsListActivity.this, String.valueOf(maxId));
+                            HelperClass.addHistory("Новый клиент", ClientsListActivity.this, String.valueOf(maxIdClient));
+
+                            int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
+                                    ClientsListActivity.this, dealer_id);
+                            values = new ContentValues();
+                            values.put(DBHelper.KEY_ID, maxId);
+                            values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                            values.put(DBHelper.KEY_STATUS_ID, "1");
+                            values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
 
                             if ((phone.length() == 11)) {
                                 int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
                                         ClientsListActivity.this, dealer_id);
-                                nowDate = HelperClass.now_date();
                                 values = new ContentValues();
                                 values.put(DBHelper.KEY_ID, maxIdContacts);
-                                values.put(DBHelper.KEY_CLIENT_ID, maxId);
+                                values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
                                 values.put(DBHelper.KEY_PHONE, HelperClass.phone_edit(phone));
                                 values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
                                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
@@ -200,7 +207,6 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     private void ListClients(String query) {
 
-
         ListView listView = findViewById(R.id.list_client);
         client_mas.clear();
 
@@ -208,13 +214,13 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         Cursor c;
 
         if (!query.equals("")) {
-            sqlQuewy = "SELECT change_time, client_name, client_status, _id "
+            sqlQuewy = "SELECT created, client_name, _id "
                     + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE dealer_id = ? and client_name like '%"+query+"%'";
+                    " WHERE dealer_id = ? and client_name like '%" + query + "%'";
             c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
         } else {
 
-            sqlQuewy = "SELECT change_time, client_name, client_status, _id "
+            sqlQuewy = "SELECT created, client_name, _id "
                     + "FROM rgzbn_gm_ceiling_clients" +
                     " WHERE dealer_id = ?";
             c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
@@ -223,27 +229,39 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
-                    String change_time = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                    String client_status = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    String id_client = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                    String title = null;
+                    String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                    String title = "";
 
-                    sqlQuewy = "SELECT title "
-                            + "FROM rgzbn_gm_ceiling_client_statuses" +
-                            " WHERE _id = ? ";
-                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{client_status});
+                    String client_status = null;
+                    sqlQuewy = "SELECT status_id "
+                            + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
+                            " WHERE client_id = ? ";
+                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
                     if (cc != null) {
                         if (cc.moveToFirst()) {
-                            do {
-                                title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                            } while (cc.moveToNext());
+                            client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
                         }
                     }
                     cc.close();
 
+                    try {
+                        sqlQuewy = "SELECT title "
+                                + "FROM rgzbn_gm_ceiling_clients_statuses" +
+                                " WHERE _id = ? ";
+                        cc = db.rawQuery(sqlQuewy, new String[]{client_status});
+                        if (cc != null) {
+                            if (cc.moveToFirst()) {
+                                title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                            }
+                        }
+                        cc.close();
+                    }catch (Exception e){
+                    }
+
                     AdapterList fc = new AdapterList(id_client,
-                            client_name, title, change_time, null, null);
+                            client_name, title, created, null, null);
                     client_mas.add(fc);
 
                 } while (c.moveToNext());
@@ -287,4 +305,5 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
             }
         });
     }
+
 }

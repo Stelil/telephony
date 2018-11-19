@@ -40,6 +40,7 @@ import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -110,9 +111,8 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private void info() {
-        String client_status = "";
         String api_phone_id = "";
-        String sqlQuewy = "SELECT client_name, client_status, api_phone_id "
+        String sqlQuewy = "SELECT client_name, api_phone_id "
                 + "FROM rgzbn_gm_ceiling_clients" +
                 " WHERE _id = ? ";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{id_client});
@@ -121,35 +121,51 @@ public class ClientActivity extends AppCompatActivity {
                 String client_name = c.getString(c.getColumnIndex(c.getColumnName(0)));
                 nameClient.setText(client_name);
 
-                client_status = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                api_phone_id = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                api_phone_id = c.getString(c.getColumnIndex(c.getColumnName(1)));
             }
         }
         c.close();
 
-        sqlQuewy = "SELECT title "
-                + "FROM rgzbn_gm_ceiling_client_statuses" +
-                " WHERE _id = ? ";
-        c = db.rawQuery(sqlQuewy, new String[]{client_status});
+        sqlQuewy = "SELECT status_id "
+                + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
+                " WHERE client_id = ? ";
+        c = db.rawQuery(sqlQuewy, new String[]{id_client});
         if (c != null) {
             if (c.moveToFirst()) {
-                String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                txtStatusOfClient.setText(title);
+                String status_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+
+                sqlQuewy = "SELECT title "
+                        + "FROM rgzbn_gm_ceiling_clients_statuses" +
+                        " WHERE _id = ? ";
+                c = db.rawQuery(sqlQuewy, new String[]{status_id});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                        txtStatusOfClient.setText(title);
+                    }
+                }
+                c.close();
             }
         }
         c.close();
 
-        sqlQuewy = "SELECT name "
-                + "FROM rgzbn_gm_ceiling_api_phones" +
-                " WHERE _id = ? ";
-        c = db.rawQuery(sqlQuewy, new String[]{api_phone_id});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                txtApiPhone.setText(title);
+
+        try {
+            sqlQuewy = "SELECT name "
+                    + "FROM rgzbn_gm_ceiling_api_phones" +
+                    " WHERE _id = ? ";
+            c = db.rawQuery(sqlQuewy, new String[]{api_phone_id});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    txtApiPhone.setText(title);
+                }
             }
+            c.close();
+        } catch (Exception e) {
+            txtApiPhone.setText("");
         }
-        c.close();
+
     }
 
     private void historyClient() {
@@ -606,7 +622,7 @@ public class ClientActivity extends AppCompatActivity {
         final ListView listView = (ListView) promptsView.findViewById(R.id.listView);
 
         String sqlQuewy = "select _id, title "
-                + "FROM rgzbn_gm_ceiling_client_statuses";
+                + "FROM rgzbn_gm_ceiling_clients_statuses";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -633,17 +649,17 @@ public class ClientActivity extends AppCompatActivity {
 
                     arrayList.clear();
 
-                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_client_statuses", context, dealer_id);
+                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses", context, dealer_id);
 
                     ContentValues values = new ContentValues();
                     values.put(DBHelper.KEY_ID, maxId);
                     values.put(DBHelper.KEY_TITLE, editText.getText().toString());
                     values.put(DBHelper.KEY_DEALER_ID, dealer_id);
                     values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
-                    db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_STATUSES, null, values);
+                    db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
 
                     String sqlQuewy = "select _id, title "
-                            + "FROM rgzbn_gm_ceiling_client_statuses ";
+                            + "FROM rgzbn_gm_ceiling_clients_statuses ";
                     Cursor c = db.rawQuery(sqlQuewy, new String[]{});
                     if (c != null) {
                         if (c.moveToFirst()) {
@@ -703,7 +719,7 @@ public class ClientActivity extends AppCompatActivity {
 
                 int idStatus = 0;
                 String sqlQuewy = "select _id "
-                        + "FROM rgzbn_gm_ceiling_client_statuses " +
+                        + "FROM rgzbn_gm_ceiling_clients_statuses " +
                         "where title = ?";
                 Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(((TextView) itemClicked).getText())});
                 if (c != null) {
@@ -716,11 +732,39 @@ public class ClientActivity extends AppCompatActivity {
                     c.close();
                 }
 
+                Log.d(TAG, "idStatus: " + idStatus);
                 ContentValues values = new ContentValues();
-                values.put(DBHelper.KEY_CLIENT_STATUS, idStatus);
-                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values,
-                        "_id = ?",
-                        new String[]{id_client});
+                int count = 0;
+                sqlQuewy = "SELECT * "
+                        + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
+                        " WHERE _id = ?";
+                c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(idStatus)});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        do {
+                            Log.d(TAG, "idStatus: " + idStatus);
+                            values.put(DBHelper.KEY_STATUS_ID, idStatus);
+                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values,
+                                    "client_id = ?",
+                                    new String[]{id_client});
+                            count++;
+                        } while (c.moveToNext());
+                    }
+                }
+                c.close();
+
+                if (count == 0) {
+                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
+                            ClientActivity.this,
+                            dealer_id);
+                    values.put(DBHelper.KEY_ID, maxId);
+                    values.put(DBHelper.KEY_CLIENT_ID, id_client);
+                    values.put(DBHelper.KEY_STATUS_ID, idStatus);
+                    values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                    db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
+                    Log.d(TAG, "maxId: " + maxId);
+                }
 
                 Toast.makeText(getApplicationContext(), "Статус изменён",
                         Toast.LENGTH_SHORT).show();

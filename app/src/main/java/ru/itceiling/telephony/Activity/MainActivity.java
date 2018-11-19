@@ -6,6 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -24,21 +25,17 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
+import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -60,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     private String fileName;
     File audiofile;
 
+    private ImportDataReceiver importDataReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,7 +71,19 @@ public class MainActivity extends AppCompatActivity {
         registerCallbackReceiver();
     }
 
-    public void registerReceiver(){
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        importDataReceiver = new ImportDataReceiver();
+
+        if (importDataReceiver != null) {
+            importDataReceiver.SetAlarm(this);
+        }
+
+    }
+
+    public void registerReceiver() {
         callRecv = new CallReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
@@ -81,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void registerCallbackReceiver(){
+    private void registerCallbackReceiver() {
 
         callbackReceiver = new CallbackReceiver();
 
@@ -91,22 +102,22 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void onButtonRecall(View view){
+    public void onButtonRecall(View view) {
         Intent intent = new Intent(this, CallbackListActivity.class);
         startActivity(intent);
     }
 
-    public void onButtonClients(View view){
+    public void onButtonClients(View view) {
         Intent intent = new Intent(this, ClientsListActivity.class);
         startActivity(intent);
     }
 
-    public void onButtonAnalytics(View view){
+    public void onButtonAnalytics(View view) {
         Intent intent = new Intent(this, AnalyticsActivity.class);
         startActivity(intent);
     }
 
-    public void onButtonSettings(View view){
+    public void onButtonSettings(View view) {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
@@ -119,9 +130,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
         } else {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.PROCESS_OUTGOING_CALLS,
-                            Manifest.permission.READ_PHONE_STATE, Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAPTURE_AUDIO_OUTPUT},
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.PROCESS_OUTGOING_CALLS,
+                            Manifest.permission.READ_PHONE_STATE,
+                            Manifest.permission.RECORD_AUDIO,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.CAPTURE_AUDIO_OUTPUT,
+                            Manifest.permission.INTERNET},
                     1);
         }
 
@@ -148,8 +162,28 @@ public class MainActivity extends AppCompatActivity {
                 ed = SP.edit();
                 ed.putString("", String.valueOf(jsonObject));
                 ed.commit();
+
+                SP = getSharedPreferences("link", MODE_PRIVATE);
+                ed = SP.edit();
+                ed.putString("", "test1");
+                ed.commit();
+
+                String sqlQuewy = "SELECT change_time "
+                        + "FROM history_import_to_server";
+                Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+
+                    } else {
+                        ContentValues values = new ContentValues();
+                        values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
+                        values.put(DBHelper.KEY_USER_ID, "138");
+                        db.insert(DBHelper.HISTORY_IMPORT_TO_SERVER, null, values);
+                    }
+                }
+
             }
-        }catch (Exception e){
+        } catch (Exception e) {
         }
 
         try {
@@ -343,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
         int min = (int) (difference / (60 * 1000)); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
 
-        if(min==checkTime){
+        if (min == checkTime) {
 
             phoneNumber = phoneNumber.substring(1, phoneNumber.length());
             int id = 0;
