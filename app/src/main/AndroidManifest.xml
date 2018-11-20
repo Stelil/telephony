@@ -55,7 +55,8 @@
         <receiver
             android:name=".Broadcaster.CallbackReceiver"
             android:enabled="true" />
-        <receiver android:name=".Broadcaster.ImportDataReceiver"/>
+        <receiver android:name=".Broadcaster.ImportDataReceiver"
+            android:enabled="true"/>
 
     </application>
 

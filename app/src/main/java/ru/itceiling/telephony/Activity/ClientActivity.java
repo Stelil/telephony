@@ -630,8 +630,8 @@ public class ClientActivity extends AppCompatActivity {
                     String idd = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String title = c.getString(c.getColumnIndex(c.getColumnName(1)));
 
+                    Log.d(TAG, "id: " + idd + " " + "title " + title);
                     arrayList.add(title);
-
                 } while (c.moveToNext());
             }
             c.close();
@@ -648,9 +648,7 @@ public class ClientActivity extends AppCompatActivity {
                 if (editText.getText().toString().length() > 0) {
 
                     arrayList.clear();
-
                     int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses", context, dealer_id);
-
                     ContentValues values = new ContentValues();
                     values.put(DBHelper.KEY_ID, maxId);
                     values.put(DBHelper.KEY_TITLE, editText.getText().toString());
@@ -664,19 +662,17 @@ public class ClientActivity extends AppCompatActivity {
                     if (c != null) {
                         if (c.moveToFirst()) {
                             do {
-
                                 String idd = c.getString(c.getColumnIndex(c.getColumnName(0)));
                                 String title = c.getString(c.getColumnIndex(c.getColumnName(1)));
 
+                                Log.d(TAG, "id: " + idd + " " + "title " + title);
                                 arrayList.add(title);
-
                             } while (c.moveToNext());
                         }
                         c.close();
                     }
 
                     String[] array = arrayList.toArray(new String[0]);
-
                     ArrayAdapter<String> adapter = new ArrayAdapter<String>(context,
                             android.R.layout.simple_list_item_1, array);
                     listView.setAdapter(adapter);
@@ -726,30 +722,25 @@ public class ClientActivity extends AppCompatActivity {
                     if (c.moveToFirst()) {
                         do {
                             idStatus = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-
                         } while (c.moveToNext());
                     }
                     c.close();
                 }
 
-                Log.d(TAG, "idStatus: " + idStatus);
                 ContentValues values = new ContentValues();
                 int count = 0;
                 sqlQuewy = "SELECT * "
                         + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                        " WHERE _id = ?";
-                c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(idStatus)});
+                        " WHERE client_id = ?";
+                c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id_client)});
                 if (c != null) {
                     if (c.moveToFirst()) {
-                        do {
-                            Log.d(TAG, "idStatus: " + idStatus);
-                            values.put(DBHelper.KEY_STATUS_ID, idStatus);
-                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
-                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values,
-                                    "client_id = ?",
-                                    new String[]{id_client});
-                            count++;
-                        } while (c.moveToNext());
+                        values.put(DBHelper.KEY_STATUS_ID, idStatus);
+                        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values,
+                                "client_id = ?",
+                                new String[]{id_client});
+                        count++;
                     }
                 }
                 c.close();
@@ -763,7 +754,6 @@ public class ClientActivity extends AppCompatActivity {
                     values.put(DBHelper.KEY_STATUS_ID, idStatus);
                     values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                     db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
-                    Log.d(TAG, "maxId: " + maxId);
                 }
 
                 Toast.makeText(getApplicationContext(), "Статус изменён",
@@ -771,6 +761,7 @@ public class ClientActivity extends AppCompatActivity {
 
                 info();
                 Alertdialog.dismiss();
+
             }
         });
     }

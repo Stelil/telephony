@@ -164,19 +164,6 @@ public class AnalyticsActivity extends AppCompatActivity {
         analyticsTable.removeAllViews();
         txtList.clear();
 
-        //int countClients = 0;
-        //String sqlQuewy = "select count(_id) "
-        //        + "FROM rgzbn_gm_ceiling_clients ";
-        //Cursor c = db.rawQuery(sqlQuewy, new String[]{});
-        //if (c != null) {
-        //    if (c.moveToFirst()) {
-        //        do {
-        //            countClients = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-        //        } while (c.moveToNext());
-        //    }
-        //}
-        //c.close();
-
         int countStatuses = 0;
         String sqlQuewy = "select count(_id) "
                 + "FROM rgzbn_gm_ceiling_clients_statuses ";
