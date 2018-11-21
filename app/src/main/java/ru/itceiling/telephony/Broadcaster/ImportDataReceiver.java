@@ -51,6 +51,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
         SharedPreferences SP = context.getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
 
+        Log.d(TAG, "onReceive: run !");
         int count = 0;
 
         dbHelper = new DBHelper(context);
