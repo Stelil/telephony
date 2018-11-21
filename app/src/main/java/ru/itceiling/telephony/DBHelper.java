@@ -112,23 +112,19 @@ public class DBHelper extends SQLiteOpenHelper {
                 "client_id INTEGER, phone TEXT, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_dop_contacts (_id INTEGER PRIMARY KEY, " +
-                "client_id INTEGER, type_id INTEGER, contact TEXT)");
+                "client_id INTEGER, type_id INTEGER, contact TEXT, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_client_history (_id INTEGER PRIMARY KEY, " +
                 "client_id INTEGER, date_time TEXT, text TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status_history (_id INTEGER PRIMARY KEY, " +
-                "manager_id INTEGER, client_id INTEGER, status INTEGER, date_time TEXT, call_length TEXT)");
-
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_callback (_id INTEGER PRIMARY KEY, " +
                 "client_id INTEGER, date_time TEXT, comment TEXT, manager_id INTEGER, notify INTEGER)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_users (_id INTEGER PRIMARY KEY, " +
-                "name TEXT, username TEXT, email TEXT, password TEXT, dealer_id INTEGER, associated_client TEXT," +
-                "dealer_type INTEGER, refused_to_cooperate INTEGER, block INTEGER, sendEmail INTEGER, registerDate TEXT, " +
-                "lastvisitDate TEXT, activation TEXT, params TEXT, lastResetTime TEXT, resetCount INTEGER, otpKey TEXT," +
-                " otep TEXT, requireReset INTEGER, discount INTEGER,  wages TEXT, change_time TEXT, dealer_mounters INTEGER," +
-                " demo_end_date TEXT)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses_map (_id INTEGER PRIMARY KEY, " +
+                " client_id TEXT, status_id TEXT, change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status_history (_id INTEGER PRIMARY KEY, " +
+                "manager_id INTEGER, client_id INTEGER, status INTEGER, date_time TEXT, call_length TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status (_id INTEGER PRIMARY KEY, title TEXT)");
 
@@ -138,8 +134,12 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_api_phones (_id INTEGER PRIMARY KEY, number TEXT," +
                 " name TEXT, description TEXT, site TEXT, dealer_id INTEGER, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses_map (_id INTEGER PRIMARY KEY, " +
-                " client_id TEXT, status_id TEXT, change_time TEXT)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_users (_id INTEGER PRIMARY KEY, " +
+                "name TEXT, username TEXT, email TEXT, password TEXT, dealer_id INTEGER, associated_client TEXT," +
+                "dealer_type INTEGER, refused_to_cooperate INTEGER, block INTEGER, sendEmail INTEGER, registerDate TEXT, " +
+                "lastvisitDate TEXT, activation TEXT, params TEXT, lastResetTime TEXT, resetCount INTEGER, otpKey TEXT," +
+                " otep TEXT, requireReset INTEGER, discount INTEGER,  wages TEXT, change_time TEXT, dealer_mounters INTEGER," +
+                " demo_end_date TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS history_import_to_server (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "user_id INTEGER, title TEXT, change_time TEXT)");
@@ -147,7 +147,6 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS history_send_to_server (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "id_new INTEGER, id_old INTEGER, name_table TEXT, sync INTEGER, type TEXT, date TEXT, date_sync TEXT, " +
                 "status TEXT)");
-
 
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, 1);

@@ -141,4 +141,31 @@ public class HelperClass {
 
     }
 
+    public static int countColumns(Context context, String table_name) {
+
+        int count = 0;
+        String sql = "";
+
+        DBHelper dbHelper = new DBHelper(context);
+        SQLiteDatabase db;
+        db = dbHelper.getWritableDatabase();
+
+        String sqlQuewy = "SELECT sql " +
+                "FROM sqlite_master " +
+                "WHERE tbl_name = '" + table_name + "' ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    sql = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        count = sql.length() - sql.replace(",", "").length() + 1;
+
+        return count;
+    }
+
 }

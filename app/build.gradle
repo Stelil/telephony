@@ -45,4 +45,3 @@ dependencies {
     implementation 'com.github.amigold.fundapter:library:1.0'
     implementation 'com.android.volley:volley:1.0.0'
 }
-
