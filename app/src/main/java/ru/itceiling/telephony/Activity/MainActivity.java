@@ -35,6 +35,7 @@ import java.util.Date;
 
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
+import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     File audiofile;
 
     private ImportDataReceiver importDataReceiver;
+    private ExportDataReceiver exportDataReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,11 +78,14 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         importDataReceiver = new ImportDataReceiver();
-
         if (importDataReceiver != null) {
             importDataReceiver.SetAlarm(this);
         }
 
+        exportDataReceiver = new ExportDataReceiver();
+        if (exportDataReceiver != null) {
+            exportDataReceiver.SetAlarm(this);
+        }
     }
 
     public void registerReceiver() {

@@ -941,6 +941,11 @@ public class ClientActivity extends AppCompatActivity {
                                         Toast toast = Toast.makeText(context.getApplicationContext(),
                                                 "Имя изменено ", Toast.LENGTH_SHORT);
                                         toast.show();
+
+                                        HelperClass.addExportData(
+                                                ClientActivity.this,
+                                                Integer.parseInt(id_client),
+                                                "rgzbn_gm_ceiling_clients");
                                     }
                                 } else {
                                     Toast toast = Toast.makeText(context.getApplicationContext(),

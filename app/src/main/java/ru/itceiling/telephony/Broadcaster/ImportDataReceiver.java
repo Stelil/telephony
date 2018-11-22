@@ -37,7 +37,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
     static DBHelper dbHelper;
     static SQLiteDatabase db;
     static String domen = "",
-            TAG = "chats",
+            TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
             sync_import = "";
@@ -51,7 +51,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
         SharedPreferences SP = context.getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
 
-        Log.d(TAG, "onReceive: run !");
+        Log.v(TAG, "ImportDataReceiver started!");
         int count = 0;
 
         dbHelper = new DBHelper(context);
@@ -99,6 +99,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
         }
     }
 
+
     public void SetAlarm(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, ImportDataReceiver.class);
@@ -107,12 +108,13 @@ public class ImportDataReceiver extends BroadcastReceiver {
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 1000 * 60, pi);
     }
 
-    public void CancelAlarm(Context context){
-        Intent intent=new Intent(context, ImportDataReceiver.class);
-        PendingIntent sender= PendingIntent.getBroadcast(context,0, intent,0);
-        AlarmManager alarmManager=(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+    public void CancelAlarm(Context context) {
+        Intent intent = new Intent(context, ImportDataReceiver.class);
+        PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);
     }
+
 
     static class ImportDate extends AsyncTask<Void, Void, Void> {
 
@@ -262,10 +264,10 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                 org.json.JSONObject client_dop_contact = rgzbn_gm_ceiling_clients_dop_contacts.getJSONObject(i);
 
                                 count = 0;
-                                String id = client_dop_contact .getString("id");
-                                String client_id = client_dop_contact .getString("client_id");
-                                String type_id = client_dop_contact .getString("type_id");
-                                String contact = client_dop_contact .getString("contact");
+                                String id = client_dop_contact.getString("id");
+                                String client_id = client_dop_contact.getString("client_id");
+                                String type_id = client_dop_contact.getString("type_id");
+                                String contact = client_dop_contact.getString("contact");
 
                                 values.put(DBHelper.KEY_ID, id);
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);

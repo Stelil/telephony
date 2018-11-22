@@ -43,6 +43,8 @@
             android:screenOrientation="portrait" />
         <activity android:name=".Activity.AnalyticsActivity" />
 
+        <activity android:name=".Activity.AuthorizationActivity"></activity>
+
         <receiver
             android:name=".Broadcaster.CallReceiver"
             android:enabled="true">
@@ -56,7 +58,8 @@
             android:enabled="true" />
         <receiver android:name=".Broadcaster.ImportDataReceiver" />
 
-        <activity android:name=".Activity.AuthorizationActivity"></activity>
+        <receiver android:name=".Broadcaster.ExportDataReceiver" />
+
     </application>
 
 </manifest>
