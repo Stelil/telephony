@@ -19,6 +19,8 @@ import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ru.itceiling.telephony.Activity.ClientActivity;
+
 import static android.content.Context.MODE_PRIVATE;
 
 public class HelperClass {
@@ -47,6 +49,7 @@ public class HelperClass {
         } catch (Exception e) {
             max_id = Integer.parseInt(dealer_id) * 100000 + 1;
         }
+
         return max_id;
     }
 
@@ -90,33 +93,20 @@ public class HelperClass {
         SharedPreferences SPI = context.getSharedPreferences("dealer_id", MODE_PRIVATE);
         String dealer_id = SPI.getString("", "");
 
-        int max_id = 0;
-        try {
-            String sqlQuewy = "select MAX(_id) "
-                    + "FROM rgzbn_gm_ceiling_client_history " +
-                    "where _id>? and _id<?";
-            Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(Integer.parseInt(dealer_id) * 100000),
-                    String.valueOf(Integer.parseInt(dealer_id) * 100000 + 999999)});
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    do {
-                        max_id = Integer.parseInt(c.getString(c.getColumnIndex(c.getColumnName(0))));
-                        max_id++;
-                    } while (c.moveToNext());
-                }
-            }
-        } catch (Exception e) {
-            max_id = Integer.parseInt(dealer_id) * 100000 + 1;
-        }
+        int max_id = lastIdTable("rgzbn_gm_ceiling_client_history", context, dealer_id);
 
         String date = HelperClass.now_date();
-
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, max_id);
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
         values.put(DBHelper.KEY_DATE_TIME, date);
         values.put(DBHelper.KEY_TEXT, text);
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
+
+        HelperClass.addExportData(
+                context,
+                max_id,
+                "rgzbn_gm_ceiling_client_history");
 
     }
 
@@ -138,6 +128,11 @@ public class HelperClass {
         values.put(DBHelper.KEY_MANAGER_ID, "");
         values.put(DBHelper.KEY_NOTIFY, "");
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, null, values);
+
+        HelperClass.addExportData(
+                context,
+                max_id,
+                "rgzbn_gm_ceiling_callback");
 
     }
 

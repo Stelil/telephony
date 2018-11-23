@@ -152,10 +152,12 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(DBHelper.KEY_ID, 1);
         values.put(DBHelper.KEY_TITLE, "Исходящий недозвон");
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+
         values = new ContentValues();
         values.put(DBHelper.KEY_ID, 2);
         values.put(DBHelper.KEY_TITLE, "Исходящий дозвон");
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+
         values = new ContentValues();
         values.put(DBHelper.KEY_ID, 3);
         values.put(DBHelper.KEY_TITLE, "Входящий звонок");

@@ -121,7 +121,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                         .setDefaults(Notification.DEFAULT_ALL)
                                         .setSmallIcon(R.raw.icon_notif)
                                         .setAutoCancel(true)
-                                        .addAction(R.raw.plus, "Позвонить", resultPendingIntent)
+                                        .addAction(R.raw.icon_notif, "Позвонить", resultPendingIntent)
                                         .setStyle(new Notification.BigTextStyle().bigText(message))
                                         .setContentTitle("Планер звонков")
                                         .setContentText(message)
@@ -142,7 +142,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                                 .setDefaults(Notification.DEFAULT_ALL)
                                                 .setSmallIcon(R.raw.icon_notif)
                                                 .setAutoCancel(true)
-                                                .addAction(R.raw.plus, "Позвонить", resultPendingIntent)
+                                                .addAction(R.raw.icon_notif, "Позвонить", resultPendingIntent)
                                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                                                 .setContentTitle("Планер звонков")
                                                 .setContentText(message);

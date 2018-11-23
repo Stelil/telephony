@@ -90,7 +90,6 @@ public class ImportDataReceiver extends BroadcastReceiver {
             }
             c.close();
 
-
             jsonSync_Import.put("change_time", change_time_global);
             jsonSync_Import.put("dealer_id", user_id);
             sync_import = String.valueOf(jsonSync_Import);
@@ -538,6 +537,52 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                 }
                             }
 
+                            JSONArray rgzbn_gm_ceiling_clients_statuses_map = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_statuses_map");
+                            for (int i = 0; i < rgzbn_gm_ceiling_clients_statuses_map.length(); i++) {
+
+                                values = new ContentValues();
+                                org.json.JSONObject status = rgzbn_gm_ceiling_clients_statuses_map.getJSONObject(i);
+
+                                count = 0;
+                                String id = status.getString("id");
+                                String client_id = status.getString("client_id");
+                                String status_id = status.getString("status_id");
+                                String change_time = status.getString("change_time");
+
+                                values.put(DBHelper.KEY_CLIENT_ID, client_id);
+                                values.put(DBHelper.KEY_STATUS_ID, status_id);
+
+                                String sqlQuewy = "SELECT * "
+                                        + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
+                                        " WHERE _id = ?";
+                                Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+                                if (c != null) {
+                                    if (c.moveToFirst()) {
+                                        do {
+                                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values,
+                                                    "_id = ?", new String[]{id});
+                                            count++;
+                                            Date change = ft.parse(change_time);
+                                            if (change_max.getTime() < change.getTime()) {
+                                                change_max = change;
+                                            }
+                                        } while (c.moveToNext());
+                                    }
+                                }
+                                c.close();
+                                if (count == 0) {
+                                    try {
+                                        values.put(DBHelper.KEY_ID, id);
+                                        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
+                                        Date change = ft.parse(change_time);
+                                        if (change_max.getTime() < change.getTime()) {
+                                            change_max = change;
+                                        }
+                                    } catch (Exception e) {
+                                    }
+                                }
+                            }
+
                             JSONArray rgzbn_gm_ceiling_api_phones = jsonObject.getJSONArray("rgzbn_gm_ceiling_api_phones");
                             for (int i = 0; i < rgzbn_gm_ceiling_api_phones.length(); i++) {
 
@@ -596,6 +641,8 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             values = new ContentValues();
                             values.put(DBHelper.KEY_CHANGE_TIME, String.valueOf(out_format.format(change_max)));
                             db.update(DBHelper.HISTORY_IMPORT_TO_SERVER, values, "user_id = ?", new String[]{user_id});
+
+                            Log.d(TAG, "NEW change_time: " + String.valueOf(out_format.format(change_max)));
 
                         } catch (Exception e) {
                             Log.d(TAG, "onResponse: " + e);

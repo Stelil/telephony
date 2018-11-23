@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -73,6 +74,10 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
             View view = null;
             onButtonAddClient(view);
         }
+
+        ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+        Intent intent = new Intent(this, ExportDataReceiver.class);
+        exportDataReceiver.onReceive(this, intent);
 
     }
 
@@ -168,9 +173,14 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                             values.put(DBHelper.KEY_API_PHONE_ID, "null");
                             db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
 
+                            HelperClass.addExportData(
+                                    context,
+                                    maxIdClient,
+                                    "rgzbn_gm_ceiling_clients");
+
                             HelperClass.addHistory("Новый клиент", ClientsListActivity.this, String.valueOf(maxIdClient));
 
-                            int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
+                            int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
                                     ClientsListActivity.this, dealer_id);
                             values = new ContentValues();
                             values.put(DBHelper.KEY_ID, maxId);
@@ -178,6 +188,11 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                             values.put(DBHelper.KEY_STATUS_ID, "1");
                             values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
                             db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
+
+                            HelperClass.addExportData(
+                                    context,
+                                    maxId,
+                                    "rgzbn_gm_ceiling_clients_statuses_map");
 
                             if ((phone.length() == 11)) {
                                 int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
@@ -188,6 +203,11 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                                 values.put(DBHelper.KEY_PHONE, HelperClass.phone_edit(phone));
                                 values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
                                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+                                HelperClass.addExportData(
+                                        context,
+                                        maxIdContacts,
+                                        "rgzbn_gm_ceiling_clients_contacts");
 
                             }
 
@@ -257,7 +277,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                             }
                         }
                         cc.close();
-                    }catch (Exception e){
+                    } catch (Exception e) {
                     }
 
                     AdapterList fc = new AdapterList(id_client,

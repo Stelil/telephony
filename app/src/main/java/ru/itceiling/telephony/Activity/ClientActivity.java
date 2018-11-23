@@ -91,7 +91,7 @@ public class ClientActivity extends AppCompatActivity {
         nameClient = findViewById(R.id.nameClient);
         phoneClient = findViewById(R.id.phoneClient);
         txtStatusOfClient = findViewById(R.id.txtStatusOfClient);
-        txtApiPhone = findViewById(R.id.txtApiPhone);
+        //txtApiPhone = findViewById(R.id.txtApiPhone);
         txtCallback = findViewById(R.id.txtCallback);
 
         listHistoryClient = findViewById(R.id.listHistoryClient);
@@ -111,6 +111,7 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private void info() {
+
         String api_phone_id = "";
         String sqlQuewy = "SELECT client_name, api_phone_id "
                 + "FROM rgzbn_gm_ceiling_clients" +
@@ -121,10 +122,11 @@ public class ClientActivity extends AppCompatActivity {
                 String client_name = c.getString(c.getColumnIndex(c.getColumnName(0)));
                 nameClient.setText(client_name);
 
-                api_phone_id = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                //api_phone_id = c.getString(c.getColumnIndex(c.getColumnName(1)));
             }
         }
         c.close();
+
 
         sqlQuewy = "SELECT status_id "
                 + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
@@ -149,7 +151,7 @@ public class ClientActivity extends AppCompatActivity {
         }
         c.close();
 
-
+        /*
         try {
             sqlQuewy = "SELECT name "
                     + "FROM rgzbn_gm_ceiling_api_phones" +
@@ -165,6 +167,7 @@ public class ClientActivity extends AppCompatActivity {
         } catch (Exception e) {
             txtApiPhone.setText("");
         }
+        */
 
     }
 
@@ -629,8 +632,6 @@ public class ClientActivity extends AppCompatActivity {
                 do {
                     String idd = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String title = c.getString(c.getColumnIndex(c.getColumnName(1)));
-
-                    Log.d(TAG, "id: " + idd + " " + "title " + title);
                     arrayList.add(title);
                 } while (c.moveToNext());
             }
@@ -656,6 +657,11 @@ public class ClientActivity extends AppCompatActivity {
                     values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                     db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
 
+                    HelperClass.addExportData(
+                            ClientActivity.this,
+                            maxId,
+                            "rgzbn_gm_ceiling_clients_statuses");
+
                     String sqlQuewy = "select _id, title "
                             + "FROM rgzbn_gm_ceiling_clients_statuses ";
                     Cursor c = db.rawQuery(sqlQuewy, new String[]{});
@@ -664,8 +670,6 @@ public class ClientActivity extends AppCompatActivity {
                             do {
                                 String idd = c.getString(c.getColumnIndex(c.getColumnName(0)));
                                 String title = c.getString(c.getColumnIndex(c.getColumnName(1)));
-
-                                Log.d(TAG, "id: " + idd + " " + "title " + title);
                                 arrayList.add(title);
                             } while (c.moveToNext());
                         }
@@ -735,12 +739,20 @@ public class ClientActivity extends AppCompatActivity {
                 c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id_client)});
                 if (c != null) {
                     if (c.moveToFirst()) {
+
+                        int idStatusesMap = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+
                         values.put(DBHelper.KEY_STATUS_ID, idStatus);
                         values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                         db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values,
                                 "client_id = ?",
                                 new String[]{id_client});
                         count++;
+
+                        HelperClass.addExportData(
+                                ClientActivity.this,
+                                idStatusesMap,
+                                "rgzbn_gm_ceiling_clients_statuses_map");
                     }
                 }
                 c.close();
@@ -754,6 +766,11 @@ public class ClientActivity extends AppCompatActivity {
                     values.put(DBHelper.KEY_STATUS_ID, idStatus);
                     values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                     db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
+
+                    HelperClass.addExportData(
+                            ClientActivity.this,
+                            maxId,
+                            "rgzbn_gm_ceiling_clients_statuses_map");
                 }
 
                 Toast.makeText(getApplicationContext(), "Статус изменён",
@@ -766,6 +783,7 @@ public class ClientActivity extends AppCompatActivity {
         });
     }
 
+    /*
     public void onButtonEditApiPhone(View view) {
         final Context context = ClientActivity.this;
         DBHelper dbHelper = new DBHelper(context);
@@ -787,9 +805,7 @@ public class ClientActivity extends AppCompatActivity {
             if (c.moveToFirst()) {
                 do {
                     String name = c.getString(c.getColumnIndex(c.getColumnName(0)));
-
                     arrayList.add(name);
-
                 } while (c.moveToNext());
             }
             c.close();
@@ -814,6 +830,11 @@ public class ClientActivity extends AppCompatActivity {
                     values.put(DBHelper.KEY_NAME, editText.getText().toString());
                     values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                     db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_API_PHONES, null, values);
+
+                    HelperClass.addExportData(
+                            ClientActivity.this,
+                            maxId,
+                            "rgzbn_gm_ceiling_api_phones");
 
                     String sqlQuewy = "select name "
                             + "FROM rgzbn_gm_ceiling_api_phones ";
@@ -900,6 +921,7 @@ public class ClientActivity extends AppCompatActivity {
             }
         });
     }
+    */
 
     public void onButtonEditNameClient(View view) {
         final Context context = ClientActivity.this;
@@ -996,7 +1018,14 @@ public class ClientActivity extends AppCompatActivity {
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
                 values.put(DBHelper.KEY_TYPE_ID, "1");
                 values.put(DBHelper.KEY_CONTACT, email);
+                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, null, values);
+
+                HelperClass.addExportData(
+                        ClientActivity.this,
+                        maxId,
+                        "rgzbn_gm_ceiling_clients_dop_contacts");
+
             } catch (Exception e) {
                 Log.d("logd", "error: " + e);
             }
@@ -1021,7 +1050,14 @@ public class ClientActivity extends AppCompatActivity {
                 values.put(DBHelper.KEY_ID, maxId);
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
                 values.put(DBHelper.KEY_PHONE, phone);
+                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+                HelperClass.addExportData(
+                        ClientActivity.this,
+                        maxId,
+                        "rgzbn_gm_ceiling_clients_contacts");
+
             } catch (Exception e) {
                 Log.d("logd", "error: " + e);
             }

@@ -40,45 +40,45 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginTop="10dp"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
                 android:paddingLeft="6dp"
                 android:text="Почты клиента"
                 android:textColor="#000"
-                android:textStyle="bold"
-                android:layout_weight="2"/>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/layoutEmailClient"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="10dp"
+                android:layout_weight="1"
                 android:gravity="center|left"
                 android:orientation="vertical"
-                android:layout_weight="1"/>
+                android:paddingLeft="10dp" />
 
             <ImageButton
-                android:onClick="onButtonVisibleEmail"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:background="@drawable/without_corners_text"
+                android:onClick="onButtonVisibleEmail"
                 android:scaleType="fitCenter"
                 android:src="@raw/plus" />
 
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/linearEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
             android:gravity="center"
-            android:id="@+id/linearEmail"
-            android:visibility="gone"
-            android:layout_marginTop="5dp">
+            android:visibility="gone">
 
             <EditText
                 android:id="@+id/addEmailClient"
@@ -89,7 +89,8 @@
                 android:background="@drawable/blue_corners_text"
                 android:gravity="center"
                 android:hint="Добавить почту(ххх@xx.xx)"
-                android:inputType="textEmailAddress" >
+                android:inputType="textEmailAddress">
+
                 <requestFocus />
             </EditText>
 
@@ -109,45 +110,45 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginTop="10dp"
             android:gravity="center"
-            android:layout_marginTop="10dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
                 android:paddingLeft="6dp"
                 android:text="Телефоны клиента"
                 android:textColor="#000"
-                android:textStyle="bold"
-                android:layout_weight="2"/>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/layoutPhonesClient"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="center|left"
-                android:paddingLeft="10dp"
                 android:orientation="vertical"
-                android:layout_weight="1"/>
+                android:paddingLeft="10dp" />
 
             <ImageButton
-                android:onClick="onButtonVisiblePhones"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:background="@drawable/without_corners_text"
+                android:onClick="onButtonVisiblePhones"
                 android:scaleType="fitCenter"
                 android:src="@raw/plus" />
 
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/linearPhones"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
             android:gravity="center"
-            android:id="@+id/linearPhones"
-            android:visibility="gone"
-            android:layout_marginTop="5dp">
+            android:visibility="gone">
 
             <EditText
                 android:id="@+id/addPhoneClient"
@@ -155,11 +156,11 @@
                 android:layout_height="30dp"
                 android:layout_marginRight="5dp"
                 android:layout_weight="1"
-                android:maxLength="11"
                 android:background="@drawable/blue_corners_text"
                 android:gravity="center"
                 android:hint="Добавить номер(7хххххххххх)"
-                android:inputType="number" />
+                android:inputType="number"
+                android:maxLength="11" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -177,18 +178,18 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="10dp"
+            android:gravity="center">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
                 android:gravity="left"
                 android:paddingLeft="6dp"
                 android:text="Статус"
                 android:textColor="#000"
-                android:textStyle="bold"
-                android:layout_weight="2"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtStatusOfClient"
@@ -213,6 +214,7 @@
 
         </LinearLayout>
 
+        <!--
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -251,6 +253,7 @@
                 android:textColor="#fff" />
 
         </LinearLayout>
+        -->
 
         <TextView
             android:layout_width="match_parent"
@@ -272,9 +275,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:layout_marginTop="5dp"
-                android:stackFromBottom="true"
                 android:paddingLeft="6dp"
-                android:paddingRight="5dp"/>
+                android:paddingRight="5dp"
+                android:stackFromBottom="true" />
 
             <View
                 android:layout_width="wrap_content"
@@ -292,9 +295,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:paddingLeft="6dp"
                     android:background="@drawable/without_corners_text"
-                    android:hint="Добавить комментарий" />
+                    android:hint="Добавить комментарий"
+                    android:paddingLeft="6dp" />
 
                 <ImageButton
                     android:layout_width="40dp"
@@ -321,12 +324,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="5dp">
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/txtCallback"
-                android:onClick="onButtonCallback"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_gravity="center"
@@ -335,6 +337,7 @@
                 android:background="@drawable/blue_corners_text"
                 android:gravity="center|left"
                 android:hint="Добавить звонок"
+                android:onClick="onButtonCallback"
                 android:paddingLeft="5dp"
                 android:textColor="#000000" />
 

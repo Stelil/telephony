@@ -614,6 +614,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 } while (cursor.moveToNext());
             } else {
                 // check
+                checkClientsContacts = "[";
                 sqlQuewy = "SELECT id_new "
                         + "FROM history_send_to_server " +
                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
@@ -678,7 +679,9 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                 status = c.getColumnName(c.getColumnIndex(c.getColumnName(3)));
                                 status1 = c.getString(c.getColumnIndex(c.getColumnName(3)));
                                 jsonObjectClientDopContacts.put(status, status1);
-
+                                status = c.getColumnName(c.getColumnIndex(c.getColumnName(4)));
+                                status1 = c.getString(c.getColumnIndex(c.getColumnName(4)));
+                                jsonObjectClientDopContacts.put(status, status1);
                                 sendClientDopContacts += String.valueOf(jsonObjectClientDopContacts) + ",";
 
                             } while (c.moveToNext());
@@ -693,6 +696,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 } while (cursor.moveToNext());
             } else {
                 // check
+                checkClientsDopContacts = "[";
                 sqlQuewy = "SELECT id_new "
                         + "FROM history_send_to_server " +
                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
@@ -1225,7 +1229,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             }
 
                             // check
-                            checkClientsContacts = "]";
+                            checkClientsContacts = "[";
                             String sqlQuewy = "SELECT id_new "
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
@@ -1414,7 +1418,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             }
 
                             // check
-                            checkClientsDopContacts = "]";
+                            checkClientsDopContacts = "[";
                             String sqlQuewy = "SELECT id_new "
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
@@ -1790,7 +1794,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                 }
                             }
                             checkCallback = checkCallback.substring(0, checkCallback.length() - 1) + "]";
-                            Log.d(TAG, "checkCallback " + checkCallback);
                             if (checkCallback.equals("]")) {
                             } else {
                                 new CheckCallback().execute();
@@ -2354,6 +2357,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
                     parameters.put("rgzbn_gm_ceiling_clients_statuses_map", sendClientStatusMap);
+                    Log.d(TAG, "SEND rgzbn_gm_ceiling_clients_statuses_map: " + sendClientStatusMap);
                     return parameters;
                 }
             };
@@ -2380,8 +2384,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 public void onResponse(String res) {
 
-                    if (res.equals("") || res.equals("\u041e\u0448\u0438\u0431\u043a\u0430!")) {
-                    }
                     SQLiteDatabase db;
                     db = dbHelper.getWritableDatabase();
                     ContentValues values = new ContentValues();
@@ -2401,13 +2403,11 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
                                     do {
-
                                         values = new ContentValues();
                                         values.put(DBHelper.KEY_SYNC, "1");
-                                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values,
+                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
                                                 "id_new = ? and name_table=? and sync=?",
                                                 new String[]{new_id, "rgzbn_gm_ceiling_clients_statuses_map", "0"});
-
                                     } while (cursor.moveToNext());
                                 }
                             }
@@ -2415,7 +2415,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
                         }
                     } catch (Exception e) {
                     }
-
                     delete();
                 }
             }, new Response.ErrorListener() {
@@ -2436,9 +2435,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
         }
     }
 
-
     static class SendApiPhones extends AsyncTask<Void, Void, Void> {
-
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&amp;task=api.addDataFromAndroid";
         Map<String, String> parameters = new HashMap<String, String>();
 
@@ -2449,14 +2446,10 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
         @Override
         protected Void doInBackground(final Void... params) {
-            // try {
-
             StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String res) {
-
                     if (res.equals("")) {
-
                     } else {
                         SQLiteDatabase db;
                         db = dbHelper.getWritableDatabase();
@@ -2539,7 +2532,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
     }
 
     static class CheckApiPhones extends AsyncTask<Void, Void, Void> {
-
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&amp;task=api.CheckDataFromAndroid";
         Map<String, String> parameters = new HashMap<String, String>();
 

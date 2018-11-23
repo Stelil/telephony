@@ -26,6 +26,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     DBHelper dbHelper;
     SQLiteDatabase db;
 
+    private String dealer_id;
     private String phoneNumber = "";
     private static String mLastState = "";
     private String date1, date2;
@@ -132,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE);
-
         if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.PROCESS_OUTGOING_CALLS,
@@ -146,13 +147,14 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
-            Log.d("logd", "onStart: " + SP.getString("", ""));
             if (SP.getString("", "").equals("1")) {
             } else {
                 SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
                 SharedPreferences.Editor ed = SP.edit();
                 ed.putString("", "138");
                 ed.commit();
+
+                dealer_id = "138";
 
                 SP = getSharedPreferences("enter", MODE_PRIVATE);
                 ed = SP.edit();
@@ -217,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
                 callStatus = 2;
             } else if (i.getAction().equals("android.intent.action.PHONE_STATE")) {
                 String phone_state = i.getStringExtra(TelephonyManager.EXTRA_STATE);
-
                 if (!phone_state.equals(mLastState)) {
                     mLastState = phone_state;
                     if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
@@ -365,8 +366,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void addHistoryClientCall() {
 
-        SharedPreferences SP = this.getSharedPreferences("CheckTimeCallback", MODE_PRIVATE);
-        int checkTime = SP.getInt("", 0);
+        SharedPreferences SP = this.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
+        String checkTime = SP.getString("", "");
+
+        JSONObject json = null;
+        try {
+            json = new JSONObject(checkTime);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -378,39 +386,53 @@ public class MainActivity extends AppCompatActivity {
         }
 
         long difference = two.getTime() - one.getTime();
+        int min = (int) (difference / 1000); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
-        int min = (int) (difference / (60 * 1000)); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
+        try {
+            if (min >= Integer.valueOf(json.getString("CheckTimeCall"))) {
+                int client_id = 0;
+                String sqlQuewy = "SELECT client_id "
+                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                        " WHERE phone = ? ";
+                Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                        String text = "";
+                        switch (callStatus) {
+                            case 1:
+                                text = "Исходящий недозвон";
+                                break;
+                            case 2:
+                                text = "Исходящий дозвон. \nДлина разговора = " + min + " секунд(a)";
+                                break;
+                            case 3:
+                                text = "Входящий дозвон. \nДлина разговора = " + min + " секунд(a)";
+                                break;
+                        }
 
+                        HelperClass.addHistory(text, this, String.valueOf(client_id));
 
-        if (min == checkTime) {
+                        //int maxId = HelperClass.lastIdTable(
+                        //        "rgzbn_gm_ceiling_calls_status_history",
+                        //        this,
+                        //        dealer_id);
 
-            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-            int id = 0;
-            String sqlQuewy = "SELECT client_id "
-                    + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                    " WHERE phone = ? ";
-            Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                        //ContentValues values = new ContentValues();
+                        //values.put(DBHelper.KEY_ID, maxId);
+                        //values.put(DBHelper.KEY_MANAGER_ID, dealer_id);
+                        //values.put(DBHelper.KEY_CLIENT_ID, client_id);
+                        //values.put(DBHelper.KEY_STATUS, callStatus);
+                        //values.put(DBHelper.KEY_DATE_TIME, HelperClass.now_date());
+                        //values.put(DBHelper.KEY_CALL_LENGTH, difference);
+                        //values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                        //db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+
+                    }
                 }
+                c.close();
             }
-            c.close();
-
-            String text = "";
-            switch (callStatus) {
-                case 1:
-                    text = "Исходящий недозвон";
-                    break;
-                case 2:
-                    text = "Исходящий дозвон";
-                    break;
-                case 3:
-                    text = "Входящий дозвон";
-                    break;
-            }
-
-            HelperClass.addHistory(text, this, String.valueOf(id));
+        } catch (JSONException e) {
         }
     }
 

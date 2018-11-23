@@ -11,11 +11,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -36,9 +40,14 @@ public class CallReceiver extends BroadcastReceiver {
 
     private static String mLastState = "";
 
-    private String date1, date2;
+    static private String date1, date2;
 
     int callStatus = 0;
+
+    private MediaRecorder mediaRecorder;
+    private MediaPlayer mediaPlayer;
+    private String fileName;
+    File audiofile;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -52,7 +61,6 @@ public class CallReceiver extends BroadcastReceiver {
             //получаем исходящий номер
             phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
             callStatus = 2;
-            Log.d(TAG, "1: ");
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             if (!phone_state.equals(mLastState)) {
@@ -62,18 +70,18 @@ public class CallReceiver extends BroadcastReceiver {
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                     historyClient();
-                    Log.d(TAG, "2: ");
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                     date1 = HelperClass.now_date();
+                    Log.d(TAG, "date1: " + date1);
                     newClient();
-                    Log.d(TAG, "3: ");
+                    recordCall();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                     //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
-                    phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                    Log.d(TAG, "4: ");
+                    timeDifference();
                     date2 = HelperClass.now_date();
+                    Log.d(TAG, "date2: " + date2);
                     addHistoryClientCall();
                 }
             }
@@ -82,6 +90,57 @@ public class CallReceiver extends BroadcastReceiver {
         Log.d(TAG, "date1: " + date1);
         Log.d(TAG, "date2: " + date2);
 
+    }
+
+    void timeDifference() {
+        if (this.mediaRecorder != null) {
+            this.mediaRecorder.stop();
+        }
+    }
+
+    void recordCall() {
+        Log.d(TAG, "startRecorging");
+
+        //try {
+        releaseRecorder();
+
+        String formatDateTime = HelperClass.now_date();
+
+        Log.d(TAG, "recordCall: " + formatDateTime);
+        if (audiofile == null) {
+            File sampleDir = new File("/storage/emulated/0/" + formatDateTime + ".flac");
+            audiofile = sampleDir;
+        }
+
+        mediaRecorder = new MediaRecorder();
+        String manufacturer = Build.MANUFACTURER;
+        if (manufacturer.toLowerCase().contains("samsung")) {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
+        } else {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
+        }
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setOutputFile(audiofile.getAbsolutePath());
+        Log.d(TAG, "recordCall: " + audiofile);
+
+        try {
+            mediaRecorder.prepare();
+        } catch (IOException e) {
+        }
+        mediaRecorder.start();
+
+        //} catch (Exception e) {
+        //    Log.d(TAG, "recordCall er: 3" + e);
+        //}
+
+    }
+
+    private void releaseRecorder() {
+        if (mediaRecorder != null) {
+            mediaRecorder.release();
+            mediaRecorder = null;
+        }
     }
 
     private void newClient() {
@@ -145,8 +204,8 @@ public class CallReceiver extends BroadcastReceiver {
                                 .setAutoCancel(true)
                                 .setContentText(message);
                 Notification notification = builder.build();
-                NotificationManager notificationManager = (NotificationManager) ctx
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationManager notificationManager = (NotificationManager)
+                        ctx.getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(2, notification);
             }
         }
@@ -154,8 +213,8 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void addHistoryClientCall() {
 
-        SharedPreferences SP = ctx.getSharedPreferences("CheckTimeCallback", MODE_PRIVATE);
-        int checkTime = SP.getInt("", 0);
+        SharedPreferences SP = ctx.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
+        String checkTime = SP.getString("", "");
 
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -166,49 +225,42 @@ public class CallReceiver extends BroadcastReceiver {
         } catch (Exception e) {
         }
 
-        Log.d(TAG, "date1: " + date1);
-        Log.d(TAG, "date2: " + date2);
+        long difference = two.getTime() - one.getTime();
 
-        Log.d(TAG, "one: " + one);
-        Log.d(TAG, "two: " + two);
+        int min = (int) (difference / 1000); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
-        //long difference = one.getTime() - two.getTime();
+        Log.d(TAG, "addHistoryClientCall min : " + min);
+        Log.d(TAG, "addHistoryClientCall checkTime : " + checkTime);
 
-        //Log.d(TAG, "difference: " + difference);
+        if (min == Integer.valueOf(checkTime)) {
+            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+            int id = 0;
+            String sqlQuewy = "SELECT client_id "
+                    + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                    " WHERE phone = ? ";
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
 
-        //int min = (int) (difference / (60 * 1000)); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
+                    String text = "";
+                    switch (callStatus) {
+                        case 1:
+                            text = "Исходящий недозвон";
+                            break;
+                        case 2:
+                            text = "Исходящий дозвон";
+                            break;
+                        case 3:
+                            text = "Входящий дозвон";
+                            break;
+                    }
 
-
-        //if(min>=checkTime){
-
-        //    phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-        //    int id = 0;
-        //    String sqlQuewy = "SELECT client_id "
-        //            + "FROM rgzbn_gm_ceiling_clients_contacts" +
-        //            " WHERE phone = ? ";
-        //    Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-        //    if (c != null) {
-        //        if (c.moveToFirst()) {
-        //            id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-        //        }
-        //    }
-        //    c.close();
-
-        //    String text = "";
-        //    switch (callStatus) {
-        //        case 1:
-        //            text = "Исходящий недозвон";
-        //            break;
-        //        case 2:
-        //            text = "Исходящий дозвон";
-        //            break;
-        //        case 3:
-        //            text = "Входящий дозвон";
-        //            break;
-        //    }
-
-        //    HelperClass.addHistory(text, ctx, String.valueOf(id));
-        //}
+                    HelperClass.addHistory(text, ctx, String.valueOf(id));
+                }
+            }
+            c.close();
+        }
     }
 
     private void historyClient() {
@@ -282,8 +334,8 @@ public class CallReceiver extends BroadcastReceiver {
                                 .setAutoCancel(true)
                                 .setContentText(message);
                 Notification notification = builder.build();
-                NotificationManager notificationManager = (NotificationManager) ctx
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationManager notificationManager = (NotificationManager)
+                        ctx.getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(2, notification);
             }
         }
