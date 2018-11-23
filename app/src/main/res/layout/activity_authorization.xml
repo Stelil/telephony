@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/background"
+    android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true"
+    android:descendantFocusability="beforeDescendants"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="50dp"
+                android:layout_margin="10dp"
+                android:ems="10"
+                android:maxLength="11"
+                android:hint="Логин(телефон)"
+                android:inputType="phone"
+                android:textColor="#43358c"
+                android:textColorHint="#43358c"/>
+
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:ems="10"
+                android:hint="Пароль"
+                android:inputType="textPassword"
+                android:imeOptions="actionDone"
+                android:textColor="#43358c"
+                android:textColorHint="#43358c" />
+
+            <Button
+                android:id="@+id/btn_vhod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:elevation="0dp"
+                android:text="Войти"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="#edeaea"
+                android:textSize="18dp"
+                android:background="@drawable/rounded_button"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Регистрация"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"
+                style="@style/text_style_spisok"
+                android:id="@+id/registration"
+                android:clickable="true"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</ScrollView>
