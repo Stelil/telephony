@@ -28,11 +28,18 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.VKCallback;
+import com.vk.sdk.VKScope;
+import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.VKError;
+import com.vk.sdk.util.VKUtil;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,11 +65,18 @@ public class AuthorizationActivity extends AppCompatActivity {
 
     final public static String ONE_TIME = "onetime";
 
+    private String[] scope = new String[]{
+            VKScope.FRIENDS
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authorization);
 
+        VKSdk.login(this, scope);
+
+        /*
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
 
@@ -112,6 +126,29 @@ public class AuthorizationActivity extends AppCompatActivity {
         }
 
         importData();
+        */
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
+            @Override
+            public void onResult(VKAccessToken res) {
+                Log.d(TAG, "onResult: " + res.secret + " " + res.email);
+                createUserVK();
+            }
+
+            @Override
+            public void onError(VKError error) {
+// Произошла ошибка авторизации (например, пользователь запретил авторизацию)
+            }
+        })) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void createUserVK(){
+
     }
 
     private void importData() {
@@ -164,9 +201,9 @@ public class AuthorizationActivity extends AppCompatActivity {
             pd.show();
 
             pd.dismiss();
-            finish();
-            intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-            startActivity(intent);
+            //finish();
+            //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
+            //startActivity(intent);
 
             jsonSync_Import.put("change_time", change_time_global);
             jsonSync_Import.put("dealer_id", user_id);
@@ -174,9 +211,9 @@ public class AuthorizationActivity extends AppCompatActivity {
             new ImportDate().execute();
 
         } else {
-            finish();
-            intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-            startActivity(intent);
+            //finish();
+            //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
+            //startActivity(intent);
         }
     }
 
@@ -205,9 +242,9 @@ public class AuthorizationActivity extends AppCompatActivity {
 
                     if (res.equals("null")) {
                         pd.dismiss();
-                        finish();
-                        intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-                        startActivity(intent);
+                        //finish();
+                        //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
+                        //startActivity(intent);
 
                     } else {
                         int count = 0;
@@ -722,9 +759,9 @@ public class AuthorizationActivity extends AppCompatActivity {
 
                     pd.dismiss();
 
-                    finish();
-                    intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-                    startActivity(intent);
+                    //finish();
+                    //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
+                    //startActivity(intent);
 
                 }
 

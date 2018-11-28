@@ -20,6 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_foreground4"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:name=".AppVK"
         tools:replace="android:icon">
 
         <activity android:name=".Activity.AuthorizationActivity">
