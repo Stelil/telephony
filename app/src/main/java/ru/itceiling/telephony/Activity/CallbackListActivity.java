@@ -80,12 +80,14 @@ public class CallbackListActivity extends AppCompatActivity {
         Cursor c;
         if(date.equals("")){
             sqlQuewy = "SELECT client_id, date_time, comment "
-                    + "FROM rgzbn_gm_ceiling_callback ";
+                    + "FROM rgzbn_gm_ceiling_callback "+
+                    " order by date_time desc";
             c = db.rawQuery(sqlQuewy, new String[]{});
         } else {
             sqlQuewy = "SELECT client_id, date_time, comment "
                     + "FROM rgzbn_gm_ceiling_callback " +
-                    "where date_time like '"+date+"%'";
+                    "where date_time like '"+date+"%' "+
+                    " order by date_time desc";
             c = db.rawQuery(sqlQuewy, new String[]{});
         }
         if (c != null) {

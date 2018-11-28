@@ -183,6 +183,7 @@ public class CallReceiver extends BroadcastReceiver {
                         .setContentText(message)
                         .setChannelId(CHANNEL_ID)
                         .setAutoCancel(true)
+                        .setContentIntent(PendingIntent.getActivity(ctx, 0, new Intent(), 0))
                         .build();
 
                 NotificationManager mNotificationManager =
@@ -202,6 +203,7 @@ public class CallReceiver extends BroadcastReceiver {
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                                 .setContentTitle("Планер звонков")
                                 .setAutoCancel(true)
+                                .setContentIntent(PendingIntent.getActivity(ctx, 0, new Intent(), 0))
                                 .setContentText(message);
                 Notification notification = builder.build();
                 NotificationManager notificationManager = (NotificationManager)

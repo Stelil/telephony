@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
-                jsonObject.put("CheckTimeCall", 15);    // для CallReceiver
+                jsonObject.put("CheckTimeCall", 10);    // для CallReceiver
 
                 SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
                 ed = SP.edit();
@@ -388,7 +388,9 @@ public class MainActivity extends AppCompatActivity {
         long difference = two.getTime() - one.getTime();
         int min = (int) (difference / 1000); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
+
         try {
+
             if (min >= Integer.valueOf(json.getString("CheckTimeCall"))) {
                 int client_id = 0;
                 String sqlQuewy = "SELECT client_id "
@@ -470,6 +472,20 @@ public class MainActivity extends AppCompatActivity {
             }
             c.close();
 
+            String client_name = "";
+            sqlQuewy = "SELECT client_name "
+                    + "FROM rgzbn_gm_ceiling_clients" +
+                    " WHERE _id = ?";
+            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    do {
+                        client_name = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    } while (c.moveToNext());
+                }
+            }
+            c.close();
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 int notifyID = 1;
                 String CHANNEL_ID = "my_channel_01";
@@ -483,16 +499,19 @@ public class MainActivity extends AppCompatActivity {
                         .setDefaults(Notification.DEFAULT_ALL)
                         .setSmallIcon(R.raw.icon_notif)
                         .setStyle(new Notification.BigTextStyle().bigText(message))
-                        .setContentTitle("Планер звонков")
+                        .setContentTitle(client_name)
                         .setContentText(message)
                         .setChannelId(CHANNEL_ID)
                         .setAutoCancel(true)
+                        .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(), 0))
                         .build();
 
                 NotificationManager mNotificationManager =
                         (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.createNotificationChannel(mChannel);
                 mNotificationManager.notify(notifyID, notification);
+
+                mNotificationManager.cancel(notifyID);
 
             } else {
                 NotificationCompat.Builder builder =
@@ -503,13 +522,16 @@ public class MainActivity extends AppCompatActivity {
                                 .setDefaults(Notification.DEFAULT_ALL)
                                 .setSmallIcon(R.raw.icon_notif)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                                .setContentTitle("Планер звонков")
+                                .setContentTitle(client_name)
                                 .setAutoCancel(true)
+                                .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(), 0))
                                 .setContentText(message);
                 Notification notification = builder.build();
                 NotificationManager notificationManager = (NotificationManager) this
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(2, notification);
+
+                notificationManager.cancel(2);
             }
         }
     }

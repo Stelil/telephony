@@ -2,6 +2,9 @@ package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -13,6 +16,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -30,9 +34,22 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
+import com.vk.sdk.VKObject;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKError;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKParser;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
+import com.vk.sdk.api.methods.VKApiUsers;
+import com.vk.sdk.api.model.VKApiChat;
+import com.vk.sdk.api.model.VKApiCity;
+import com.vk.sdk.api.model.VKApiMessage;
+import com.vk.sdk.api.model.VKApiUser;
+import com.vk.sdk.api.model.VKApiUserFull;
+import com.vk.sdk.api.model.VKList;
 import com.vk.sdk.util.VKUtil;
 
 import org.json.JSONArray;
@@ -66,7 +83,7 @@ public class AuthorizationActivity extends AppCompatActivity {
     final public static String ONE_TIME = "onetime";
 
     private String[] scope = new String[]{
-            VKScope.FRIENDS
+            VKScope.EMAIL, VKScope.MESSAGES
     };
 
     @Override
@@ -74,9 +91,9 @@ public class AuthorizationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authorization);
 
-        VKSdk.login(this, scope);
+        //VKSdk.login(this, scope);
 
-        /*
+
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
 
@@ -126,30 +143,51 @@ public class AuthorizationActivity extends AppCompatActivity {
         }
 
         importData();
-        */
+
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
             public void onResult(VKAccessToken res) {
-                Log.d(TAG, "onResult: " + res.secret + " " + res.email);
+
+                VKRequest request = VKApi.users().get();
+
+                Log.d(TAG, "onResult: " + request.toString());
+
+                request.executeWithListener(new VKRequest.VKRequestListener() {
+                    @Override
+                    public void onComplete(VKResponse response) {
+                        Log.d(TAG, "onComplete 1: " + response.json.toString());
+
+                    }
+
+                    @Override
+                    public void onError(VKError error) {
+                    }
+
+                    @Override
+                    public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
+                    }
+                });
+
                 createUserVK();
             }
 
+
             @Override
             public void onError(VKError error) {
-// Произошла ошибка авторизации (например, пользователь запретил авторизацию)
             }
         })) {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
-    private void createUserVK(){
+    private void createUserVK() {
 
     }
+
 
     private void importData() {
 
@@ -200,20 +238,15 @@ public class AuthorizationActivity extends AppCompatActivity {
             pd.setIndeterminate(false);
             pd.show();
 
-            pd.dismiss();
-            //finish();
-            //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-            //startActivity(intent);
-
             jsonSync_Import.put("change_time", change_time_global);
             jsonSync_Import.put("dealer_id", user_id);
             sync_import = String.valueOf(jsonSync_Import);
             new ImportDate().execute();
 
         } else {
-            //finish();
-            //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-            //startActivity(intent);
+            finish();
+            intent = new Intent(AuthorizationActivity.this, MainActivity.class);
+            startActivity(intent);
         }
     }
 
@@ -241,11 +274,6 @@ public class AuthorizationActivity extends AppCompatActivity {
                     db = dbHelper.getReadableDatabase();
 
                     if (res.equals("null")) {
-                        pd.dismiss();
-                        //finish();
-                        //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-                        //startActivity(intent);
-
                     } else {
                         int count = 0;
                         try {
@@ -759,9 +787,9 @@ public class AuthorizationActivity extends AppCompatActivity {
 
                     pd.dismiss();
 
-                    //finish();
-                    //intent = new Intent(AuthorizationActivity.this, MainActivity.class);
-                    //startActivity(intent);
+                    finish();
+                    intent = new Intent(AuthorizationActivity.this, MainActivity.class);
+                    startActivity(intent);
 
                 }
 

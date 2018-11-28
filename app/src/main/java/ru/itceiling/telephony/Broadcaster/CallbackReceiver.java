@@ -21,6 +21,7 @@ import org.json.JSONException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -102,10 +103,15 @@ public class CallbackReceiver extends BroadcastReceiver {
                             }
                             cc.close();
 
-                            String message = "Комментарий: " + comment + "\nФИО клиента: " + client_name;
+                            String message = "ФИО клиента: " + client_name + "\nКомментарий: " + comment ;
                             Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + phone));
 
-                            PendingIntent resultPendingIntent = PendingIntent.getActivity(context, 0, resultIntent,
+                            PendingIntent phoneIntent = PendingIntent.getActivity(context, 0, resultIntent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT);
+
+                            Intent resultIntentTwo = new Intent(context, ClientActivity.class);
+                            resultIntentTwo.putExtra("id_client", client_id);
+                            PendingIntent clientIntent = PendingIntent.getActivity(context, 0, resultIntentTwo,
                                     PendingIntent.FLAG_UPDATE_CURRENT);
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -121,18 +127,19 @@ public class CallbackReceiver extends BroadcastReceiver {
                                         .setDefaults(Notification.DEFAULT_ALL)
                                         .setSmallIcon(R.raw.icon_notif)
                                         .setAutoCancel(true)
-                                        .addAction(R.raw.icon_notif, "Позвонить", resultPendingIntent)
+                                        .addAction(R.raw.icon_notif, "Позвонить", phoneIntent)
+                                        .addAction(R.raw.icon_notif, "Открыть клиента", clientIntent)
                                         .setStyle(new Notification.BigTextStyle().bigText(message))
-                                        .setContentTitle("Планер звонков")
                                         .setContentText(message)
+                                        .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(), 0))
                                         .setChannelId(CHANNEL_ID)
                                         .build();
 
                                 NotificationManager mNotificationManager =
                                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                                 mNotificationManager.createNotificationChannel(mChannel);
-
                                 mNotificationManager.notify(notifyID, notification);
+
                             } else {
                                 NotificationCompat.Builder builder =
                                         new NotificationCompat.Builder(context)
@@ -142,9 +149,10 @@ public class CallbackReceiver extends BroadcastReceiver {
                                                 .setDefaults(Notification.DEFAULT_ALL)
                                                 .setSmallIcon(R.raw.icon_notif)
                                                 .setAutoCancel(true)
-                                                .addAction(R.raw.icon_notif, "Позвонить", resultPendingIntent)
+                                                .addAction(R.raw.icon_notif, "Позвонить", phoneIntent)
+                                                .addAction(R.raw.icon_notif, "Открыть клиента", clientIntent)
                                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                                                .setContentTitle("Планер звонков")
+                                                .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(), 0))
                                                 .setContentText(message);
                                 Notification notification = builder.build();
                                 NotificationManager notificationManager = (NotificationManager) context

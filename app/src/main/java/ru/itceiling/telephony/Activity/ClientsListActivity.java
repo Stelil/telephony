@@ -236,16 +236,17 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         if (!query.equals("")) {
             sqlQuewy = "SELECT created, client_name, _id "
                     + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE dealer_id = ? and client_name like '%" + query + "%'";
+                    " WHERE dealer_id = ? and client_name like '%" + query + "%'" +
+                    " order by created desc";
             c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
         } else {
 
             sqlQuewy = "SELECT created, client_name, _id "
                     + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE dealer_id = ?";
+                    " WHERE dealer_id = ?" +
+                    " order by created desc";
             c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
         }
-
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
