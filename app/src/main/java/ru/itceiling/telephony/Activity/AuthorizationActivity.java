@@ -24,6 +24,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -61,6 +65,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
@@ -80,10 +85,19 @@ public class AuthorizationActivity extends AppCompatActivity {
 
     static Intent intent;
 
+    StringRequest request = null;
+
+    Map<String, String> parameters = new HashMap<String, String>();
+
+    String jsonAuth = "";
+    public static ProgressDialog mProgressDialog;
+    EditText login, password;
+    Button btn_vhod;
+
     final public static String ONE_TIME = "onetime";
 
     private String[] scope = new String[]{
-            VKScope.EMAIL, VKScope.MESSAGES
+            VKScope.EMAIL
     };
 
     @Override
@@ -93,6 +107,8 @@ public class AuthorizationActivity extends AppCompatActivity {
 
         //VKSdk.login(this, scope);
 
+        login = findViewById(R.id.login);
+        password = findViewById(R.id.password);
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
@@ -101,48 +117,13 @@ public class AuthorizationActivity extends AppCompatActivity {
             SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
             if (SP.getString("", "").equals("1")) {
             } else {
-                SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
-                SharedPreferences.Editor ed = SP.edit();
-                ed.putString("", "138");
-                ed.commit();
 
-                SP = getSharedPreferences("enter", MODE_PRIVATE);
-                ed = SP.edit();
-                ed.putString("", "1");
-                ed.commit();
-
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
-                jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
-
-                SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-                ed = SP.edit();
-                ed.putString("", String.valueOf(jsonObject));
-                ed.commit();
-
-                SP = getSharedPreferences("link", MODE_PRIVATE);
-                ed = SP.edit();
-                ed.putString("", "test1");
-                ed.commit();
-
-                String sqlQuewy = "SELECT change_time "
-                        + "FROM history_import_to_server";
-                Cursor c = db.rawQuery(sqlQuewy, new String[]{});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-                    } else {
-                        ContentValues values = new ContentValues();
-                        values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
-                        values.put(DBHelper.KEY_USER_ID, "138");
-                        db.insert(DBHelper.HISTORY_IMPORT_TO_SERVER, null, values);
-                    }
-                }
 
             }
         } catch (Exception e) {
         }
 
-        importData();
+        //importData();
 
     }
 
@@ -188,6 +169,158 @@ public class AuthorizationActivity extends AppCompatActivity {
 
     }
 
+    public void buttonVhod(View view) {
+        if (login.getText().toString().equals("") || password.getText().toString().equals("")) {
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "Введите данные", Toast.LENGTH_SHORT);
+            toast.show();
+        } else {
+            org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
+            jsonObjectAuth.put("username", login.getText().toString());
+            jsonObjectAuth.put("password", password.getText().toString());
+            jsonAuth = String.valueOf(jsonObjectAuth);
+
+            mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
+            mProgressDialog.setMessage("Проверяем...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.show();
+
+            SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
+            SharedPreferences.Editor ed = SP.edit();
+            ed.putString("", "calc");
+            ed.commit();
+
+            domen = "calc";
+
+            new SendAuthorization().execute();
+        }
+    }
+
+    class SendAuthorization extends AsyncTask<Void, Void, Void> {
+
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.Authorization_FromAndroid";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(final Void... params) {
+
+            request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+                    Log.d(TAG, res);
+
+                    try {
+                        JSONObject jsonObject = new JSONObject(res);
+                        int dealer_id = jsonObject.getInt("id");
+                        String name = jsonObject.getString("name");
+                        String username = jsonObject.getString("username");
+                        String email = jsonObject.getString("email");
+                        String block = jsonObject.getString("block");
+                        String sendEmail = jsonObject.getString("sendEmail");
+                        String registerDate = jsonObject.getString("registerDate");
+                        String lastvisitDate = jsonObject.getString("lastvisitDate");
+                        String activation = jsonObject.getString("activation");
+                        String params = jsonObject.getString("params");
+                        String change_time = jsonObject.getString("change_time");
+                        String associated_client = jsonObject.getString("associated_client");
+
+                        SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
+                        SharedPreferences.Editor ed = SP.edit();
+                        ed.putString("", String.valueOf(dealer_id));
+                        ed.commit();
+
+                        SP = getSharedPreferences("enter", MODE_PRIVATE);
+                        ed = SP.edit();
+                        ed.putString("", "1");
+                        ed.commit();
+
+                        jsonObject = new JSONObject();
+                        jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
+                        jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
+
+                        SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
+                        ed = SP.edit();
+                        ed.putString("", String.valueOf(jsonObject));
+                        ed.commit();
+
+                        String sqlQuewy = "SELECT change_time "
+                                + "FROM history_import_to_server";
+                        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+                        if (c != null) {
+                            if (c.moveToFirst()) {
+                            } else {
+                                ContentValues values = new ContentValues();
+                                values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
+                                values.put(DBHelper.KEY_USER_ID, dealer_id);
+                                db.insert(DBHelper.HISTORY_IMPORT_TO_SERVER, null, values);
+                            }
+                        }
+
+                        sqlQuewy = "SELECT _id "
+                                + "FROM rgzbn_users";
+                        c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
+                        if (c != null) {
+                            if (c.moveToFirst()) {
+                            } else {
+                                ContentValues values = new ContentValues();
+                                values.put(DBHelper.KEY_ID, dealer_id);
+                                values.put(DBHelper.KEY_NAME, name);
+                                values.put(DBHelper.KEY_USERNAME, username);
+                                values.put(DBHelper.KEY_EMAIL, email);
+                                values.put(DBHelper.KEY_BLOCK, block);
+                                values.put(DBHelper.KEY_SENDEMAIL, sendEmail);
+                                values.put(DBHelper.KEY_REGISTERDATE, registerDate);
+                                values.put(DBHelper.KEY_LASTVISITDATE, lastvisitDate);
+                                values.put(DBHelper.KEY_ACTIVATION, activation);
+                                values.put(DBHelper.KEY_PARAMS, params);
+                                values.put(DBHelper.KEY_ASSOCIATED_CLIENT, associated_client);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
+                                db.insert(DBHelper.TABLE_USERS, null, values);
+                            }
+                        }
+
+                        importData();
+                        mProgressDialog.dismiss();
+                    }catch (Exception e){
+
+                        mProgressDialog.dismiss();
+                        Toast toast = Toast.makeText(getApplicationContext(),
+                                res, Toast.LENGTH_SHORT);
+                        toast.show();
+
+                        Log.d(TAG, "onResponse error: " + e );
+                    }
+
+                }
+
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mProgressDialog.dismiss();
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Проверьте подключение к интернету, или возможны работы на сервере", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }) {
+
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    parameters.put("authorizations", jsonAuth);
+                    return parameters;
+                }
+            };
+
+            request.setShouldCache(false);
+            RequestQueue requestQueue = Volley.newRequestQueue(AuthorizationActivity.this);
+            requestQueue.add(request);
+
+            return null;
+        }
+    }
 
     private void importData() {
 

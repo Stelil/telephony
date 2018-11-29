@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Планер звонков</string>
+    <string name="app_name">Планеровщик звонков</string>
 
     <integer name="com_vk_sdk_AppId">6764507</integer>
 </resources>
