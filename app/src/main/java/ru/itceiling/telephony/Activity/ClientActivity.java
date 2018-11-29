@@ -11,17 +11,27 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateUtils;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
+import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -40,9 +50,9 @@ import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Random;
 
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
@@ -55,6 +65,7 @@ public class ClientActivity extends AppCompatActivity {
     private DBHelper dbHelper;
     private SQLiteDatabase db;
     private String id_client, callbackDate;
+    private ImageButton btnAddVoiceComment;
     private TextView nameClient;
     private TextView phoneClient;
     private TextView txtStatusOfClient;
@@ -70,6 +81,8 @@ public class ClientActivity extends AppCompatActivity {
     String TAG = "logd";
 
     Calendar dateAndTime = new GregorianCalendar();
+
+    private SpeechRecognizer sr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,8 +107,54 @@ public class ClientActivity extends AppCompatActivity {
         //txtApiPhone = findViewById(R.id.txtApiPhone);
         txtCallback = findViewById(R.id.txtCallback);
 
+        btnAddVoiceComment = findViewById(R.id.btnAddVoiceComment);
+
         listHistoryClient = findViewById(R.id.listHistoryClient);
+        listHistoryClient.setOnTouchListener(new ListView.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        // Disallow ScrollView to intercept touch events.
+                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        // Allow ScrollView to intercept touch events.
+                        v.getParent().requestDisallowInterceptTouchEvent(false);
+                        break;
+                }
+
+                // Handle ListView touch events.
+                v.onTouchEvent(event);
+                return true;
+            }
+        });
+
         editCommentClient = findViewById(R.id.editCommentClient);
+        editCommentClient.setMovementMethod(new ScrollingMovementMethod());
+        editCommentClient.setOnTouchListener(new EditText.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        // Disallow ScrollView to intercept touch events.
+                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        // Allow ScrollView to intercept touch events.
+                        v.getParent().requestDisallowInterceptTouchEvent(false);
+                        break;
+                }
+
+                // Handle ListView touch events.
+                v.onTouchEvent(event);
+                return true;
+            }
+        });
 
         layoutPhonesClient = findViewById(R.id.layoutPhonesClient);
         layoutEmailClient = findViewById(R.id.layoutEmailClient);
@@ -107,6 +166,9 @@ public class ClientActivity extends AppCompatActivity {
 
         SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
+
+        sr = SpeechRecognizer.createSpeechRecognizer(this);
+        sr.setRecognitionListener(new listener());
 
     }
 
@@ -1002,6 +1064,69 @@ public class ClientActivity extends AppCompatActivity {
         } else {
             Toast.makeText(getApplicationContext(), "Введите текст комментария",
                     Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    public void onButtonAddVoiceComment(View view) {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "voice.recognition.test");
+
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        sr.startListening(intent);
+
+        RotateAnimation rotate = new RotateAnimation(0, 360,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f); //2
+        rotate.setDuration(1000); //3
+        rotate.setRepeatMode(Animation.REVERSE); //4
+        rotate.setRepeatCount(1000); //5
+
+        AnimationSet set = new AnimationSet (false); //10
+        set.addAnimation(rotate); //11
+
+        btnAddVoiceComment.startAnimation(set); //12
+    }
+
+
+    class listener implements RecognitionListener {
+        public void onReadyForSpeech(Bundle params) {
+            Log.d(TAG, "onReadyForSpeech");
+        }
+
+        public void onBeginningOfSpeech() {
+            Log.d(TAG, "onBeginningOfSpeech");
+        }
+
+        public void onRmsChanged(float rmsdB) {
+            Log.d(TAG, "onRmsChanged " + rmsdB);
+        }
+
+
+        public void onBufferReceived(byte[] buffer) {
+            Log.d(TAG, "onBufferReceived");
+        }
+
+        public void onEndOfSpeech() {
+            Log.d(TAG, "onEndofSpeech");
+            btnAddVoiceComment.clearAnimation();
+        }
+
+        public void onError(int error) {
+            Log.d(TAG, "onError!");
+        }
+
+        public void onResults(Bundle results) {
+            ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            editCommentClient.setText(String.valueOf(data.get(0)));
+        }
+
+        public void onPartialResults(Bundle partialResults) {
+            Log.d(TAG, "onPartialResults");
+        }
+
+        public void onEvent(int eventType, Bundle params) {
+            Log.d(TAG, "onEvent " + eventType);
         }
     }
 
