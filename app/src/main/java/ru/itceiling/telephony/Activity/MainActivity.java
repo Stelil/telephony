@@ -17,14 +17,18 @@ import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
+import android.os.Bundle;
+import android.provider.CallLog;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private String dealer_id;
     private String phoneNumber = "";
     private static String mLastState = "";
-    private String date1, date2;
+    private String date1, date2 = "";
     int callStatus = 0;
     private String TAG = "callReceiver";
     private MediaRecorder mediaRecorder;
@@ -63,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     private ImportDataReceiver importDataReceiver;
     private ExportDataReceiver exportDataReceiver;
 
+    private static long back_pressed;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,8 +77,73 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
 
-        //registerReceiver();
+        registerReceiver();
         registerCallbackReceiver();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // получим идентификатор выбранного пункта меню
+        int id = item.getItemId();
+        // Операции для выбранного пункта меню
+        switch (id) {
+            case R.id.exit:
+                if (back_pressed + 2000 > System.currentTimeMillis()) {
+
+                    SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
+                    SharedPreferences.Editor ed = SP.edit();
+                    ed.putString("", "");
+                    ed.commit();
+
+                    SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
+                    ed = SP.edit();
+                    ed.putString("", "");
+                    ed.commit();
+
+                    SP = getSharedPreferences("enter", MODE_PRIVATE);
+                    ed = SP.edit();
+                    ed.putString("", "0");
+                    ed.commit();
+
+                    callbackReceiver.CancelAlarm(this);
+
+                    ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+                    exportDataReceiver.CancelAlarm(this);
+
+                    ImportDataReceiver importDataReceiver = new ImportDataReceiver();
+                    importDataReceiver.CancelAlarm(this);
+
+                    //unregisterReceiver(mBatInfoReceiver);
+
+                    finish();
+                    Intent intent = new Intent(this, AuthorizationActivity.class);
+                    startActivity(intent);
+
+                } else {
+                    Toast.makeText(getBaseContext(), "Нажмите ещё раз, для того чтобы выйти из пользователя",
+                            Toast.LENGTH_SHORT).show();
+                }
+                back_pressed = System.currentTimeMillis();
+
+                break;
+        }
+        return false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (back_pressed + 2000 > System.currentTimeMillis())
+            super.onBackPressed();
+        else
+            Toast.makeText(getBaseContext(), "Нажмите ещё раз, для того чтобы закрыть приложение",
+                    Toast.LENGTH_SHORT).show();
+        back_pressed = System.currentTimeMillis();
     }
 
     @Override
@@ -141,6 +212,8 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.RECORD_AUDIO,
                             Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.CAPTURE_AUDIO_OUTPUT,
+                            Manifest.permission.READ_CALL_LOG,
+                            Manifest.permission.WRITE_CALL_LOG,
                             Manifest.permission.INTERNET},
                     1);
         }
@@ -193,14 +266,14 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
         }
 
-        try {
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-            filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
-            registerReceiver(mBatInfoReceiver, new IntentFilter(filter));
+        //try {
+        //    IntentFilter filter = new IntentFilter();
+        //    filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+        //    filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+        //    registerReceiver(mBatInfoReceiver, new IntentFilter(filter));
 
-        } catch (Exception e) {
-        }
+        //} catch (Exception e) {
+        //}
 
     }
 
@@ -234,8 +307,11 @@ public class MainActivity extends AppCompatActivity {
                         recordCall();
                     } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                         //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
-                        timeDifference();
                         date2 = HelperClass.now_date();
+                        if (date2.equals("")) {
+                        } else {
+                            timeDifference();
+                        }
                         addHistoryClientCall();
                     }
                 }
@@ -245,8 +321,10 @@ public class MainActivity extends AppCompatActivity {
 
     void timeDifference() {
 
+        Log.d(TAG, "timeDifference: " + date2);
         if (this.mediaRecorder != null) {
             this.mediaRecorder.stop();
+
         }
     }
 
@@ -299,6 +377,7 @@ public class MainActivity extends AppCompatActivity {
     private void newClient() {
 
         phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+
         int id = 0;
         String sqlQuewy = "SELECT client_id "
                 + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -366,6 +445,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void addHistoryClientCall() {
 
+        Log.d(TAG, "addHistoryClientCall: " + date2);
+
         SharedPreferences SP = this.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
         String checkTime = SP.getString("", "");
 
@@ -379,17 +460,17 @@ public class MainActivity extends AppCompatActivity {
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+
         try {
             one = format.parse(date1);
             two = format.parse(date2);
         } catch (Exception e) {
         }
 
-        long difference = two.getTime() - one.getTime();
-        int min = (int) (difference / 1000); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
-
-
         try {
+
+            long difference = two.getTime() - one.getTime();
+            int min = (int) (difference / 1000); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
             if (min >= Integer.valueOf(json.getString("CheckTimeCall"))) {
                 int client_id = 0;
@@ -435,6 +516,26 @@ public class MainActivity extends AppCompatActivity {
                 c.close();
             }
         } catch (JSONException e) {
+
+            if (date2.equals("")) {
+
+            } else {
+                int client_id = 0;
+                String sqlQuewy = "SELECT client_id "
+                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                        " WHERE phone = ? ";
+                Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+
+                        String text = "Пропущенный звонок";
+                        HelperClass.addHistory(text, this, String.valueOf(client_id));
+
+                    }
+                }
+                c.close();
+            }
         }
     }
 
@@ -443,6 +544,7 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
         phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+
         int id = 0;
         String sqlQuewy = "SELECT client_id "
                 + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -464,10 +566,11 @@ public class MainActivity extends AppCompatActivity {
             c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
             if (c != null) {
                 if (c.moveToFirst()) {
-                    do {
-                        message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
-                        message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
-                    } while (c.moveToNext());
+                    message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
+                    message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
+                    c.moveToFirst();
+                    message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
+                    message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
                 }
             }
             c.close();
@@ -503,7 +606,6 @@ public class MainActivity extends AppCompatActivity {
                         .setContentText(message)
                         .setChannelId(CHANNEL_ID)
                         .setAutoCancel(true)
-                        .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(), 0))
                         .build();
 
                 NotificationManager mNotificationManager =
@@ -511,9 +613,9 @@ public class MainActivity extends AppCompatActivity {
                 mNotificationManager.createNotificationChannel(mChannel);
                 mNotificationManager.notify(notifyID, notification);
 
-                mNotificationManager.cancel(notifyID);
 
             } else {
+
                 NotificationCompat.Builder builder =
                         new NotificationCompat.Builder(this)
                                 .setAutoCancel(true)
@@ -524,15 +626,14 @@ public class MainActivity extends AppCompatActivity {
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                                 .setContentTitle(client_name)
                                 .setAutoCancel(true)
-                                .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(), 0))
                                 .setContentText(message);
                 Notification notification = builder.build();
                 NotificationManager notificationManager = (NotificationManager) this
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(2, notification);
 
-                notificationManager.cancel(2);
             }
         }
     }
+
 }

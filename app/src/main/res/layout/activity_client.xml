@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="match_parent"
     android:descendantFocusability="beforeDescendants"
@@ -25,7 +24,6 @@
             android:textColor="#000"
             android:textStyle="bold" />
 
-
         <ru.itceiling.telephony.UnderlineTextView
             android:id="@+id/nameClient"
             style="@style/text_style_spisok"
@@ -36,6 +34,25 @@
             android:onClick="onButtonEditNameClient"
             android:text="Имя"
             android:textSize="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp"
+            android:gravity="right">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="right"
+                android:background="@drawable/rounded_button"
+                android:onClick="onButtonEditCallback"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:text="Поменять время звонка"
+                android:textColor="#fff" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -297,11 +314,12 @@
                     android:layout_weight="1"
                     android:background="@drawable/without_corners_text"
                     android:hint="Добавить комментарий"
+                    android:maxLines="4"
                     android:paddingLeft="6dp"
-                    android:scrollbars = "vertical"
-                    android:maxLines="4"/>
+                    android:scrollbars="vertical" />
 
                 <ImageButton
+                    android:id="@+id/btnAddVoiceComment"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_gravity="center|bottom"
@@ -309,11 +327,11 @@
                     android:background="@drawable/rounded_button"
                     android:onClick="onButtonAddVoiceComment"
                     android:padding="6dp"
-                    android:id="@+id/btnAddVoiceComment"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/ic_settings_voice_black_24dp" />
+                    app:srcCompat="@drawable/ic_settings_voice_black_24dp" />
 
                 <ImageButton
+                    android:id="@+id/btnAddComment"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_gravity="center|bottom"
@@ -321,64 +339,64 @@
                     android:onClick="onButtonAddComment"
                     android:padding="6dp"
                     android:scaleType="fitCenter"
-                    android:id="@+id/btnAddComment"
-                    android:src="@drawable/ic_send_24dp" />
+                    app:srcCompat="@drawable/ic_send_24dp" />
 
             </LinearLayout>
         </LinearLayout>
 
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center"
-        android:text="Добавить звонок"
-        android:textColor="#000"
-        android:textStyle="bold" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:orientation="horizontal">
-
         <TextView
-            android:id="@+id/txtCallback"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_gravity="center"
-            android:layout_marginRight="5dp"
-            android:layout_weight="2"
-            android:background="@drawable/blue_corners_text"
-            android:gravity="center|left"
-            android:hint="Добавить звонок"
-            android:onClick="onButtonCallback"
-            android:paddingLeft="5dp"
-            android:textColor="#000000" />
-
-        <EditText
-            android:id="@+id/txtCallbackComment"
+            android:id="@+id/text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginRight="5dp"
-            android:layout_weight="1"
-            android:background="@drawable/blue_corners_text"
-            android:gravity="center|left"
-            android:hint="Введите примечание"
-            android:minHeight="40dp"
-            android:paddingLeft="5dp"
-            android:textSize="15dp" />
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="Добавить звонок"
+            android:textColor="#000"
+            android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btnAddCallback"
-            android:layout_width="30dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/without_corners_text"
-            android:scaleType="fitCenter"
-            android:src="@raw/plus" />
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txtCallback"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:layout_marginRight="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/blue_corners_text"
+                android:gravity="center|left"
+                android:hint="Добавить звонок"
+                android:onClick="onButtonCallback"
+                android:paddingLeft="5dp"
+                android:textColor="#000000" />
+
+            <EditText
+                android:id="@+id/txtCallbackComment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/blue_corners_text"
+                android:gravity="center|left"
+                android:hint="Введите примечание"
+                android:minHeight="40dp"
+                android:paddingLeft="5dp"
+                android:textSize="15dp" />
+
+            <ImageButton
+                android:id="@+id/btnAddCallback"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/without_corners_text"
+                android:scaleType="fitCenter"
+                android:src="@raw/plus" />
+        </LinearLayout>
+
     </LinearLayout>
-
-</LinearLayout></ScrollView>
+</ScrollView>

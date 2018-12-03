@@ -1,32 +1,23 @@
 package ru.itceiling.telephony.Activity;
 
-import android.Manifest;
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -36,40 +27,35 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.VKCallback;
-import com.vk.sdk.VKObject;
-import com.vk.sdk.VKScope;
-import com.vk.sdk.VKSdk;
-import com.vk.sdk.api.VKApi;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKParameters;
-import com.vk.sdk.api.VKParser;
-import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
-import com.vk.sdk.api.methods.VKApiUsers;
-import com.vk.sdk.api.model.VKApiChat;
-import com.vk.sdk.api.model.VKApiCity;
-import com.vk.sdk.api.model.VKApiMessage;
-import com.vk.sdk.api.model.VKApiUser;
-import com.vk.sdk.api.model.VKApiUserFull;
-import com.vk.sdk.api.model.VKList;
-import com.vk.sdk.util.VKUtil;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
-public class AuthorizationActivity extends AppCompatActivity {
+public class AuthorizationActivity extends AppCompatActivity implements
+        GoogleApiClient.OnConnectionFailedListener,  View.OnClickListener{
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
@@ -97,8 +83,15 @@ public class AuthorizationActivity extends AppCompatActivity {
     final public static String ONE_TIME = "onetime";
 
     private String[] scope = new String[]{
-            VKScope.EMAIL
     };
+
+    private static final int RC_SIGN_IN = 9001;
+
+    private FirebaseAuth mAuth;
+    private GoogleApiClient mGoogleApiClient;
+    private TextView mStatusTextView;
+    private TextView mDetailTextView;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,17 +109,190 @@ public class AuthorizationActivity extends AppCompatActivity {
         try {
             SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
             if (SP.getString("", "").equals("1")) {
-            } else {
 
+                pd = new ProgressDialog(this);
+                pd.setTitle("Загрузка клиентов ... ");
+                pd.setMessage("Пожалуйста подождите");
+                pd.setIndeterminate(false);
+                pd.setCancelable(false);
+                pd.show();
+
+                importData();
 
             }
         } catch (Exception e) {
         }
 
-        //importData();
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+
+        mStatusTextView = (TextView) findViewById(R.id.status);
+        mDetailTextView = (TextView) findViewById(R.id.detail);
+
+        // Button listeners
+        findViewById(R.id.sign_in_button).setOnClickListener(this);
+        findViewById(R.id.sign_out_button).setOnClickListener(this);
+        findViewById(R.id.disconnect_button).setOnClickListener(this);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("549262362686-m7evn12rulih71ihqvcbhn86pqnu3rf1.apps.googleusercontent.com")
+                .requestEmail()
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+        // [START initialize_auth]
+        mAuth = FirebaseAuth.getInstance();
 
     }
 
+    // [START on_start_check_user]
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
+    }
+    // [END on_start_check_user]
+
+    // [START onactivityresult]
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = result.getSignInAccount();
+                firebaseAuthWithGoogle(account);
+            } else {
+                // Google Sign In failed, update UI appropriately
+                // [START_EXCLUDE]
+                updateUI(null);
+                // [END_EXCLUDE]
+            }
+        }
+    }
+    // [END onactivityresult]
+
+    // [START auth_with_google]
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+        // [START_EXCLUDE silent]
+        progressBar.setVisibility(View.VISIBLE);
+        // [END_EXCLUDE]
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInWithCredential:success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            updateUI(user);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInWithCredential:failure", task.getException());
+                            Toast.makeText(AuthorizationActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                            updateUI(null);
+                        }
+
+                        // [START_EXCLUDE]
+                        progressBar.setVisibility(View.GONE);
+                        // [END_EXCLUDE]
+                    }
+                });
+    }
+    // [END auth_with_google]
+
+    // [START signin]
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+    // [END signin]
+
+    private void signOut() {
+        // Firebase sign out
+        mAuth.signOut();
+
+        // Google sign out
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+                        updateUI(null);
+                    }
+                });
+    }
+
+    private void revokeAccess() {
+        // Firebase sign out
+        mAuth.signOut();
+
+        // Google revoke access
+        Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+                        updateUI(null);
+                    }
+                });
+    }
+
+    private void updateUI(FirebaseUser user) {
+        progressBar.setVisibility(View.GONE);
+        if (user != null) {
+            mStatusTextView.setText("Google Email: "+user.getEmail()+"\n"+
+                    "Full Name: "+user.getDisplayName());
+            mDetailTextView.setText("Firebase User: "+user.getUid());
+
+            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
+        } else {
+            mStatusTextView.setText("Signed Out");
+            mDetailTextView.setText(null);
+
+            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
+        // be available.
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
+        Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        int i = v.getId();
+        if (i == R.id.sign_in_button) {
+            signIn();
+        } else if (i == R.id.sign_out_button) {
+            signOut();
+        } else if (i == R.id.disconnect_button) {
+            revokeAccess();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    /*
     @Override
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
@@ -168,6 +334,7 @@ public class AuthorizationActivity extends AppCompatActivity {
     private void createUserVK() {
 
     }
+    */
 
     public void buttonVhod(View view) {
         if (login.getText().toString().equals("") || password.getText().toString().equals("")) {
@@ -183,6 +350,7 @@ public class AuthorizationActivity extends AppCompatActivity {
             mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
             mProgressDialog.setMessage("Проверяем...");
             mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(false);
             mProgressDialog.show();
 
             SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
@@ -195,6 +363,12 @@ public class AuthorizationActivity extends AppCompatActivity {
             new SendAuthorization().execute();
         }
     }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
+
 
     class SendAuthorization extends AsyncTask<Void, Void, Void> {
 
@@ -214,6 +388,7 @@ public class AuthorizationActivity extends AppCompatActivity {
                     Log.d(TAG, res);
 
                     try {
+
                         JSONObject jsonObject = new JSONObject(res);
                         int dealer_id = jsonObject.getInt("id");
                         String name = jsonObject.getString("name");
@@ -227,6 +402,9 @@ public class AuthorizationActivity extends AppCompatActivity {
                         String params = jsonObject.getString("params");
                         String change_time = jsonObject.getString("change_time");
                         String associated_client = jsonObject.getString("associated_client");
+
+                        String ob = jsonObject.getString("groups");
+                        Log.d(TAG, ob);
 
                         SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
                         SharedPreferences.Editor ed = SP.edit();
@@ -261,7 +439,8 @@ public class AuthorizationActivity extends AppCompatActivity {
                         }
 
                         sqlQuewy = "SELECT _id "
-                                + "FROM rgzbn_users";
+                                + "FROM rgzbn_users " +
+                                "where _id = ?";
                         c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
                         if (c != null) {
                             if (c.moveToFirst()) {
@@ -283,16 +462,87 @@ public class AuthorizationActivity extends AppCompatActivity {
                             }
                         }
 
-                        importData();
-                        mProgressDialog.dismiss();
-                    }catch (Exception e){
+                        final int[] i = {0};
+
+                        for (String retval : ob.split(",")) {
+                            int indexJava = retval.indexOf(":");
+                            if (indexJava == -1) {
+                            } else {
+                                for (String retval1 : retval.split(":")) {
+                                    retval1 = retval1.replaceAll("[^0-9]", "");
+                                    if (retval1.equals("25")) {
+                                        i[0]++;
+                                        String[] array = {"test1", "calc"};
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(AuthorizationActivity.this);
+                                        builder.setItems(array, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int item) {
+                                                // TODO Auto-generated method stub
+                                                switch (item) {
+                                                    case 0:
+                                                        SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
+                                                        SharedPreferences.Editor ed = SP.edit();
+                                                        ed.putString("", "test1");
+                                                        ed.commit();
+                                                        domen = "test1";
+
+                                                        pd = new ProgressDialog(AuthorizationActivity.this);
+                                                        pd.setTitle("Загрузка клиентов ... ");
+                                                        pd.setMessage("Пожалуйста подождите");
+                                                        pd.setIndeterminate(false);
+                                                        pd.setCancelable(false);
+                                                        pd.show();
+
+                                                        importData();
+                                                        break;
+                                                    case 1:
+                                                        SP = getSharedPreferences("link", MODE_PRIVATE);
+                                                        ed = SP.edit();
+                                                        ed.putString("", "calc");
+                                                        ed.commit();
+                                                        domen = "calc";
+
+                                                        pd = new ProgressDialog(AuthorizationActivity.this);
+                                                        pd.setTitle("Загрузка клиентов ... ");
+                                                        pd.setMessage("Пожалуйста подождите");
+                                                        pd.setIndeterminate(false);
+                                                        pd.setCancelable(false);
+                                                        pd.show();
+
+                                                        importData();
+                                                        break;
+                                                }
+                                            }
+                                        });
+
+                                        builder.setCancelable(false);
+                                        builder.create();
+                                        builder.show();
+
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (i[0] == 0) {
+                            pd = new ProgressDialog(AuthorizationActivity.this);
+                            pd.setTitle("Загрузка клиентов ... ");
+                            pd.setMessage("Пожалуйста подождите");
+                            pd.setIndeterminate(false);
+                            pd.setCancelable(false);
+                            pd.show();
+
+                            importData();
+                            mProgressDialog.dismiss();
+                        }
+
+                    } catch (Exception e) {
 
                         mProgressDialog.dismiss();
                         Toast toast = Toast.makeText(getApplicationContext(),
                                 res, Toast.LENGTH_SHORT);
                         toast.show();
-
-                        Log.d(TAG, "onResponse error: " + e );
                     }
 
                 }
@@ -327,7 +577,7 @@ public class AuthorizationActivity extends AppCompatActivity {
         SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
 
-        Log.v(TAG, "ImportDataReceiver started!");
+        Log.v(TAG, "ImportDataReceiver started! " + domen);
         int count = 0;
 
         dbHelper = new DBHelper(this);
@@ -351,7 +601,6 @@ public class AuthorizationActivity extends AppCompatActivity {
             user_id = SP_end.getString("", "");
             requestQueue = Volley.newRequestQueue(getApplicationContext());
 
-            String change_time = "";
             sqlQuewy = "SELECT change_time "
                     + "FROM history_import_to_server" +
                     " WHERE user_id = ?";
@@ -364,12 +613,6 @@ public class AuthorizationActivity extends AppCompatActivity {
                 }
             }
             c.close();
-
-            pd = new ProgressDialog(this);
-            pd.setTitle("Загрузка клиентов ... ");
-            pd.setMessage("Пожалуйста подождите");
-            pd.setIndeterminate(false);
-            pd.show();
 
             jsonSync_Import.put("change_time", change_time_global);
             jsonSync_Import.put("dealer_id", user_id);
@@ -570,8 +813,6 @@ public class AuthorizationActivity extends AppCompatActivity {
                                 values = new ContentValues();
                                 org.json.JSONObject callback = rgzbn_gm_ceiling_callback.getJSONObject(i);
 
-                                Log.d(TAG, "callback " + String.valueOf(callback));
-
                                 count = 0;
                                 String id = callback.getString("id");
                                 String client_id = callback.getString("client_id");
@@ -624,8 +865,6 @@ public class AuthorizationActivity extends AppCompatActivity {
 
                                 values = new ContentValues();
                                 org.json.JSONObject client_history = rgzbn_gm_ceiling_client_history.getJSONObject(i);
-
-                                Log.d(TAG, "client_history " + String.valueOf(client_history));
 
                                 count = 0;
                                 String id = client_history.getString("id");
@@ -929,8 +1168,6 @@ public class AuthorizationActivity extends AppCompatActivity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.d(TAG, "onResponse: " + error);
-
                 }
             }) {
 

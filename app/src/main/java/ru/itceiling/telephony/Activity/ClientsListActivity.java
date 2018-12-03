@@ -233,19 +233,28 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         String sqlQuewy;
         Cursor c;
 
+        String associated_client = HelperClass.associated_client(this, dealer_id);
+
         if (!query.equals("")) {
-            sqlQuewy = "SELECT created, client_name, _id "
-                    + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE dealer_id = ? and client_name like '%" + query + "%'" +
+            sqlQuewy = "SELECT created, " +
+                    "          client_name," +
+                    "          _id " +
+                    "     FROM rgzbn_gm_ceiling_clients" +
+                    "    WHERE dealer_id = ? and " +
+                    "          _id <> ? and " +
+                    "         client_name like '%" + query + "%'" +
                     " order by created desc";
-            c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+            c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
         } else {
 
-            sqlQuewy = "SELECT created, client_name, _id "
-                    + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE dealer_id = ?" +
+            sqlQuewy = "SELECT created, " +
+                    "          client_name, " +
+                    "          _id " +
+                    "     FROM rgzbn_gm_ceiling_clients" +
+                    "    WHERE dealer_id = ? and " +
+                    "         _id <> ? " +
                     " order by created desc";
-            c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+            c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
         }
         if (c != null) {
             if (c.moveToFirst()) {
@@ -257,8 +266,8 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
                     String client_status = null;
                     sqlQuewy = "SELECT status_id "
-                            + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                            " WHERE client_id = ? ";
+                            + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
+                            "    WHERE client_id = ? ";
                     Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
                     if (cc != null) {
                         if (cc.moveToFirst()) {
@@ -325,6 +334,58 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                 startActivity(intent);
             }
         });
+
+        //listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        //    @Override
+        //    public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+        //                                   int pos, long id) {
+        //        // TODO Auto-generated method stub
+
+        //        AdapterList selectedid = client_mas.get(pos);
+        //        final String cId = selectedid.getId();
+
+        //        AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
+        //        ad.setMessage("Удалить перезвон " + cId + " ?"); // сообщение
+        //        ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
+        //            public void onClick(DialogInterface dialog, int arg1) {
+
+        //                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, "_id = ?",
+        //                        new String[]{cId});
+
+        //                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, "_id = ?",
+        //                        new String[]{cId});
+
+        //                values = new ContentValues();
+        //                values.put(DBHelper.KEY_ID_OLD, cId);
+        //                values.put(DBHelper.KEY_ID_NEW, "0");
+        //                values.put(DBHelper.KEY_NAME_TABLE, "rgzbn_gm_ceiling_projects");
+        //                values.put(DBHelper.KEY_SYNC, "0");
+        //                values.put(DBHelper.KEY_TYPE, "send");
+        //                values.put(DBHelper.KEY_STATUS, "1");
+        //                db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
+
+        //                onResume();
+        //            }
+        //        });
+        //        ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+        //            public void onClick(DialogInterface dialog, int arg1) {
+
+        //            }
+        //        });
+        //        ad.setCancelable(true);
+        //        ad.show();
+        //        return true;
+        //    }
+        //});
     }
 
 }
+
+
+
+
+
+
+
+
+

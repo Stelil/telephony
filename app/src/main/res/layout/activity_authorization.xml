@@ -10,58 +10,133 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:layout_marginTop="50dp"
+            android:ems="10"
+            android:hint="Логин(телефон)"
+            android:inputType="phone"
+            android:maxLength="11"
+            android:textColor="#43358c"
+            android:textColorHint="#43358c" />
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:ems="10"
+            android:hint="Пароль"
+            android:imeOptions="actionDone"
+            android:inputType="textPassword"
+            android:textColor="#43358c"
+            android:textColorHint="#43358c" />
+
+        <Button
+            android:id="@+id/btn_vhod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/rounded_button"
+            android:elevation="0dp"
+            android:onClick="buttonVhod"
+            android:text="Войти"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#edeaea"
+            android:textSize="18dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/login"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/title_text"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"
-                android:layout_marginTop="50dp"
-                android:ems="10"
-                android:hint="Логин(телефон)"
-                android:inputType="phone"
-                android:maxLength="11"
-                android:textColor="#43358c"
-                android:textColorHint="#43358c" />
+                android:layout_marginBottom="16dp"
+                android:text="Google Sign In" />
 
-            <EditText
-                android:id="@+id/password"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"
-                android:ems="10"
-                android:hint="Пароль"
-                android:imeOptions="actionDone"
-                android:inputType="textPassword"
-                android:textColor="#43358c"
-                android:textColorHint="#43358c" />
+                android:text="Signed Out" />
 
-            <Button
-                android:id="@+id/btn_vhod"
-                android:onClick="buttonVhod"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/detail"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/rounded_button"
-                android:elevation="0dp"
-                android:text="Войти"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#edeaea"
-                android:textSize="18dp" />
+                tools:text="Firebase User ID: 123456789abc" />
+
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center|bottom"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone" />
 
         </LinearLayout>
-    </ScrollView>
+
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="#E0E0E0">
+
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/sign_in_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:visibility="visible"
+                tools:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/sign_out_and_disconnect"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:orientation="horizontal"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <Button
+                    android:id="@+id/sign_out_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sign Out" />
+
+                <Button
+                    android:id="@+id/disconnect_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Disconnect" />
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
 </ScrollView>

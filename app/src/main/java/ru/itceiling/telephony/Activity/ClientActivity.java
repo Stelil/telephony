@@ -1088,7 +1088,6 @@ public class ClientActivity extends AppCompatActivity {
         btnAddVoiceComment.startAnimation(set); //12
     }
 
-
     class listener implements RecognitionListener {
         public void onReadyForSpeech(Bundle params) {
             Log.d(TAG, "onReadyForSpeech");
@@ -1129,6 +1128,7 @@ public class ClientActivity extends AppCompatActivity {
             Log.d(TAG, "onEvent " + eventType);
         }
     }
+
 
     public void onButtonAddEmail(View view) {
         TextView addEmailClient = findViewById(R.id.addEmailClient);
@@ -1238,6 +1238,10 @@ public class ClientActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void onButtonEditCallback(View view){
+
     }
 
     public void setDate(View v) {

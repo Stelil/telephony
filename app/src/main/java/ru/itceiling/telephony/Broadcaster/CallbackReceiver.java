@@ -33,6 +33,8 @@ public class CallbackReceiver extends BroadcastReceiver {
     static DBHelper dbHelper;
     private static final String TAG = "serviceCallback";
 
+    static int notifyID = 0;
+
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -115,7 +117,6 @@ public class CallbackReceiver extends BroadcastReceiver {
                                     PendingIntent.FLAG_UPDATE_CURRENT);
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                int notifyID = 1;
                                 String CHANNEL_ID = "my_channel_01";
                                 CharSequence name = "1";
                                 int importance = NotificationManager.IMPORTANCE_HIGH;
@@ -138,7 +139,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                 NotificationManager mNotificationManager =
                                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                                 mNotificationManager.createNotificationChannel(mChannel);
-                                mNotificationManager.notify(notifyID, notification);
+                                mNotificationManager.notify(notifyID++, notification);
 
                             } else {
                                 NotificationCompat.Builder builder =
@@ -157,7 +158,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                 Notification notification = builder.build();
                                 NotificationManager notificationManager = (NotificationManager) context
                                         .getSystemService(Context.NOTIFICATION_SERVICE);
-                                notificationManager.notify(2, notification);
+                                notificationManager.notify(notifyID++, notification);
                             }
                         }
                     }

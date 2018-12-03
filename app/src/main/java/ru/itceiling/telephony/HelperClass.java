@@ -178,4 +178,25 @@ public class HelperClass {
         values.put(DBHelper.KEY_STATUS, "1");
         db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
     }
+
+    public static String associated_client(Context context, String user_id) {
+
+        boolean bool = false;
+        DBHelper dbHelper = new DBHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        String associated_client = "";
+        String sqlQuewy = "SELECT associated_client "
+                + "FROM rgzbn_users " +
+                "where _id = ?";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                associated_client = c.getString(c.getColumnIndex(c.getColumnName(0)));
+            }
+        }
+        c.close();
+
+        return associated_client;
+    }
 }
