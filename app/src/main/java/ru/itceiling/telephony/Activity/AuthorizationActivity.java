@@ -37,6 +37,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApiNotAvailableException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -125,7 +126,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
 
@@ -135,12 +135,13 @@ public class AuthorizationActivity extends AppCompatActivity implements
         findViewById(R.id.disconnect_button).setOnClickListener(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("549262362686-m7evn12rulih71ihqvcbhn86pqnu3rf1.apps.googleusercontent.com")
+                .requestIdToken("549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .enableAutoManage(this /* FragmentActivity */,
+                        this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
@@ -195,8 +196,8 @@ public class AuthorizationActivity extends AppCompatActivity implements
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -216,6 +217,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     // [START signin]
     private void signIn() {
+        Log.d(TAG, "signIn: ");
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -253,7 +255,8 @@ public class AuthorizationActivity extends AppCompatActivity implements
         progressBar.setVisibility(View.GONE);
         if (user != null) {
             mStatusTextView.setText("Google Email: "+user.getEmail()+"\n"+
-                    "Full Name: "+user.getDisplayName());
+                    "Full Name: " + user.getDisplayName()+"\n"+
+                    "Phone number: " + user.getPhoneNumber());
             mDetailTextView.setText("Firebase User: "+user.getUid());
 
             findViewById(R.id.sign_in_button).setVisibility(View.GONE);
@@ -279,6 +282,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.sign_in_button) {
+            Log.d(TAG, "onClick: ");
             signIn();
         } else if (i == R.id.sign_out_button) {
             signOut();

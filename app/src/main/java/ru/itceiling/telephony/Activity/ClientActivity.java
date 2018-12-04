@@ -70,12 +70,14 @@ public class ClientActivity extends AppCompatActivity {
     private TextView phoneClient;
     private TextView txtStatusOfClient;
     private TextView txtApiPhone;
-    private TextView txtCallback;
+    private TextView txtCallback, txtEditCallback;
     private ListView listHistoryClient;
     private ArrayList<AdapterList> client_mas = new ArrayList<>();
-    private EditText editCommentClient;
+    private EditText editCommentClient, txtEditCallbackComment;
     private LinearLayout layoutPhonesClient, layoutEmailClient;
-    private String dealer_id;
+    private Button btnEditCallback;
+    private LinearLayout layoutCallback;
+    private String dealer_id, check = "";
     private List<TextView> txtPhoneList = new ArrayList<TextView>();
     private List<TextView> txtEmailList = new ArrayList<TextView>();
     String TAG = "logd";
@@ -106,6 +108,7 @@ public class ClientActivity extends AppCompatActivity {
         txtStatusOfClient = findViewById(R.id.txtStatusOfClient);
         //txtApiPhone = findViewById(R.id.txtApiPhone);
         txtCallback = findViewById(R.id.txtCallback);
+        txtEditCallback = findViewById(R.id.txtEditCallback);
 
         btnAddVoiceComment = findViewById(R.id.btnAddVoiceComment);
 
@@ -156,6 +159,12 @@ public class ClientActivity extends AppCompatActivity {
             }
         });
 
+        check = getIntent().getStringExtra("check");
+        if (check != null && check.equals("true")) {
+            btnEditCallback = findViewById(R.id.btnEditCallback);
+            btnEditCallback.setVisibility(View.VISIBLE);
+        }
+
         layoutPhonesClient = findViewById(R.id.layoutPhonesClient);
         layoutEmailClient = findViewById(R.id.layoutEmailClient);
 
@@ -171,6 +180,75 @@ public class ClientActivity extends AppCompatActivity {
         sr.setRecognitionListener(new listener());
 
     }
+
+    public void onButtonEditCallback(View view) {
+        layoutCallback = findViewById(R.id.layoutCallback);
+        layoutCallback.setVisibility(View.VISIBLE);
+    }
+
+    public void onEditButtonCallback(View view) {
+        setTime(txtEditCallback);
+        setDate(txtEditCallback);
+
+        ImageButton btnEditAddCallback = findViewById(R.id.btnEditAddCallback);
+        final TextView txtEditCallbackComment = findViewById(R.id.txtEditCallbackComment);
+        final SQLiteDatabase finalDb4 = db;
+        btnEditAddCallback.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (txtEditCallback.getText().toString().length() > 0) {
+                    String sqlQuewy;
+                    Cursor c;
+                    sqlQuewy = "SELECT _id "
+                            + "FROM rgzbn_gm_ceiling_callback " +
+                            "where client_id = ? " +
+                            "order by date_time desc";
+                    c = db.rawQuery(sqlQuewy, new String[]{id_client});
+                    if (c != null) {
+                        if (c.moveToFirst()) {
+                            String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+
+                            ContentValues values = new ContentValues();
+                            if (txtEditCallbackComment.getText().toString().equals("")) {
+                            } else {
+                                values.put(DBHelper.KEY_COMMENT, txtEditCallbackComment.getText().toString());
+                            }
+                            values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
+                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
+
+                            HelperClass.addExportData(
+                                    ClientActivity.this,
+                                    Integer.parseInt(id),
+                                    "rgzbn_gm_ceiling_callback");
+
+                            HelperClass.addHistory("Звонок перенесён на " + callbackDate,
+                                    ClientActivity.this,
+                                    id_client);
+
+                            Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                                    "Звонок перенесён ", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                    c.close();
+
+                    txtEditCallback.setText("");
+                    txtEditCallbackComment.setText("");
+
+                    historyClient();
+                }
+            }
+        });
+    }
+
+    TimePickerDialog.OnTimeSetListener call_time = new TimePickerDialog.OnTimeSetListener() {
+        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+            dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            dateAndTime.set(Calendar.MINUTE, minute);
+            setInitialDateTimeCall(txtEditCallback);
+        }
+    };
 
     private void info() {
 
@@ -1082,7 +1160,7 @@ public class ClientActivity extends AppCompatActivity {
         rotate.setRepeatMode(Animation.REVERSE); //4
         rotate.setRepeatCount(1000); //5
 
-        AnimationSet set = new AnimationSet (false); //10
+        AnimationSet set = new AnimationSet(false); //10
         set.addAnimation(rotate); //11
 
         btnAddVoiceComment.startAnimation(set); //12
@@ -1224,24 +1302,67 @@ public class ClientActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (txtCallback.getText().toString().length() > 0) {
-                    HelperClass.addHistory("Добавлен звонок на " + txtCallback.getText().toString(),
-                            ClientActivity.this, id_client);
-                    HelperClass.addCallback(txtCallbackComment.getText().toString(),
-                            ClientActivity.this, id_client, callbackDate);
-                    txtCallback.setText("");
-                    txtCallbackComment.setText("");
+                    if (check.equals("")) {
+                        HelperClass.addHistory("Добавлен звонок на " + txtCallback.getText().toString(),
+                                ClientActivity.this, id_client);
+                        HelperClass.addCallback(txtCallbackComment.getText().toString(),
+                                ClientActivity.this, id_client, callbackDate);
+                        txtCallback.setText("");
+                        txtCallbackComment.setText("");
 
-                    historyClient();
-                    Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
-                            "Звонок добавлен ", Toast.LENGTH_SHORT);
-                    toast.show();
+                        historyClient();
+                        Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                                "Звонок добавлен ", Toast.LENGTH_SHORT);
+                        toast.show();
+                    } else {
+
+                        String sqlQuewy;
+                        Cursor c;
+                        sqlQuewy = "SELECT _id "
+                                + "FROM rgzbn_gm_ceiling_callback " +
+                                "where client_id = ? and substr(date_time, 1, 10) = ?" +
+                                "order by date_time desc";
+                        c = db.rawQuery(sqlQuewy, new String[]{id_client, txtCallback.getText().toString().substring(0, 10)});
+                        if (c != null) {
+                            if (c.moveToFirst()) {
+                                String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+
+                                ContentValues values = new ContentValues();
+                                if (txtCallbackComment.getText().toString().equals("")) {
+                                } else {
+                                    values.put(DBHelper.KEY_COMMENT, txtCallbackComment.getText().toString());
+                                }
+                                values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
+                                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
+
+                                HelperClass.addExportData(
+                                        ClientActivity.this,
+                                        Integer.parseInt(id),
+                                        "rgzbn_gm_ceiling_callback");
+
+                                Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                                        "Звонок перенесён ", Toast.LENGTH_SHORT);
+                                toast.show();
+                            } else {
+
+                                HelperClass.addCallback(txtCallbackComment.getText().toString(),
+                                        ClientActivity.this, id_client, callbackDate);
+
+                                Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                                        "Звонок добавлен ", Toast.LENGTH_SHORT);
+                                toast.show();
+                            }
+                        }
+                        c.close();
+
+                        txtCallback.setText("");
+                        txtCallbackComment.setText("");
+
+                    }
                 }
             }
         });
-    }
-
-    public void onButtonEditCallback(View view){
-
     }
 
     public void setDate(View v) {
@@ -1265,7 +1386,6 @@ public class ClientActivity extends AppCompatActivity {
                             editTextDateParam += "-" + dayOfMonth;
                         }
                         callbackDate = editTextDateParam;
-                        Log.d(TAG, callbackDate);
                     }
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
@@ -1278,25 +1398,8 @@ public class ClientActivity extends AppCompatActivity {
                 .show();
     }
 
-    DatePickerDialog.OnDateSetListener call_date = new DatePickerDialog.OnDateSetListener() {
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            dateAndTime.set(Calendar.YEAR, year);
-            dateAndTime.set(Calendar.MONTH, monthOfYear);
-            dateAndTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            setInitialDateTimeCall();
-        }
-    };
-
-    TimePickerDialog.OnTimeSetListener call_time = new TimePickerDialog.OnTimeSetListener() {
-        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-            dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
-            dateAndTime.set(Calendar.MINUTE, minute);
-            setInitialDateTimeCall();
-        }
-    };
-
-    private void setInitialDateTimeCall() {
-        txtCallback.setText(callbackDate + " " +
+    private void setInitialDateTimeCall(TextView textView) {
+        textView.setText(callbackDate + " " +
                 DateUtils.formatDateTime(this,
                         dateAndTime.getTimeInMillis(),
                         DateUtils.FORMAT_SHOW_TIME));

@@ -25,7 +25,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class HelperClass {
 
-    public static int lastIdTable(String table, Context context, String dealer_id){
+    public static int lastIdTable(String table, Context context, String dealer_id) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db;
@@ -101,6 +101,7 @@ public class HelperClass {
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
         values.put(DBHelper.KEY_DATE_TIME, date);
         values.put(DBHelper.KEY_TEXT, text);
+        values.put(DBHelper.KEY_CHANGE_TIME, now_date());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
 
         HelperClass.addExportData(
@@ -123,10 +124,11 @@ public class HelperClass {
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, max_id);
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
-        values.put(DBHelper.KEY_DATE_TIME, callDate);
+        values.put(DBHelper.KEY_DATE_TIME, callDate + ":00");
         values.put(DBHelper.KEY_COMMENT, comment);
         values.put(DBHelper.KEY_MANAGER_ID, "");
         values.put(DBHelper.KEY_NOTIFY, "");
+        values.put(DBHelper.KEY_CHANGE_TIME, now_date());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, null, values);
 
         HelperClass.addExportData(
@@ -163,7 +165,7 @@ public class HelperClass {
         return count;
     }
 
-    public static void addExportData(Context context, int id, String nameTable){
+    public static void addExportData(Context context, int id, String nameTable) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db;

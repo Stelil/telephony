@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "549262362686",
+    "firebase_url": "https://telephony-crm.firebaseio.com",
+    "project_id": "telephony-crm",
+    "storage_bucket": "telephony-crm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549262362686:android:c416260750b137bc",
+        "android_client_info": {
+          "package_name": "ru.itceiling.telephony"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "549262362686-m7evn12rulih71ihqvcbhn86pqnu3rf1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ru.itceiling.telephony",
+            "certificate_hash": "768f141e795cad2ed116871d92d002185b481d9d"
+          }
+        },
+        {
+          "client_id": "549262362686-v7ik00r5v9tmcmgvsuf491tncgm2pdfd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ru.itceiling.telephony",
+            "certificate_hash": "07bfff6c7c2c9debf82662ca14fbfd4f906779ea"
+          }
+        },
+        {
+          "client_id": "549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdaiA9_Z9-GcPUHLssE4d-vqmbUCsaN7g"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -331,6 +331,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
                 Intent intent = new Intent(ClientsListActivity.this, ClientActivity.class);
                 intent.putExtra("id_client", id_client);
+                intent.putExtra("check", "false");
                 startActivity(intent);
             }
         });

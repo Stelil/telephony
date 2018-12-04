@@ -118,7 +118,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 "client_id INTEGER, date_time TEXT, text TEXT, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_callback (_id INTEGER PRIMARY KEY, " +
-                "client_id INTEGER, date_time TEXT, comment TEXT, manager_id INTEGER, notify INTEGER)");
+                "client_id INTEGER, date_time TEXT, comment TEXT, manager_id INTEGER, notify INTEGER, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses_map (_id INTEGER PRIMARY KEY, " +
                 " client_id TEXT, status_id TEXT, change_time TEXT)");

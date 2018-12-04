@@ -56,11 +56,15 @@ public class CallbackListActivity extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
         setTitle("Перезвоны");
 
-        txtSelectDay = findViewById(R.id.txtSelectDay);
-
-        listClients("");
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        txtSelectDay = findViewById(R.id.txtSelectDay);
+        listClients("");
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -152,6 +156,7 @@ public class CallbackListActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(CallbackListActivity.this, ClientActivity.class);
                 intent.putExtra("id_client", id_client);
+                intent.putExtra("check", "true");
                 startActivity(intent);
             }
         });
