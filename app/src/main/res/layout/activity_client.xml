@@ -277,8 +277,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:id="@+id/layoutCallback"
             android:visibility="gone"
+            android:id="@+id/layoutCallback"
             android:orientation="horizontal">
 
             <TextView
@@ -316,7 +316,7 @@
                 android:layout_gravity="center"
                 android:background="@drawable/without_corners_text"
                 android:scaleType="fitCenter"
-                android:src="@raw/plus" />
+                android:src="@raw/edit" />
         </LinearLayout>
 
         <TextView

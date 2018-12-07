@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -16,6 +17,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.CallLog;
@@ -30,6 +32,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,6 +42,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import ru.itceiling.telephony.Broadcaster.BroadcastNotification;
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
@@ -119,10 +124,9 @@ public class MainActivity extends AppCompatActivity {
                     ImportDataReceiver importDataReceiver = new ImportDataReceiver();
                     importDataReceiver.CancelAlarm(this);
 
-                    //unregisterReceiver(mBatInfoReceiver);
-
                     finish();
                     Intent intent = new Intent(this, AuthorizationActivity.class);
+                    intent.putExtra("exit", "true");
                     startActivity(intent);
 
                 } else {
@@ -171,13 +175,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerCallbackReceiver() {
-
         callbackReceiver = new CallbackReceiver();
-
-        if (callbackReceiver != null) {
+        if (callbackReceiver != null)
             callbackReceiver.SetAlarm(this);
-        }
-
     }
 
     public void onButtonRecall(View view) {
@@ -265,375 +265,11 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
         }
-
-        //try {
-        //    IntentFilter filter = new IntentFilter();
-        //    filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-        //    filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
-        //    registerReceiver(mBatInfoReceiver, new IntentFilter(filter));
-
-        //} catch (Exception e) {
-        //}
-
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //unregisterReceiver(callRecv);
-    }
-
-    private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent i) {
-            if (i.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
-                //получаем исходящий номер
-                phoneNumber = i.getExtras().getString("android.intent.extra.PHONE_NUMBER");
-                callStatus = 2;
-            } else if (i.getAction().equals("android.intent.action.PHONE_STATE")) {
-                String phone_state = i.getStringExtra(TelephonyManager.EXTRA_STATE);
-                if (!phone_state.equals(mLastState)) {
-                    mLastState = phone_state;
-                    if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                        //телефон звонит, получаем входящий номер
-                        callStatus = 3;
-                        phoneNumber = i.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                        historyClient();
-                    } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-                        //телефон находится в режиме звонка (набор номера / разговор)
-                        phoneNumber = i.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                        date1 = HelperClass.now_date();
-                        newClient();
-                        recordCall();
-                    } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                        //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
-                        date2 = HelperClass.now_date();
-                        if (date2.equals("")) {
-                        } else {
-                            timeDifference();
-                        }
-                        addHistoryClientCall();
-                    }
-                }
-            }
-        }
-    };
-
-    void timeDifference() {
-
-        Log.d(TAG, "timeDifference: " + date2);
-        if (this.mediaRecorder != null) {
-            this.mediaRecorder.stop();
-
-        }
-    }
-
-    void recordCall() {
-        Log.d(TAG, "startRecorging");
-
-        //try {
-        releaseRecorder();
-
-        String formatDateTime = HelperClass.now_date();
-
-        Log.d(TAG, "recordCall: " + formatDateTime);
-        if (audiofile == null) {
-            File sampleDir = new File("/storage/emulated/0/" + formatDateTime + ".flac");
-
-            audiofile = sampleDir;
-        }
-
-        mediaRecorder = new MediaRecorder();
-        String manufacturer = Build.MANUFACTURER;
-        if (manufacturer.toLowerCase().contains("samsung")) {
-            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-        } else {
-            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-        }
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        mediaRecorder.setOutputFile(audiofile.getAbsolutePath());
-        Log.d(TAG, "recordCall: " + audiofile);
-
-        try {
-            mediaRecorder.prepare();
-        } catch (IOException e) {
-        }
-        mediaRecorder.start();
-
-        //} catch (Exception e) {
-        //    Log.d(TAG, "recordCall er: 3" + e);
-        //}
-
-    }
-
-    private void releaseRecorder() {
-        if (mediaRecorder != null) {
-            mediaRecorder.release();
-            mediaRecorder = null;
-        }
-    }
-
-    private void newClient() {
-
-        phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-
-        int id = 0;
-        String sqlQuewy = "SELECT client_id "
-                + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                " WHERE phone = ? ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-            }
-        }
-        c.close();
-
-        if (id == 0) {
-            Intent resultIntent = new Intent(this, ClientsListActivity.class);
-            resultIntent.putExtra("phone", phoneNumber);
-            PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
-
-            String message = "Данный клиент не найден. Хотите добавить его?";
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                int notifyID = 1;
-                String CHANNEL_ID = "my_channel_01";
-                CharSequence name = "1";
-                int importance = NotificationManager.IMPORTANCE_HIGH;
-                NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
-                Notification notification = new Notification.Builder(this)
-                        .setAutoCancel(true)
-                        .setTicker("Звонок")
-                        .setWhen(System.currentTimeMillis())
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        .setSmallIcon(R.raw.icon_notif)
-                        .addAction(R.raw.plus, "Добавить", resultPendingIntent)
-                        .setStyle(new Notification.BigTextStyle().bigText(message))
-                        .setContentTitle("Планер звонков")
-                        .setContentText(message)
-                        .setChannelId(CHANNEL_ID)
-                        .setAutoCancel(true)
-                        .build();
-
-                NotificationManager mNotificationManager =
-                        (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.createNotificationChannel(mChannel);
-                mNotificationManager.notify(notifyID, notification);
-
-            } else {
-                NotificationCompat.Builder builder =
-                        new NotificationCompat.Builder(this)
-                                .setAutoCancel(true)
-                                .setTicker("Звонок")
-                                .setWhen(System.currentTimeMillis())
-                                .setDefaults(Notification.DEFAULT_ALL)
-                                .setSmallIcon(R.raw.icon_notif)
-                                .addAction(R.raw.plus, "Добавить", resultPendingIntent)
-                                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                                .setContentTitle("Планер звонков")
-                                .setAutoCancel(true)
-                                .setContentText(message);
-                Notification notification = builder.build();
-                NotificationManager notificationManager = (NotificationManager) this
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(2, notification);
-            }
-        }
-    }
-
-    private void addHistoryClientCall() {
-
-        Log.d(TAG, "addHistoryClientCall: " + date2);
-
-        SharedPreferences SP = this.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-        String checkTime = SP.getString("", "");
-
-        JSONObject json = null;
-        try {
-            json = new JSONObject(checkTime);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        Date one = null, two = null;
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-
-        try {
-            one = format.parse(date1);
-            two = format.parse(date2);
-        } catch (Exception e) {
-        }
-
-        try {
-
-            long difference = two.getTime() - one.getTime();
-            int min = (int) (difference / 1000); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
-
-            if (min >= Integer.valueOf(json.getString("CheckTimeCall"))) {
-                int client_id = 0;
-                String sqlQuewy = "SELECT client_id "
-                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                        " WHERE phone = ? ";
-                Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-                        client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-                        String text = "";
-                        switch (callStatus) {
-                            case 1:
-                                text = "Исходящий недозвон";
-                                break;
-                            case 2:
-                                text = "Исходящий дозвон. \nДлина разговора = " + min + " секунд(a)";
-                                break;
-                            case 3:
-                                text = "Входящий дозвон. \nДлина разговора = " + min + " секунд(a)";
-                                break;
-                        }
-
-                        HelperClass.addHistory(text, this, String.valueOf(client_id));
-
-                        //int maxId = HelperClass.lastIdTable(
-                        //        "rgzbn_gm_ceiling_calls_status_history",
-                        //        this,
-                        //        dealer_id);
-
-                        //ContentValues values = new ContentValues();
-                        //values.put(DBHelper.KEY_ID, maxId);
-                        //values.put(DBHelper.KEY_MANAGER_ID, dealer_id);
-                        //values.put(DBHelper.KEY_CLIENT_ID, client_id);
-                        //values.put(DBHelper.KEY_STATUS, callStatus);
-                        //values.put(DBHelper.KEY_DATE_TIME, HelperClass.now_date());
-                        //values.put(DBHelper.KEY_CALL_LENGTH, difference);
-                        //values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
-                        //db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
-
-                    }
-                }
-                c.close();
-            }
-        } catch (JSONException e) {
-
-            if (date2.equals("")) {
-
-            } else {
-                int client_id = 0;
-                String sqlQuewy = "SELECT client_id "
-                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                        " WHERE phone = ? ";
-                Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-                        client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-
-                        String text = "Пропущенный звонок";
-                        HelperClass.addHistory(text, this, String.valueOf(client_id));
-
-                    }
-                }
-                c.close();
-            }
-        }
-    }
-
-    private void historyClient() {
-
-        dbHelper = new DBHelper(this);
-        db = dbHelper.getWritableDatabase();
-        phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-
-        int id = 0;
-        String sqlQuewy = "SELECT client_id "
-                + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                " WHERE phone = ? ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-            }
-        }
-        c.close();
-
-        if (id != 0) {
-            String message = "";
-            sqlQuewy = "SELECT date_time, text "
-                    + "FROM rgzbn_gm_ceiling_client_history" +
-                    " WHERE client_id = ? " +
-                    "order by date_time desc";
-            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
-                    message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
-                    c.moveToFirst();
-                    message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
-                    message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
-                }
-            }
-            c.close();
-
-            String client_name = "";
-            sqlQuewy = "SELECT client_name "
-                    + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE _id = ?";
-            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    do {
-                        client_name = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    } while (c.moveToNext());
-                }
-            }
-            c.close();
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                int notifyID = 1;
-                String CHANNEL_ID = "my_channel_01";
-                CharSequence name = "1";
-                int importance = NotificationManager.IMPORTANCE_HIGH;
-                NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
-                Notification notification = new Notification.Builder(this)
-                        .setAutoCancel(true)
-                        .setTicker("Звонок")
-                        .setWhen(System.currentTimeMillis())
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        .setSmallIcon(R.raw.icon_notif)
-                        .setStyle(new Notification.BigTextStyle().bigText(message))
-                        .setContentTitle(client_name)
-                        .setContentText(message)
-                        .setChannelId(CHANNEL_ID)
-                        .setAutoCancel(true)
-                        .build();
-
-                NotificationManager mNotificationManager =
-                        (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.createNotificationChannel(mChannel);
-                mNotificationManager.notify(notifyID, notification);
-
-
-            } else {
-
-                NotificationCompat.Builder builder =
-                        new NotificationCompat.Builder(this)
-                                .setAutoCancel(true)
-                                .setTicker("Звонок")
-                                .setWhen(System.currentTimeMillis())
-                                .setDefaults(Notification.DEFAULT_ALL)
-                                .setSmallIcon(R.raw.icon_notif)
-                                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                                .setContentTitle(client_name)
-                                .setAutoCancel(true)
-                                .setContentText(message);
-                Notification notification = builder.build();
-                NotificationManager notificationManager = (NotificationManager) this
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(2, notification);
-
-            }
-        }
     }
 
 }

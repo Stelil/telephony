@@ -183,11 +183,15 @@ public class ClientActivity extends AppCompatActivity {
 
     public void onButtonEditCallback(View view) {
         layoutCallback = findViewById(R.id.layoutCallback);
-        layoutCallback.setVisibility(View.VISIBLE);
+        if (layoutCallback.getVisibility() == View.GONE) {
+            layoutCallback.setVisibility(View.VISIBLE);
+        } else {
+            layoutCallback.setVisibility(View.GONE);
+        }
     }
 
     public void onEditButtonCallback(View view) {
-        setTime(txtEditCallback);
+        setTimeEditCallback(txtEditCallback);
         setDate(txtEditCallback);
 
         ImageButton btnEditAddCallback = findViewById(R.id.btnEditAddCallback);
@@ -242,13 +246,31 @@ public class ClientActivity extends AppCompatActivity {
         });
     }
 
-    TimePickerDialog.OnTimeSetListener call_time = new TimePickerDialog.OnTimeSetListener() {
+    public void setTimeEditCallback(View v) {
+        new TimePickerDialog(this, callTimeEditCallback,
+                dateAndTime.get(Calendar.HOUR_OF_DAY),
+                dateAndTime.get(Calendar.MINUTE), true)
+                .show();
+    }
+
+    TimePickerDialog.OnTimeSetListener callTimeEditCallback = new TimePickerDialog.OnTimeSetListener() {
         public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
             dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
             dateAndTime.set(Calendar.MINUTE, minute);
-            setInitialDateTimeCall(txtEditCallback);
+            setInitialDateTimeEditCallBack(txtEditCallback);
         }
     };
+
+    private void setInitialDateTimeEditCallBack(TextView textView) {
+        textView.setText(callbackDate + " " +
+                DateUtils.formatDateTime(this,
+                        dateAndTime.getTimeInMillis(),
+                        DateUtils.FORMAT_SHOW_TIME));
+        callbackDate += " " + DateUtils.formatDateTime(this,
+                dateAndTime.getTimeInMillis(), DateUtils.FORMAT_SHOW_TIME);
+
+    }
+
 
     private void info() {
 
@@ -1292,6 +1314,7 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public void onButtonCallback(View view) {
+        Log.d(TAG, "onButtonCallback: ");
         setTime(txtCallback);
         setDate(txtCallback);
 
@@ -1302,7 +1325,7 @@ public class ClientActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (txtCallback.getText().toString().length() > 0) {
-                    if (check.equals("")) {
+                    if (check != null && check.equals("")) {
                         HelperClass.addHistory("Добавлен звонок на " + txtCallback.getText().toString(),
                                 ClientActivity.this, id_client);
                         HelperClass.addCallback(txtCallbackComment.getText().toString(),
@@ -1392,13 +1415,13 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public void setTime(View v) {
-        new TimePickerDialog(this, call_time,
+        new TimePickerDialog(this, callTimeCallback,
                 dateAndTime.get(Calendar.HOUR_OF_DAY),
                 dateAndTime.get(Calendar.MINUTE), true)
                 .show();
     }
 
-    private void setInitialDateTimeCall(TextView textView) {
+    private void setInitialDateTimeCallback(TextView textView) {
         textView.setText(callbackDate + " " +
                 DateUtils.formatDateTime(this,
                         dateAndTime.getTimeInMillis(),
@@ -1407,5 +1430,13 @@ public class ClientActivity extends AppCompatActivity {
                 dateAndTime.getTimeInMillis(), DateUtils.FORMAT_SHOW_TIME);
 
     }
+
+    TimePickerDialog.OnTimeSetListener callTimeCallback = new TimePickerDialog.OnTimeSetListener() {
+        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+            dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            dateAndTime.set(Calendar.MINUTE, minute);
+            setInitialDateTimeCallback(txtCallback);
+        }
+    };
 
 }

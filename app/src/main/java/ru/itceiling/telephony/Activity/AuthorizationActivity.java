@@ -38,11 +38,16 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApiNotAvailableException;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthProvider;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -51,12 +56,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
 public class AuthorizationActivity extends AppCompatActivity implements
-        GoogleApiClient.OnConnectionFailedListener,  View.OnClickListener{
+        GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
@@ -147,7 +153,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
-
     }
 
     // [START on_start_check_user]
@@ -157,6 +162,13 @@ public class AuthorizationActivity extends AppCompatActivity implements
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         updateUI(currentUser);
+
+        String exit = getIntent().getStringExtra("exit");
+        if (exit != null && exit.equals("true")) {
+            mAuth.signOut();
+            updateUI(null);
+        }
+
     }
     // [END on_start_check_user]
 
@@ -197,7 +209,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             FirebaseUser user = mAuth.getCurrentUser();
-
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -254,10 +265,10 @@ public class AuthorizationActivity extends AppCompatActivity implements
     private void updateUI(FirebaseUser user) {
         progressBar.setVisibility(View.GONE);
         if (user != null) {
-            mStatusTextView.setText("Google Email: "+user.getEmail()+"\n"+
-                    "Full Name: " + user.getDisplayName()+"\n"+
+            mStatusTextView.setText("Google Email: " + user.getEmail() + "\n" +
+                    "Full Name: " + user.getDisplayName() + "\n" +
                     "Phone number: " + user.getPhoneNumber());
-            mDetailTextView.setText("Firebase User: "+user.getUid());
+            mDetailTextView.setText("Firebase User: " + user.getUid());
 
             findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
@@ -366,6 +377,11 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
             new SendAuthorization().execute();
         }
+
+        //Intent intent = new Intent(AuthorizationActivity.this, VerifyPhoneActivity.class);
+        //intent.putExtra("mobile", "+"+login.getText().toString());
+        //startActivity(intent);
+
     }
 
     @Override

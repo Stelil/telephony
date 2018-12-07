@@ -16,6 +16,7 @@
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
+        android:name=".AppVK"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher_foreground4"
         android:label="@string/app_name"
@@ -23,9 +24,7 @@
         android:roundIcon="@mipmap/ic_launcher_foreground4"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name=".AppVK"
         tools:replace="android:icon">
-
         <activity android:name=".Activity.AuthorizationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,9 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".Activity.MainActivity"></activity>
-
+        <activity android:name=".Activity.MainActivity" />
         <activity
             android:name=".Activity.ClientActivity"
             android:screenOrientation="portrait"
@@ -51,6 +48,8 @@
             android:screenOrientation="portrait" />
         <activity android:name=".Activity.AnalyticsActivity" />
 
+        <activity android:name=".Activity.VerifyPhoneActivity"/>
+
         <receiver
             android:name=".Broadcaster.CallReceiver"
             android:enabled="true">
@@ -59,14 +58,12 @@
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
             </intent-filter>
         </receiver>
-
         <receiver
             android:name=".Broadcaster.CallbackReceiver"
             android:enabled="true" />
         <receiver android:name=".Broadcaster.ImportDataReceiver" />
-
         <receiver android:name=".Broadcaster.ExportDataReceiver" />
-
+        <receiver android:name=".Broadcaster.BroadcastNotification" />
     </application>
 
 </manifest>

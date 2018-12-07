@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
+import ru.itceiling.telephony.Activity.ClientsListActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -69,8 +71,8 @@ public class CallbackReceiver extends BroadcastReceiver {
                     } catch (Exception e) {
                     }
 
-                    if (client_id.equals("") ) {
-                    } else if (two.getTime()<one.getTime()){
+                    if (client_id.equals("")) {
+                    } else if (two.getTime() < one.getTime()) {
 
                         int checkTimeCallback = 0;
                         SharedPreferences SP = context.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
@@ -89,7 +91,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                         }
 
                         long difference = one.getTime() - two.getTime();
-                        int min = (int) (difference / (60 * 1000 )); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
+                        int min = (int) (difference / (60 * 1000)); // миллисекунды / (24ч * 60мин * 60сек * 1000мс)
 
                         if (min == checkTimeCallback) {
 
@@ -105,16 +107,33 @@ public class CallbackReceiver extends BroadcastReceiver {
                             }
                             cc.close();
 
-                            String message = "ФИО клиента: " + client_name + "\nКомментарий: " + comment ;
+                            String message = "ФИО клиента: " + client_name + "\nКомментарий: " + comment;
                             Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + phone));
 
                             PendingIntent phoneIntent = PendingIntent.getActivity(context, 0, resultIntent,
-                                    PendingIntent.FLAG_UPDATE_CURRENT);
+                                    PendingIntent.FLAG_CANCEL_CURRENT);
 
                             Intent resultIntentTwo = new Intent(context, ClientActivity.class);
-                            resultIntentTwo.putExtra("id_client", client_id);
-                            PendingIntent clientIntent = PendingIntent.getActivity(context, 0, resultIntentTwo,
-                                    PendingIntent.FLAG_UPDATE_CURRENT);
+                            resultIntentTwo.putExtra("id_client", "1046");
+
+                            Intent intentClient = new Intent(context, ClientActivity.class);
+                            intentClient.putExtra("id_client", "1046");
+                            intentClient.putExtra("check", "true");
+
+                            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+                            stackBuilder.addParentStack(ClientsListActivity.class);
+                            stackBuilder.addNextIntent(intentClient);
+
+                            PendingIntent resultPendingIntent =
+                                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                            Intent intentBr = new Intent(context, BroadcastNotification.class);
+                            intentBr.putExtra("client_id", client_id);
+                            intentBr.putExtra("notifyID", notifyID);
+                            PendingIntent pi = PendingIntent.getBroadcast(context,
+                                    0,
+                                    intentBr,
+                                    PendingIntent.FLAG_CANCEL_CURRENT);
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 String CHANNEL_ID = "my_channel_01";
@@ -128,18 +147,22 @@ public class CallbackReceiver extends BroadcastReceiver {
                                         .setDefaults(Notification.DEFAULT_ALL)
                                         .setSmallIcon(R.raw.icon_notif)
                                         .setAutoCancel(true)
-                                        .addAction(R.raw.icon_notif, "Позвонить", phoneIntent)
-                                        .addAction(R.raw.icon_notif, "Открыть клиента", clientIntent)
+                                        .addAction(R.raw.icon_notif,
+                                                "Позвонить", phoneIntent)
+                                        .addAction(R.raw.icon_notif,
+                                                "Перенести время", pi)
                                         .setStyle(new Notification.BigTextStyle().bigText(message))
+                                        .setContentIntent(resultPendingIntent)
                                         .setContentText(message)
-                                        .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(), 0))
                                         .setChannelId(CHANNEL_ID)
                                         .build();
 
                                 NotificationManager mNotificationManager =
                                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                                 mNotificationManager.createNotificationChannel(mChannel);
-                                mNotificationManager.notify(notifyID++, notification);
+                                mNotificationManager.notify(notifyID, notification);
+
+                                notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
                             } else {
                                 NotificationCompat.Builder builder =
@@ -150,16 +173,23 @@ public class CallbackReceiver extends BroadcastReceiver {
                                                 .setDefaults(Notification.DEFAULT_ALL)
                                                 .setSmallIcon(R.raw.icon_notif)
                                                 .setAutoCancel(true)
-                                                .addAction(R.raw.icon_notif, "Позвонить", phoneIntent)
-                                                .addAction(R.raw.icon_notif, "Открыть клиента", clientIntent)
+                                                .addAction(R.raw.icon_notif,
+                                                        "Позвонить", phoneIntent)
+                                                .addAction(R.raw.icon_notif,
+                                                        "Перенести время", pi)
                                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                                                .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(), 0))
+                                                .setContentIntent(resultPendingIntent)
                                                 .setContentText(message);
+
                                 Notification notification = builder.build();
                                 NotificationManager notificationManager = (NotificationManager) context
                                         .getSystemService(Context.NOTIFICATION_SERVICE);
-                                notificationManager.notify(notifyID++, notification);
+                                notificationManager.notify(notifyID, notification);
+
+                                notification.flags |= Notification.FLAG_AUTO_CANCEL;
+
                             }
+                            notifyID++;
                         }
                     }
                 } while (c.moveToNext());
@@ -171,16 +201,22 @@ public class CallbackReceiver extends BroadcastReceiver {
     public void SetAlarm(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, CallbackReceiver.class);
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         intent.putExtra("onetime", Boolean.FALSE);//Задаем параметр интента
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
-        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 1000 * 60, pi);
+        PendingIntent pi = PendingIntent.getBroadcast(context,
+                0,
+                intent,
+                0);
+        am.setRepeating(AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis(),
+                1000 * 60,
+                pi);
     }
 
-    public void CancelAlarm(Context context)
-    {
-        Intent intent=new Intent(context, CallbackReceiver.class);
-        PendingIntent sender= PendingIntent.getBroadcast(context,0, intent,0);
-        AlarmManager alarmManager=(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+    public void CancelAlarm(Context context) {
+        Intent intent = new Intent(context, CallbackReceiver.class);
+        PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);//Отменяем будильник, связанный с интентом данного класса
     }
 }

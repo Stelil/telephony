@@ -57,6 +57,8 @@ public class CallReceiver extends BroadcastReceiver {
     static private String fileName;
     static File audiofile;
 
+    static int notifyID = 0;
+
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -171,9 +173,10 @@ public class CallReceiver extends BroadcastReceiver {
             PendingIntent resultPendingIntent = PendingIntent.getActivity(ctx, 0, resultIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
-            String message = "Данный клиент не найден. Хотите добавить его?";
+            String message = "Данный клиент не найден. Хотите добавить его?" +
+                    "\nНомер клиента: " + phoneNumber +
+                    "\nВремя звонка: " + HelperClass.now_date().substring(0,10);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                int notifyID = 1;
                 String CHANNEL_ID = "my_channel_01";
                 CharSequence name = "1";
                 int importance = NotificationManager.IMPORTANCE_HIGH;
@@ -195,8 +198,9 @@ public class CallReceiver extends BroadcastReceiver {
                 NotificationManager mNotificationManager =
                         (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.createNotificationChannel(mChannel);
-                mNotificationManager.notify(notifyID, notification);
+                mNotificationManager.notify(notifyID++, notification);
 
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
             } else {
                 NotificationCompat.Builder builder =
                         new NotificationCompat.Builder(ctx)
@@ -213,7 +217,9 @@ public class CallReceiver extends BroadcastReceiver {
                 Notification notification = builder.build();
                 NotificationManager notificationManager = (NotificationManager) ctx
                         .getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(2, notification);
+                notificationManager.notify(notifyID++, notification);
+
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }
         }
     }
@@ -375,6 +381,7 @@ public class CallReceiver extends BroadcastReceiver {
                 mNotificationManager.createNotificationChannel(mChannel);
                 mNotificationManager.notify(notifyID, notification);
 
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
             } else {
 
@@ -394,6 +401,7 @@ public class CallReceiver extends BroadcastReceiver {
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(2, notification);
 
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }
         }
     }

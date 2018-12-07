@@ -9,6 +9,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,6 +27,7 @@ import java.util.GregorianCalendar;
 
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 public class CallbackListActivity extends AppCompatActivity {
@@ -39,6 +41,8 @@ public class CallbackListActivity extends AppCompatActivity {
     String TAG = "logd";
 
     Calendar dateAndTime = new GregorianCalendar();
+
+    int ii = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +60,19 @@ public class CallbackListActivity extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
         setTitle("Перезвоны");
 
+        txtSelectDay = findViewById(R.id.txtSelectDay);
+        txtSelectDay.setText(HelperClass.now_date().substring(0, 10));
+        listClients(HelperClass.now_date().substring(0, 10));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        txtSelectDay = findViewById(R.id.txtSelectDay);
-        listClients("");
+        if (ii > 0) {
+            listClients("");
+        }
+        ii++;
     }
 
     @Override
@@ -82,17 +91,17 @@ public class CallbackListActivity extends AppCompatActivity {
 
         String sqlQuewy;
         Cursor c;
-        if(date.equals("")){
+        if (date.equals("")) {
             sqlQuewy = "SELECT client_id, date_time, comment "
-                    + "FROM rgzbn_gm_ceiling_callback "+
+                    + "FROM rgzbn_gm_ceiling_callback " +
                     " order by date_time desc";
             c = db.rawQuery(sqlQuewy, new String[]{});
         } else {
             sqlQuewy = "SELECT client_id, date_time, comment "
                     + "FROM rgzbn_gm_ceiling_callback " +
-                    "where date_time like '"+date+"%' "+
+                    "where substr(date_time,1,10) <= ? " +
                     " order by date_time desc";
-            c = db.rawQuery(sqlQuewy, new String[]{});
+            c = db.rawQuery(sqlQuewy, new String[]{date});
         }
         if (c != null) {
             if (c.moveToFirst()) {
@@ -166,7 +175,7 @@ public class CallbackListActivity extends AppCompatActivity {
         setDate(txtSelectDay);
     }
 
-    public void onButtonClearDay(View view){
+    public void onButtonClearDay(View view) {
         listClients("");
         txtSelectDay.setText("");
     }
@@ -183,7 +192,7 @@ public class CallbackListActivity extends AppCompatActivity {
                         callbackDate = "";
                         String editTextDateParam;
                         if (monthOfYear < 9) {
-                            editTextDateParam = year + "-0" + (monthOfYear + 1) ;
+                            editTextDateParam = year + "-0" + (monthOfYear + 1);
                         } else {
                             editTextDateParam = year + "-" + (monthOfYear + 1);
                         }
