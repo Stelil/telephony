@@ -124,9 +124,9 @@ public class DBHelper extends SQLiteOpenHelper {
                 " client_id TEXT, status_id TEXT, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status_history (_id INTEGER PRIMARY KEY, " +
-                "manager_id INTEGER, client_id INTEGER, status INTEGER, date_time TEXT, call_length TEXT)");
+                "manager_id INTEGER, client_id INTEGER, status INTEGER, date_time TEXT, call_length TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status (_id INTEGER PRIMARY KEY, title TEXT)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status (_id INTEGER PRIMARY KEY, title TEXT, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses (_id INTEGER PRIMARY KEY, title TEXT," +
                 " change_time TEXT, dealer_id INTEGER)");
@@ -151,16 +151,19 @@ public class DBHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, 1);
         values.put(DBHelper.KEY_TITLE, "Исходящий недозвон");
+        values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
 
         values = new ContentValues();
         values.put(DBHelper.KEY_ID, 2);
         values.put(DBHelper.KEY_TITLE, "Исходящий дозвон");
+        values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
 
         values = new ContentValues();
         values.put(DBHelper.KEY_ID, 3);
         values.put(DBHelper.KEY_TITLE, "Входящий звонок");
+        values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
 
         values = new ContentValues();

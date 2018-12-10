@@ -8,7 +8,7 @@ public class AdapterList {
     String four;
     String five;
 
-    public AdapterList(String _id, String _one, String _two, String _three, String _four, String _five){
+    public AdapterList(String _id, String _one, String _two, String _three, String _four, String _five) {
         this.id = _id;
         this.one = _one;
         this.two = _two;

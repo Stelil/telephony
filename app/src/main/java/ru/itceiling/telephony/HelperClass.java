@@ -1,25 +1,16 @@
 package ru.itceiling.telephony;
 
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.text.format.DateUtils;
-import android.util.Log;
-import android.view.View;
-import android.widget.DatePicker;
-import android.widget.TimePicker;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import ru.itceiling.telephony.Activity.ClientActivity;
 
 import static android.content.Context.MODE_PRIVATE;
 

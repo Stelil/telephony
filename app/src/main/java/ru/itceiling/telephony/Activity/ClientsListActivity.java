@@ -7,11 +7,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,7 +29,6 @@ import com.amigold.fundapter.FunDapter;
 import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
@@ -262,10 +261,10 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                     String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                     String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    String title = "";
+                    String title = "-";
 
                     String client_status = null;
-                    sqlQuewy = "SELECT status_id "
+                    sqlQuewy = "SELECT status_id, change_time "
                             + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
                             "    WHERE client_id = ? ";
                     Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});

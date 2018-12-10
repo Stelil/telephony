@@ -707,6 +707,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 values.put(DBHelper.KEY_CREATED, created);
                                 values.put(DBHelper.KEY_SEX, sex);
                                 values.put(DBHelper.KEY_DELETED_BY_USER, deleted_by_user);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_clients" +
@@ -755,6 +756,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 values.put(DBHelper.KEY_ID, id);
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_PHONE, phone);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -798,11 +800,13 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 String client_id = client_dop_contact.getString("client_id");
                                 String type_id = client_dop_contact.getString("type_id");
                                 String contact = client_dop_contact.getString("contact");
+                                String change_time = client_dop_contact.getString("change_time");
 
                                 values.put(DBHelper.KEY_ID, id);
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_TYPE_ID, type_id);
                                 values.put(DBHelper.KEY_CONTACT, contact);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -847,6 +851,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 values.put(DBHelper.KEY_COMMENT, comment);
                                 values.put(DBHelper.KEY_MANAGER_ID, manager_id);
                                 values.put(DBHelper.KEY_NOTIFY, notify);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_callback" +
@@ -896,7 +901,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_DATE_TIME, date_time);
                                 values.put(DBHelper.KEY_TEXT, text);
-                                //values.put(DBHelper.KEY_CHANGE_TIME, change_time);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_client_history" +
@@ -944,12 +949,14 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 String status = status_history.getString("status");
                                 String date_time = status_history.getString("date_time");
                                 String call_length = status_history.getString("call_length");
+                                String change_time = status_history.getString("change_time");
 
                                 values.put(DBHelper.KEY_MANAGER_ID, manager_id);
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_STATUS, status);
                                 values.put(DBHelper.KEY_CALL_LENGTH, call_length);
                                 values.put(DBHelper.KEY_DATE_TIME, date_time);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_calls_status_history" +
@@ -986,6 +993,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 String change_time = status_history.getString("change_time");
 
                                 values.put(DBHelper.KEY_TITLE, title);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_calls_status" +
@@ -1032,6 +1040,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
                                 values.put(DBHelper.KEY_TITLE, title);
                                 values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_clients_statuses" +
@@ -1078,6 +1087,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_STATUS_ID, status_id);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
@@ -1130,6 +1140,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 values.put(DBHelper.KEY_DESCRIPTION, description);
                                 values.put(DBHelper.KEY_SITE, site);
                                 values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_gm_ceiling_api_phones" +
