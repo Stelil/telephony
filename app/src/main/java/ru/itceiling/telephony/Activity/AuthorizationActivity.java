@@ -37,26 +37,20 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApiNotAvailableException;
-import com.google.firebase.FirebaseException;
-import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthProvider;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
@@ -66,7 +60,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    static String domen = "",
+    static String domen = "test1",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -207,8 +201,8 @@ public class AuthorizationActivity extends AppCompatActivity implements
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
                             FirebaseUser user = mAuth.getCurrentUser();
+                            registrationGoogleOnDB(user);
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -293,7 +287,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.sign_in_button) {
-            Log.d(TAG, "onClick: ");
             signIn();
         } else if (i == R.id.sign_out_button) {
             signOut();
@@ -351,6 +344,125 @@ public class AuthorizationActivity extends AppCompatActivity implements
     }
     */
 
+    private void registrationGoogleOnDB(FirebaseUser user) {
+        org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
+        jsonObjectAuth.put("email", user.getEmail());
+        jsonObjectAuth.put("fio", user.getDisplayName());
+        jsonAuth = String.valueOf(jsonObjectAuth);
+
+        mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
+        mProgressDialog.setMessage("Проверяем...");
+        mProgressDialog.setIndeterminate(false);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.show();
+
+        new sendGoogleAuthorization().execute();
+    }
+
+    class sendGoogleAuthorization extends AsyncTask<Void, Void, Void> {
+
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.register";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(final Void... params) {
+
+            request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+
+                    Log.d(TAG, res);
+
+                    mProgressDialog.dismiss();
+                    int dealer_id = 0;
+                    try {
+                        JSONObject jsonObject = new JSONObject(res);
+                        dealer_id = jsonObject.getInt("new_id");
+
+                        SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
+                        SharedPreferences.Editor ed = SP.edit();
+                        ed.putString("", String.valueOf(dealer_id));
+                        ed.commit();
+
+                        SP = getSharedPreferences("enter", MODE_PRIVATE);
+                        ed = SP.edit();
+                        ed.putString("", "1");
+                        ed.commit();
+
+                        jsonObject = new JSONObject();
+                        jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
+                        jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
+
+                        SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
+                        ed = SP.edit();
+                        ed.putString("", String.valueOf(jsonObject));
+                        ed.commit();
+
+                        SP = getSharedPreferences("link", MODE_PRIVATE);
+                        ed = SP.edit();
+                        ed.putString("", domen);
+                        ed.commit();
+
+                        String sqlQuewy = "SELECT change_time "
+                                + "FROM history_import_to_server " +
+                                "where user_id = ?";
+                        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
+                        if (c != null) {
+                            if (c.moveToFirst()) {
+                            } else {
+                                ContentValues values = new ContentValues();
+                                values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
+                                values.put(DBHelper.KEY_USER_ID, dealer_id);
+                                db.insert(DBHelper.HISTORY_IMPORT_TO_SERVER, null, values);
+                            }
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    pd = new ProgressDialog(AuthorizationActivity.this);
+                    pd.setTitle("Загрузка клиентов ... ");
+                    pd.setMessage("Пожалуйста подождите");
+                    pd.setIndeterminate(false);
+                    pd.setCancelable(false);
+                    pd.show();
+
+                    importData();
+
+                }
+
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mProgressDialog.dismiss();
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Проверьте подключение к интернету, или возможны работы на сервере", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }) {
+
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    parameters.put("r_data", jsonAuth);
+                    Log.d(TAG, "getParams: " + parameters);
+                    return parameters;
+                }
+            };
+
+            request.setShouldCache(false);
+            RequestQueue requestQueue = Volley.newRequestQueue(AuthorizationActivity.this);
+            requestQueue.add(request);
+
+            return null;
+        }
+    }
+
+
     public void buttonVhod(View view) {
         if (login.getText().toString().equals("") || password.getText().toString().equals("")) {
             Toast toast = Toast.makeText(getApplicationContext(),
@@ -406,7 +518,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 @Override
                 public void onResponse(String res) {
                     Log.d(TAG, res);
-
                     try {
 
                         JSONObject jsonObject = new JSONObject(res);
@@ -512,7 +623,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                                         pd.setIndeterminate(false);
                                                         pd.setCancelable(false);
                                                         pd.show();
-
                                                         importData();
                                                         break;
                                                     case 1:
@@ -528,7 +638,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                                         pd.setIndeterminate(false);
                                                         pd.setCancelable(false);
                                                         pd.show();
-
                                                         importData();
                                                         break;
                                                 }
@@ -596,13 +705,9 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
         SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
-
-        Log.v(TAG, "ImportDataReceiver started! " + domen);
         int count = 0;
-
         dbHelper = new DBHelper(this);
         final SQLiteDatabase db = dbHelper.getReadableDatabase();
-
         String sqlQuewy = "SELECT * "
                 + "FROM history_send_to_server";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{});
@@ -616,7 +721,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
         c.close();
 
         if (count == 0) {
-
             SharedPreferences SP_end = getSharedPreferences("dealer_id", MODE_PRIVATE);
             user_id = SP_end.getString("", "");
             requestQueue = Volley.newRequestQueue(getApplicationContext());
@@ -1199,6 +1303,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
+                    Log.d(TAG, "onErrorResponse: " + error);
                 }
             }) {
 
@@ -1216,6 +1321,5 @@ public class AuthorizationActivity extends AppCompatActivity implements
         }
 
     }
-
 
 }

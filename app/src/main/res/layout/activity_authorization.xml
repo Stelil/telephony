@@ -63,7 +63,8 @@
             android:layout_height="0dp"
             android:layout_weight="3"
             android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/title_text"
@@ -95,48 +96,12 @@
 
         </LinearLayout>
 
-
-        <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="#E0E0E0">
-
-            <com.google.android.gms.common.SignInButton
-                android:id="@+id/sign_in_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:visibility="visible"
-                tools:visibility="gone" />
-
-            <LinearLayout
-                android:id="@+id/sign_out_and_disconnect"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:orientation="horizontal"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <Button
-                    android:id="@+id/sign_out_button"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Sign Out" />
-
-                <Button
-                    android:id="@+id/disconnect_button"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Disconnect" />
-            </LinearLayout>
-
-        </RelativeLayout>
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/sign_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp" />
 
     </LinearLayout>
 </ScrollView>

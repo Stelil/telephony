@@ -172,6 +172,30 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
 
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 2);
+        values.put(DBHelper.KEY_TITLE, "Договор");
+        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
+
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 3);
+        values.put(DBHelper.KEY_TITLE, "В работе");
+        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
+
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 4);
+        values.put(DBHelper.KEY_TITLE, "Отказ от сотрудничества");
+        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
+
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 5);
+        values.put(DBHelper.KEY_TITLE, "Заказ закрыт");
+        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
+
     }
 
     @Override
