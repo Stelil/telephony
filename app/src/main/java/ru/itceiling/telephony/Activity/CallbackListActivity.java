@@ -171,6 +171,8 @@ public class CallbackListActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        //listView.setOnItemLongClickListener();
     }
 
     public void onButtonSelectDay(View view) {

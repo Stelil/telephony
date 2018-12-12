@@ -30,6 +30,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -153,6 +154,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        TextView countCallback = (TextView) findViewById(R.id.countCallback);
+        int count_zamer = 0;
+
+        String sqlQuewy = "SELECT count(_id) "
+                + "FROM rgzbn_gm_ceiling_callback " +
+                "where substr(date_time,1,10) <= ? " +
+                " order by date_time desc";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{HelperClass.now_date().substring(0, 10)});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    count_zamer = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+
+
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        if (count_zamer > 0) {
+            countCallback.setVisibility(View.VISIBLE);
+            countCallback.setText(String.valueOf(count_zamer));
+        }
 
         importDataReceiver = new ImportDataReceiver();
         if (importDataReceiver != null) {
