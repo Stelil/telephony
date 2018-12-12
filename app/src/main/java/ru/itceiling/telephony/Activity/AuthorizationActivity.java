@@ -131,8 +131,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
         // Button listeners
         findViewById(R.id.sign_in_button).setOnClickListener(this);
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
-        findViewById(R.id.disconnect_button).setOnClickListener(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com")
@@ -155,14 +153,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
-
-        String exit = getIntent().getStringExtra("exit");
-        if (exit != null && exit.equals("true")) {
-            mAuth.signOut();
-            updateUI(null);
-        }
-
     }
     // [END on_start_check_user]
 
@@ -178,11 +168,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
-            } else {
-                // Google Sign In failed, update UI appropriately
-                // [START_EXCLUDE]
-                updateUI(null);
-                // [END_EXCLUDE]
             }
         }
     }
@@ -203,13 +188,11 @@ public class AuthorizationActivity extends AppCompatActivity implements
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
                             registrationGoogleOnDB(user);
-                            updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
                             Toast.makeText(AuthorizationActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-                            updateUI(null);
                         }
 
                         // [START_EXCLUDE]
@@ -228,53 +211,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
     }
     // [END signin]
 
-    private void signOut() {
-        // Firebase sign out
-        mAuth.signOut();
-
-        // Google sign out
-        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {
-                        updateUI(null);
-                    }
-                });
-    }
-
-    private void revokeAccess() {
-        // Firebase sign out
-        mAuth.signOut();
-
-        // Google revoke access
-        Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {
-                        updateUI(null);
-                    }
-                });
-    }
-
-    private void updateUI(FirebaseUser user) {
-        progressBar.setVisibility(View.GONE);
-        if (user != null) {
-            mStatusTextView.setText("Google Email: " + user.getEmail() + "\n" +
-                    "Full Name: " + user.getDisplayName() + "\n" +
-                    "Phone number: " + user.getPhoneNumber());
-            mDetailTextView.setText("Firebase User: " + user.getUid());
-
-            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
-        } else {
-            mStatusTextView.setText("Signed Out");
-            mDetailTextView.setText(null);
-
-            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
-        }
-    }
-
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // An unresolvable error has occurred and Google APIs (including Sign-In) will not
@@ -288,10 +224,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
         int i = v.getId();
         if (i == R.id.sign_in_button) {
             signIn();
-        } else if (i == R.id.sign_out_button) {
-            signOut();
-        } else if (i == R.id.disconnect_button) {
-            revokeAccess();
         }
     }
 
