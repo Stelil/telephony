@@ -68,7 +68,8 @@ public class BroadcastNotification extends BroadcastReceiver {
                 HelperClass.addExportData(
                         context,
                         Integer.parseInt(id),
-                        "rgzbn_gm_ceiling_callback");
+                        "rgzbn_gm_ceiling_callback",
+                        "send");
 
                 HelperClass.addHistory("Звонок перенесён на " + dateEnd,
                         context,

@@ -175,7 +175,8 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                             HelperClass.addExportData(
                                     context,
                                     maxIdClient,
-                                    "rgzbn_gm_ceiling_clients");
+                                    "rgzbn_gm_ceiling_clients",
+                                    "send");
 
                             HelperClass.addHistory("Новый клиент", ClientsListActivity.this, String.valueOf(maxIdClient));
 
@@ -191,7 +192,8 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                             HelperClass.addExportData(
                                     context,
                                     maxId,
-                                    "rgzbn_gm_ceiling_clients_statuses_map");
+                                    "rgzbn_gm_ceiling_clients_statuses_map",
+                                    "send");
 
                             if ((phone.length() == 11)) {
                                 int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
@@ -206,7 +208,8 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                                 HelperClass.addExportData(
                                         context,
                                         maxIdContacts,
-                                        "rgzbn_gm_ceiling_clients_contacts");
+                                        "rgzbn_gm_ceiling_clients_contacts",
+                                        "send");
 
                             }
 

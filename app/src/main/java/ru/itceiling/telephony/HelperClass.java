@@ -98,7 +98,8 @@ public class HelperClass {
         HelperClass.addExportData(
                 context,
                 max_id,
-                "rgzbn_gm_ceiling_client_history");
+                "rgzbn_gm_ceiling_client_history",
+                "send");
 
     }
 
@@ -125,7 +126,8 @@ public class HelperClass {
         HelperClass.addExportData(
                 context,
                 max_id,
-                "rgzbn_gm_ceiling_callback");
+                "rgzbn_gm_ceiling_callback",
+                "send");
 
     }
 
@@ -156,7 +158,7 @@ public class HelperClass {
         return count;
     }
 
-    public static void addExportData(Context context, int id, String nameTable) {
+    public static void addExportData(Context context, int id, String nameTable, String type) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db;
@@ -167,7 +169,7 @@ public class HelperClass {
         values.put(DBHelper.KEY_ID_NEW, "0");
         values.put(DBHelper.KEY_NAME_TABLE, nameTable);
         values.put(DBHelper.KEY_SYNC, "0");
-        values.put(DBHelper.KEY_TYPE, "send");
+        values.put(DBHelper.KEY_TYPE, type);
         values.put(DBHelper.KEY_STATUS, "1");
         db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
     }

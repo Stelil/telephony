@@ -1,14 +1,18 @@
 package ru.itceiling.telephony.Activity;
 
 import android.app.DatePickerDialog;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -91,12 +95,12 @@ public class CallbackListActivity extends AppCompatActivity {
         String sqlQuewy;
         Cursor c;
         if (date.equals("")) {
-            sqlQuewy = "SELECT client_id, date_time, comment "
+            sqlQuewy = "SELECT client_id, date_time, comment, _id "
                     + "FROM rgzbn_gm_ceiling_callback " +
                     " order by date_time desc";
             c = db.rawQuery(sqlQuewy, new String[]{});
         } else {
-            sqlQuewy = "SELECT client_id, date_time, comment "
+            sqlQuewy = "SELECT client_id, date_time, comment, _id "
                     + "FROM rgzbn_gm_ceiling_callback " +
                     "where substr(date_time,1,10) <= ? " +
                     " order by date_time desc";
@@ -126,8 +130,10 @@ public class CallbackListActivity extends AppCompatActivity {
                     }
                     cc.close();
 
+                    String id = c.getString(c.getColumnIndex(c.getColumnName(3)));
+
                     AdapterList fc = new AdapterList(client_id,
-                            client_name, date_time, comment, null, null);
+                            client_name, date_time, comment, id, null);
                     client_mas.add(fc);
 
                 } while (c.moveToNext());
@@ -172,7 +178,46 @@ public class CallbackListActivity extends AppCompatActivity {
             }
         });
 
-        //listView.setOnItemLongClickListener();
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                           int pos, long id) {
+                // TODO Auto-generated method stub
+
+                AdapterList selectedid = client_mas.get(pos);
+                final int cId = Integer.parseInt(selectedid.getFour());
+
+                Log.d(TAG, "onItemLongClick: " + cId);
+
+                AlertDialog.Builder ad = new AlertDialog.Builder(CallbackListActivity.this);
+                ad.setMessage("Удалить звонок ?"); // сообщение
+                ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int arg1) {
+
+                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK,
+                                "_id = ?",
+                                new String[]{String.valueOf(cId)});
+
+                        HelperClass.addExportData(
+                                CallbackListActivity.this,
+                                cId,
+                                "rgzbn_gm_ceiling_callback",
+                                "delete");
+
+                        listClients(txtSelectDay.getText().toString());
+
+                    }
+                });
+                ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int arg1) {
+
+                    }
+                });
+                ad.setCancelable(true);
+                ad.show();
+                return true;
+            }
+        });
     }
 
     public void onButtonSelectDay(View view) {

@@ -221,7 +221,8 @@ public class ClientActivity extends AppCompatActivity {
                             HelperClass.addExportData(
                                     ClientActivity.this,
                                     Integer.parseInt(id),
-                                    "rgzbn_gm_ceiling_callback");
+                                    "rgzbn_gm_ceiling_callback",
+                                    "send");
 
                             HelperClass.addHistory("Звонок перенесён на " + callbackDate,
                                     ClientActivity.this,
@@ -819,7 +820,8 @@ public class ClientActivity extends AppCompatActivity {
                     HelperClass.addExportData(
                             ClientActivity.this,
                             maxId,
-                            "rgzbn_gm_ceiling_clients_statuses");
+                            "rgzbn_gm_ceiling_clients_statuses",
+                            "send");
 
                     String sqlQuewy = "select _id, title "
                             + "FROM rgzbn_gm_ceiling_clients_statuses ";
@@ -911,7 +913,8 @@ public class ClientActivity extends AppCompatActivity {
                         HelperClass.addExportData(
                                 ClientActivity.this,
                                 idStatusesMap,
-                                "rgzbn_gm_ceiling_clients_statuses_map");
+                                "rgzbn_gm_ceiling_clients_statuses_map",
+                                "send");
                     }
                 }
                 c.close();
@@ -929,7 +932,8 @@ public class ClientActivity extends AppCompatActivity {
                     HelperClass.addExportData(
                             ClientActivity.this,
                             maxId,
-                            "rgzbn_gm_ceiling_clients_statuses_map");
+                            "rgzbn_gm_ceiling_clients_statuses_map",
+                            "send");
                 }
 
                 Toast.makeText(getApplicationContext(), "Статус изменён",
@@ -1126,7 +1130,8 @@ public class ClientActivity extends AppCompatActivity {
                                         HelperClass.addExportData(
                                                 ClientActivity.this,
                                                 Integer.parseInt(id_client),
-                                                "rgzbn_gm_ceiling_clients");
+                                                "rgzbn_gm_ceiling_clients",
+                                                "send");
                                     }
                                 } else {
                                     Toast toast = Toast.makeText(context.getApplicationContext(),
@@ -1246,7 +1251,8 @@ public class ClientActivity extends AppCompatActivity {
                 HelperClass.addExportData(
                         ClientActivity.this,
                         maxId,
-                        "rgzbn_gm_ceiling_clients_dop_contacts");
+                        "rgzbn_gm_ceiling_clients_dop_contacts",
+                        "send");
 
             } catch (Exception e) {
                 Log.d("logd", "error: " + e);
@@ -1278,7 +1284,8 @@ public class ClientActivity extends AppCompatActivity {
                 HelperClass.addExportData(
                         ClientActivity.this,
                         maxId,
-                        "rgzbn_gm_ceiling_clients_contacts");
+                        "rgzbn_gm_ceiling_clients_contacts",
+                        "send");
 
             } catch (Exception e) {
                 Log.d("logd", "error: " + e);
@@ -1359,7 +1366,8 @@ public class ClientActivity extends AppCompatActivity {
                                 HelperClass.addExportData(
                                         ClientActivity.this,
                                         Integer.parseInt(id),
-                                        "rgzbn_gm_ceiling_callback");
+                                        "rgzbn_gm_ceiling_callback",
+                                        "send");
 
                                 Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
                                         "Звонок перенесён ", Toast.LENGTH_SHORT);

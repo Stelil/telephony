@@ -49,6 +49,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
             sendUsers = "[", sendApiPhones = "[", sendClientHistory = "[", sendCallback = "[",
             sendCallStatusHistory = "[", sendClientStatusMap = "[";
 
+    static String jsonDelete = "[", jsonDeleteTable = "";
+
     static org.json.simple.JSONObject jsonObjectClient = new org.json.simple.JSONObject();
     static org.json.simple.JSONObject jsonObjectClientContacts = new org.json.simple.JSONObject();
     static org.json.simple.JSONObject jsonObjectClientDopContacts = new org.json.simple.JSONObject();
@@ -481,6 +483,35 @@ public class ExportDataReceiver extends BroadcastReceiver {
             } else {
                 new SendUsersData().execute();
             }
+
+            Log.d(TAG, "--------------------------DELETE------------------------");
+            //клиент send
+            jsonDelete = "[";
+            sqlQuewy = "SELECT id_old, name_table "
+                    + "FROM history_send_to_server " +
+                    "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and status=?";
+            cursor = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id),
+                    String.valueOf(dealer_id + 999999), String.valueOf(999999), "delete", "0", "1"});
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    String id_old = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(0)));
+                    String name_table = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(1)));
+                    jsonDeleteTable = name_table;
+                    try {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("id", id_old);
+                        jsonDelete += String.valueOf(jsonObject);
+                    } catch (Exception e) {
+                    }
+                }
+            }
+            cursor.close();
+
+            jsonDelete = jsonDelete.substring(0, jsonDelete.length()) + "]";
+            if (jsonDelete.equals("[]")) {
+            } else {
+                new SendDeleteTable().execute();
+            }
         }
     }
 
@@ -499,7 +530,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);
     }
-
 
     static void delete() {
 
@@ -2775,6 +2805,63 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 protected Map<String, String> getParams() throws AuthFailureError {
                     parameters.put("rgzbn_users", checkUsers);
                     Log.d(TAG, "CHECK rgzbn_users " + checkUsers);
+                    return parameters;
+                }
+            };
+            requestQueue.add(request);
+            return null;
+        }
+    }
+
+    static class SendDeleteTable extends AsyncTask<Void, Void, Void> {
+
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&amp;task=api.deleteDataFromAndroid";
+        Map<String, String> parameters = new HashMap<String, String>();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(final Void... params) {
+
+            StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+
+                    if (res.equals("")) {
+
+                    } else {
+                        SQLiteDatabase db;
+                        db = dbHelper.getWritableDatabase();
+                        res = res.substring(1, res.length() - 1);
+                        try {
+                            JSONObject jsonObject = new JSONObject(res);
+                            String delete_id = jsonObject.getString("ids");
+                            String table = jsonObject.getString("table");
+
+                            ContentValues values = new ContentValues();
+                            values.put(DBHelper.KEY_SYNC, "1");
+                            db.update(DBHelper.HISTORY_SEND_TO_SERVER, values, "id_old = ? and type=? and sync=? and name_table=? and id_new=?",
+                                    new String[]{String.valueOf(delete_id), "delete", "0", table, "0"});
+
+                        } catch (Exception e) {
+                            Log.d(TAG, String.valueOf(e));
+                        }
+                    }
+                    delete();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                }
+            }) {
+
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    parameters.put(jsonDeleteTable, jsonDelete);
+                    Log.d(TAG, "delete" + parameters);
                     return parameters;
                 }
             };
