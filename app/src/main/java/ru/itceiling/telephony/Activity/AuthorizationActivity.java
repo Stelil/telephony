@@ -60,7 +60,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    static String domen = "test1",
+    static String domen = "calc",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -722,8 +722,8 @@ public class AuthorizationActivity extends AppCompatActivity implements
                                 values = new ContentValues();
                                 org.json.JSONObject cleint = rgzbn_gm_ceiling_clients.getJSONObject(i);
 
-                                String id = cleint.getString("id");
                                 count = 0;
+                                String id = cleint.getString("id");
 
                                 String client_name = cleint.getString("client_name");
                                 String client_data_id = cleint.getString("client_data_id");
@@ -1221,6 +1221,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                         } catch (Exception e) {
                             Log.d(TAG, "onResponse: " + e);
                         }
+
                         int i = 0;
                     }
 

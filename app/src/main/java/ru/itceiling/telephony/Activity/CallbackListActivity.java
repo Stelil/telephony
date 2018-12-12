@@ -69,7 +69,7 @@ public class CallbackListActivity extends AppCompatActivity {
         super.onResume();
 
         if (ii > 0) {
-            listClients("");
+            listClients(txtSelectDay.getText().toString());
         }
         ii++;
     }
