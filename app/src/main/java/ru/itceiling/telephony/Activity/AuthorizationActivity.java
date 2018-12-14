@@ -33,8 +33,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -491,8 +489,9 @@ public class AuthorizationActivity extends AppCompatActivity implements
                         ed.commit();
 
                         String sqlQuewy = "SELECT change_time "
-                                + "FROM history_import_to_server";
-                        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+                                + "FROM history_import_to_server " +
+                                "where user_id = ?";
+                        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
                         if (c != null) {
                             if (c.moveToFirst()) {
                             } else {

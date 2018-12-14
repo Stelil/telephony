@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.UnderlineTextView;
 
@@ -46,7 +48,7 @@ public class AnalyticsActivity extends AppCompatActivity {
     SQLiteDatabase db;
     String dealer_id, analyticDate;
     private List<TextView> txtList = new ArrayList<>();
-    private int[] arrayId;
+    private String[] arrayId;
     TextView txtSelectDay, txtSelectDayTwo;
     Calendar dateAndTime = new GregorianCalendar();
     ArrayList<AdapterList> client_mas = new ArrayList<>();
@@ -174,53 +176,54 @@ public class AnalyticsActivity extends AppCompatActivity {
         c.close();
 
         int[] arrayStatusCount = new int[countStatuses];
-        arrayId = new int[countStatuses];
+        arrayId = new String[countStatuses];
 
         int countClients = 0;
         int index = 0;
-        sqlQuewy = "select _id "
-                + "FROM rgzbn_gm_ceiling_clients_statuses ";
-        c = db.rawQuery(sqlQuewy, new String[]{});
+
+        String date1 = "0001-01-01",
+                date2 = HelperClass.now_date().substring(0, 10);
+        if (!txtSelectDay.getText().toString().equals("")) {
+            date1 = txtSelectDay.getText().toString();
+        }
+        if (!txtSelectDayTwo.getText().toString().equals("")) {
+            date2 = txtSelectDayTwo.getText().toString();
+        }
+
+        sqlQuewy = "SELECT s._id AS status_id, " +
+                "COUNT(ls.max_id) AS count, " +
+                "GROUP_CONCAT(ls.client_id) AS clients " +
+                "FROM rgzbn_gm_ceiling_clients_statuses AS s " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
+                "ON s._id = sm.status_id " +
+                "LEFT JOIN (SELECT MAX(_id) AS max_id, client_id " +
+                "FROM rgzbn_gm_ceiling_clients_statuses_map " +
+                "GROUP BY client_id " +
+                ") AS ls " +
+                "ON sm._id = ls.max_id " +
+                "AND sm.change_time >= ? " +
+                "AND sm.change_time <= ? " +
+                "WHERE (s.dealer_id = ? " +
+                "OR s.dealer_id IS NULL) " +
+                "GROUP BY s._id " +
+                "ORDER BY s._id ";
+        c = db.rawQuery(sqlQuewy, new String[]{date1 + "00:00:00", date2 + "23:59:59", dealer_id});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
-                    int id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-                    arrayId[index] = id;
-                    Cursor cc = null;
-                    if (txtSelectDay.getText().toString().equals("") && txtSelectDayTwo.getText().toString().equals("")) {
-                        sqlQuewy = "select count(client_id) "
-                                + "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                                "where status_id = ? ";
-                        cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
+                    Log.d(TAG, "createTable: 1 " + c.getString(c.getColumnIndex(c.getColumnName(1))));
+                    Log.d(TAG, "createTable: 2 " + c.getString(c.getColumnIndex(c.getColumnName(2))));
+
+                    countClients += c.getInt(c.getColumnIndex(c.getColumnName(1)));
+                    if (c.getString(c.getColumnIndex(c.getColumnName(1))).equals("0")) {
+                        arrayStatusCount[index] = 0;
+                        arrayId[index] = "0";
                     } else {
-                        if (!txtSelectDay.getText().toString().equals("") && txtSelectDayTwo.getText().toString().equals("")) {
-                            sqlQuewy = "select _id "
-                                    + "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                                    "where status_id = ? and change_time > ?";
-                            cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id), txtSelectDay.getText().toString() + " 00:00:01"});
-                        } else if (txtSelectDay.getText().toString().equals("") && !txtSelectDayTwo.getText().toString().equals("")) {
-                            sqlQuewy = "select count(_id) "
-                                    + "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                                    "where status_id = ? and change_time < ?";
-                            cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id), txtSelectDayTwo.getText().toString() + " 23:59:59"});
-                        } else if (!txtSelectDay.getText().toString().equals("") && !txtSelectDayTwo.getText().toString().equals("")) {
-                            sqlQuewy = "select count(_id) "
-                                    + "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                                    "where status_id = ? and change_time > ? and change_time < ?";
-                            cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id), txtSelectDay.getText().toString() + " 00:00:01",
-                                    txtSelectDayTwo.getText().toString() + " 23:59:59"});
-                        }
+                        arrayStatusCount[index] = c.getInt(c.getColumnIndex(c.getColumnName(1)));
+                        arrayId[index] = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     }
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            Log.d(TAG, "createTable: 2 id = " + c.getInt(c.getColumnIndex(c.getColumnName(0))));
-                            Log.d(TAG, "createTable: count = " + cc.getString(cc.getColumnIndex(cc.getColumnName(0))));
-                            arrayStatusCount[index] = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                            index++;
-                            countClients += cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
-                    }
-                    cc.close();
+
+                    index++;
                 } while (c.moveToNext());
             }
         }
@@ -236,9 +239,7 @@ public class AnalyticsActivity extends AppCompatActivity {
             txt.setLayoutParams(tableParams);
 
             if (j == 0) {
-
                 txt.setText(String.valueOf(countClients));
-
             } else {
                 txt.setText(String.valueOf(arrayStatusCount[j - 1]));
             }
@@ -261,115 +262,140 @@ public class AnalyticsActivity extends AppCompatActivity {
             final TextView textView = txtList.get(id);
             int text = Integer.parseInt(textView.getText().toString());
 
+            final Context context = AnalyticsActivity.this;
+            LayoutInflater li = LayoutInflater.from(context);
+            View promptsView = li.inflate(R.layout.activity_clients_list, null);
+            AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+            mDialogBuilder.setView(promptsView);
+
+            final AlertDialog dialog = new AlertDialog.Builder(context)
+                    .setView(promptsView)
+                    .setNegativeButton("Скрыть", null)
+                    .create();
+
+            Button addClient = promptsView.findViewById(R.id.AddClient);
+            addClient.setVisibility(View.GONE);
+
             if (text == 0) {
 
             } else if (id == 0) {
-                Log.d(TAG, "onClick: ");
-                final Context context = AnalyticsActivity.this;
-                LayoutInflater li = LayoutInflater.from(context);
-                View promptsView = li.inflate(R.layout.activity_clients_list, null);
-                AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
-                mDialogBuilder.setView(promptsView);
-
-                final AlertDialog dialog = new AlertDialog.Builder(context)
-                        .setView(promptsView)
-                        .setNegativeButton("Скрыть", null)
-                        .create();
-
-                Button addCleint = promptsView.findViewById(R.id.AddClient);
-                addCleint.setVisibility(View.GONE);
                 dialog.show();
-
                 ListView listView = promptsView.findViewById(R.id.list_client);
-                ListClients(listView);
-
+                ListClients(null, listView);
             } else {
-                final Context context = AnalyticsActivity.this;
-                LayoutInflater li = LayoutInflater.from(context);
-                View promptsView = li.inflate(R.layout.activity_clients_list, null);
-                AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
-                mDialogBuilder.setView(promptsView);
-
-                final AlertDialog dialog = new AlertDialog.Builder(context)
-                        .setView(promptsView)
-                        .setNegativeButton("Скрыть", null)
-                        .create();
-
-                Button addCleint = promptsView.findViewById(R.id.AddClient);
-                addCleint.setVisibility(View.GONE);
                 dialog.show();
-
                 ListView listView = promptsView.findViewById(R.id.list_client);
-                ListClients(arrayId[id - 1], listView);
+                ListClients((id - 1), listView);
             }
-
         }
     };
 
-    private void ListClients(int idStatus, ListView listView) {
+    private void ListClients(Integer id, ListView listView) {
 
         client_mas.clear();
 
-        String title = "";
-        String sqlQuewy = "SELECT title "
-                + "FROM rgzbn_gm_ceiling_clients_statuses" +
-                " WHERE _id = ? ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(idStatus)});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    title = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                } while (c.moveToNext());
-            }
+        String date1 = "0001-01-01",
+                date2 = HelperClass.now_date().substring(0, 10);
+        if (!txtSelectDay.getText().toString().equals("")) {
+            date1 = txtSelectDay.getText().toString();
         }
-        c.close();
+        if (!txtSelectDayTwo.getText().toString().equals("")) {
+            date2 = txtSelectDayTwo.getText().toString();
+        }
 
-        if (txtSelectDay.getText().toString().equals("") && txtSelectDayTwo.getText().toString().equals("")) {
-            sqlQuewy = "SELECT c.created, c.client_name, c._id "
-                    + "FROM rgzbn_gm_ceiling_clients c " +
-                    "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                    "       on c._id = s.client_id" +
-                    " WHERE s.status_id = ?";
-            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(idStatus)});
+        String title = "";
+        String[] ar;
+        if (id == null) {
+            ar = arrayId;
         } else {
-            if (!txtSelectDay.getText().toString().equals("") && txtSelectDayTwo.getText().toString().equals("")) {
-                sqlQuewy = "SELECT c.created, c.client_name, c._id "
+            ar = new String[1];
+            ar[0] = arrayId[id];
+        }
+
+        Log.d(TAG, "ListClients: " + ar.length);
+
+        for (int i = 0; ar.length > i; i++) {
+
+            String clientId = ar[i];
+            Log.d(TAG, "ListClients: clientId " + clientId);
+
+            if (ar[i].contains(",")) {
+                for (String clienId : ar[i].split(",")) {
+
+                    String sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
+                            + "FROM rgzbn_gm_ceiling_clients c " +
+                            "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
+                            "       on c._id = s.client_id " +
+                            " WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
+                    Cursor c = db.rawQuery(sqlQuewy,
+                            new String[]{clienId,
+                                    date1 + " 00:00:01",
+                                    date2 + " 23:59:59"});
+                    if (c != null) {
+                        if (c.moveToLast()) {
+                            String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                            String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                            String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
+
+                            String status_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                            sqlQuewy = "SELECT title "
+                                    + "FROM rgzbn_gm_ceiling_clients_statuses " +
+                                    " WHERE _id = ? ";
+                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
+                            if (cc != null) {
+                                if (cc.moveToFirst()) {
+                                    title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                }
+                            }
+                            cc.close();
+
+                            AdapterList fc = new AdapterList(id_client,
+                                    client_name, title, created, null, null);
+                            client_mas.add(fc);
+
+                        }
+                    }
+                    c.close();
+                }
+            } else {
+                String sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
                         + "FROM rgzbn_gm_ceiling_clients c " +
                         "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                        "       on c._id = s.client_id" +
-                        " WHERE s.status_id = ? and c.change_time > ?";
-                c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(idStatus), txtSelectDay.getText().toString() + " 00:00:01"});
-            } else if (txtSelectDay.getText().toString().equals("") && !txtSelectDayTwo.getText().toString().equals("")) {
-                sqlQuewy = "SELECT created, client_name, _id "
-                        + "FROM rgzbn_gm_ceiling_clients " +
-                        " WHERE s.status_id = ? and c.change_time < ?";
-                c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(idStatus), txtSelectDayTwo.getText().toString() + " 23:59:59"});
-            } else if (!txtSelectDay.getText().toString().equals("") && !txtSelectDayTwo.getText().toString().equals("")) {
-                sqlQuewy = "SELECT created, client_name, _id "
-                        + "FROM rgzbn_gm_ceiling_clients " +
-                        " WHERE s.status_id = ? and c.change_time > ? and c.change_time < ?";
-                c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(idStatus), txtSelectDay.getText().toString() + " 00:00:01",
-                        txtSelectDayTwo.getText().toString() + " 23:59:59"});
+                        "       on c._id = s.client_id " +
+                        " WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
+                Cursor c = db.rawQuery(sqlQuewy,
+                        new String[]{clientId,
+                                date1 + " 00:00:01",
+                                date2 + " 23:59:59"});
+                if (c != null) {
+                    if (c.moveToLast()) {
+                        String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                        String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                        String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
+
+                        String status_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                        sqlQuewy = "SELECT title "
+                                + "FROM rgzbn_gm_ceiling_clients_statuses " +
+                                " WHERE _id = ? ";
+                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
+                        if (cc != null) {
+                            if (cc.moveToFirst()) {
+                                title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                            }
+                        }
+                        cc.close();
+
+                        AdapterList fc = new AdapterList(id_client,
+                                client_name, title, created, null, null);
+                        client_mas.add(fc);
+
+                    }
+                }
+                c.close();
             }
         }
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                    String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-
-                    AdapterList fc = new AdapterList(id_client,
-                            client_name, title, created, null, null);
-                    client_mas.add(fc);
-
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
 
         BindDictionary<AdapterList> dict = new BindDictionary<>();
-
         dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
             @Override
             public String getStringValue(AdapterList nc, int position) {
@@ -409,64 +435,38 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         client_mas.clear();
 
-        String sqlQuewy;
-        Cursor c = null;
-
-        if (txtSelectDay.getText().toString().equals("") && txtSelectDayTwo.getText().toString().equals("")) {
-            sqlQuewy = "SELECT c.created, c.client_name, c._id "
-                    + "FROM rgzbn_gm_ceiling_clients c " +
-                    "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                    "       on c._id = s.client_id";
-            c = db.rawQuery(sqlQuewy, new String[]{});
-        } else {
-            if (!txtSelectDay.getText().toString().equals("") && txtSelectDayTwo.getText().toString().equals("")) {
-                sqlQuewy = "SELECT c.created, c.client_name, c._id "
-                        + "FROM rgzbn_gm_ceiling_clients c " +
-                        "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                        "       on c._id = s.client_id " +
-                        "where c.change_time > ?";
-                c = db.rawQuery(sqlQuewy, new String[]{txtSelectDay.getText().toString() + " 00:00:01"});
-            } else if (txtSelectDay.getText().toString().equals("") && !txtSelectDayTwo.getText().toString().equals("")) {
-                sqlQuewy = "SELECT c.created, c.client_name, c._id "
-                        + "FROM rgzbn_gm_ceiling_clients c " +
-                        "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                        "       on c._id = s.client_id " +
-                        "where c.change_time < ?";
-                c = db.rawQuery(sqlQuewy, new String[]{txtSelectDayTwo.getText().toString() + " 23:59:59"});
-            } else if (!txtSelectDay.getText().toString().equals("") && !txtSelectDayTwo.getText().toString().equals("")) {
-                sqlQuewy = "SELECT c.created, c.client_name, c._id "
-                        + "FROM rgzbn_gm_ceiling_clients c " +
-                        "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                        "       on c._id = s.client_id " +
-                        "where c.change_time > ? and change_time < ?";
-                c = db.rawQuery(sqlQuewy, new String[]{txtSelectDay.getText().toString() + " 00:00:01",
-                        txtSelectDayTwo.getText().toString() + " 23:59:59"});
-            }
+        String date1 = "0001-01-01",
+                date2 = HelperClass.now_date().substring(0, 10);
+        if (!txtSelectDay.getText().toString().equals("")) {
+            date1 = txtSelectDay.getText().toString();
         }
+        if (!txtSelectDayTwo.getText().toString().equals("")) {
+            date2 = txtSelectDayTwo.getText().toString();
+        }
+
+        String sqlQuewy;
+        Cursor c;
+        sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
+                + "FROM rgzbn_gm_ceiling_clients c " +
+                "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
+                "       on c._id = s.client_id " +
+                "where s.change_time >= ? and s.change_time <= ?";
+        c = db.rawQuery(sqlQuewy, new String[]{date1 + " 00:00:01",
+                date2 + " 23:59:59"});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
                     String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                     String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    int status_id = 0;
                     String title = null;
 
-                    sqlQuewy = "SELECT status_id "
-                            + "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                            " WHERE client_id = ? ";
-                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                    if (cc != null) {
-                        if (cc.moveToFirst()) {
-                            status_id = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
-                    }
-                    cc.close();
+                    int status_id = c.getInt(c.getColumnIndex(c.getColumnName(3)));
 
                     sqlQuewy = "SELECT title "
                             + "FROM rgzbn_gm_ceiling_clients_statuses " +
                             " WHERE _id = ? ";
-                    cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
+                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
                     if (cc != null) {
                         if (cc.moveToFirst()) {
                             title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
@@ -482,6 +482,7 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         }
         c.close();
+
 
         BindDictionary<AdapterList> dict = new BindDictionary<>();
 
