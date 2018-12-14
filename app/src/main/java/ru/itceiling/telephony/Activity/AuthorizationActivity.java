@@ -60,7 +60,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    static String domen = "calc",
+    String domen = "calc",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -175,7 +175,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     // [START auth_with_google]
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
-        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
         // [START_EXCLUDE silent]
         progressBar.setVisibility(View.VISIBLE);
         // [END_EXCLUDE]
@@ -205,7 +204,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     // [START signin]
     private void signIn() {
-        Log.d(TAG, "signIn: ");
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -215,7 +213,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // An unresolvable error has occurred and Google APIs (including Sign-In) will not
         // be available.
-        Log.d(TAG, "onConnectionFailed:" + connectionResult);
         Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
     }
 
@@ -313,7 +310,12 @@ public class AuthorizationActivity extends AppCompatActivity implements
                     int dealer_id = 0;
                     try {
                         JSONObject jsonObject = new JSONObject(res);
-                        dealer_id = jsonObject.getInt("new_id");
+
+                        try {
+                            dealer_id = jsonObject.getInt("new_id");
+                        } catch (Exception E) {
+                            dealer_id = jsonObject.getInt("id");
+                        }
 
                         SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
                         SharedPreferences.Editor ed = SP.edit();
