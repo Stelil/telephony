@@ -210,7 +210,6 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                                         maxIdContacts,
                                         "rgzbn_gm_ceiling_clients_contacts",
                                         "send");
-
                             }
 
                             ListClients("");

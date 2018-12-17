@@ -50,7 +50,7 @@ public class CallReceiver extends BroadcastReceiver {
 
     static private String date1, date2;
 
-    static int callStatus = 0;
+    static int callStatus = 1;
 
     static private MediaRecorder mediaRecorder;
     static private MediaPlayer mediaPlayer;
@@ -69,6 +69,7 @@ public class CallReceiver extends BroadcastReceiver {
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             //получаем исходящий номер
             phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
+            phoneNumber = phoneNumber.substring(1, 12);
             callStatus = 2;
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
@@ -78,19 +79,20 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                    phoneNumber = phoneNumber.substring(1, 12);
+                    newClient();
                     historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                     date1 = HelperClass.now_date();
-                    newClient();
                     recordCall();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                     //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
                     date2 = HelperClass.now_date();
                     if (date2.equals("")) {
                     } else {
-                        timeDifference();
+                        //timeDifference();
                     }
 
                     addHistoryClientCall();
@@ -153,7 +155,9 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void newClient() {
 
-        phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+        //phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+
+        Log.d(TAG, "newClient: " + phoneNumber);
 
         int id = 0;
         String sqlQuewy = "SELECT client_id "
@@ -175,7 +179,7 @@ public class CallReceiver extends BroadcastReceiver {
 
             String message = "Данный клиент не найден. Хотите добавить его?" +
                     "\nНомер клиента: " + phoneNumber +
-                    "\nВремя звонка: " + HelperClass.now_date().substring(0,10);
+                    "\nВремя звонка: " + HelperClass.now_date().substring(0, 16);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String CHANNEL_ID = "my_channel_01";
                 CharSequence name = "1";
@@ -241,7 +245,7 @@ public class CallReceiver extends BroadcastReceiver {
 
         int duration = Integer.parseInt(getCallDetails());
         try {
-
+            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
             if (duration >= Integer.valueOf(json.getString("CheckTimeCall"))) {
                 int client_id = 0;
                 String sqlQuewy = "SELECT client_id "
@@ -253,9 +257,6 @@ public class CallReceiver extends BroadcastReceiver {
                         client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
                         String text = "";
                         switch (callStatus) {
-                            case 1:
-                                text = "Исходящий недозвон";
-                                break;
                             case 2:
                                 text = "Исходящий дозвон. \nДлина разговора = " + duration + " секунд(a)";
                                 break;
@@ -265,22 +266,10 @@ public class CallReceiver extends BroadcastReceiver {
                         }
 
                         HelperClass.addHistory(text, ctx, String.valueOf(client_id));
-
                         //int maxId = HelperClass.lastIdTable(
                         //        "rgzbn_gm_ceiling_calls_status_history",
                         //        this,
                         //        dealer_id);
-
-                        //ContentValues values = new ContentValues();
-                        //values.put(DBHelper.KEY_ID, maxId);
-                        //values.put(DBHelper.KEY_MANAGER_ID, dealer_id);
-                        //values.put(DBHelper.KEY_CLIENT_ID, client_id);
-                        //values.put(DBHelper.KEY_STATUS, callStatus);
-                        //values.put(DBHelper.KEY_DATE_TIME, HelperClass.now_date());
-                        //values.put(DBHelper.KEY_CALL_LENGTH, difference);
-                        //values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
-                        //db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
-
                     }
                 }
                 c.close();
@@ -288,7 +277,27 @@ public class CallReceiver extends BroadcastReceiver {
         } catch (JSONException e) {
         }
 
-        if (duration<=0) {
+        boolean call = true;
+        if (callStatus == 1) {
+            int client_id = 0;
+            String sqlQuewy = "SELECT client_id "
+                    + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                    " WHERE phone = ? ";
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+
+                    String text = "Исходящий недозвон";
+                    HelperClass.addHistory(text, ctx, String.valueOf(client_id));
+
+                    call = false;
+                }
+            }
+            c.close();
+        }
+
+        if (duration <= 0 && call) {
             int client_id = 0;
             String sqlQuewy = "SELECT client_id "
                     + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -311,7 +320,6 @@ public class CallReceiver extends BroadcastReceiver {
 
         dbHelper = new DBHelper(ctx);
         db = dbHelper.getWritableDatabase();
-        phoneNumber = phoneNumber.substring(1, phoneNumber.length());
 
         int id = 0;
         String sqlQuewy = "SELECT client_id "
@@ -343,6 +351,8 @@ public class CallReceiver extends BroadcastReceiver {
             }
             c.close();
 
+            Log.d(TAG, "historyClient: " + message);
+
             String client_name = "";
             sqlQuewy = "SELECT client_name "
                     + "FROM rgzbn_gm_ceiling_clients" +
@@ -356,6 +366,8 @@ public class CallReceiver extends BroadcastReceiver {
                 }
             }
             c.close();
+
+            Log.d(TAG, "historyClient: " + client_name);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 int notifyID = 1;
