@@ -86,7 +86,7 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон находится в режиме звонка (набор номера / разговор)
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                     date1 = HelperClass.now_date();
-                    recordCall();
+                    //recordCall();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                     //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
                     date2 = HelperClass.now_date();
@@ -320,7 +320,6 @@ public class CallReceiver extends BroadcastReceiver {
 
         dbHelper = new DBHelper(ctx);
         db = dbHelper.getWritableDatabase();
-
         int id = 0;
         String sqlQuewy = "SELECT client_id "
                 + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -351,8 +350,6 @@ public class CallReceiver extends BroadcastReceiver {
             }
             c.close();
 
-            Log.d(TAG, "historyClient: " + message);
-
             String client_name = "";
             sqlQuewy = "SELECT client_name "
                     + "FROM rgzbn_gm_ceiling_clients" +
@@ -366,8 +363,6 @@ public class CallReceiver extends BroadcastReceiver {
                 }
             }
             c.close();
-
-            Log.d(TAG, "historyClient: " + client_name);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 int notifyID = 1;
