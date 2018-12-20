@@ -18,6 +18,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -91,8 +92,9 @@ public class AnalyticsActivity extends AppCompatActivity {
 
     private void createTitleTable() {
 
+        TextView txtForHorizontalLength = findViewById(R.id.txtForHorizontalLength);
+
         int countApi = 0;
-        int countClient = 0;
         String sqlQuewy = "select count(_id) "
                 + "FROM rgzbn_gm_ceiling_clients_statuses ";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{});
@@ -104,6 +106,8 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         }
         c.close();
+
+        txtForHorizontalLength.setText("");
 
         String[] arrayStatus = new String[countApi];
         int index = 0;
@@ -120,23 +124,11 @@ public class AnalyticsActivity extends AppCompatActivity {
         }
         c.close();
 
-        sqlQuewy = "select count(_id) "
-                + "FROM rgzbn_gm_ceiling_clients " +
-                "where dealer_id = ?";
-        c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    countClient = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
         TableRow tableRow = new TableRow(this);
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(100,
                 TableRow.LayoutParams.WRAP_CONTENT, 4f);
 
+        int length = 0;
         for (int j = 0; j < countApi + 1; j++) {
 
             TextView txt = new TextView(this);
@@ -147,6 +139,7 @@ public class AnalyticsActivity extends AppCompatActivity {
             } else {
                 String title = arrayStatus[j - 1];
                 txt.setText(title);
+                length += title.length();
             }
 
             txt.setTextColor(Color.parseColor("#414099"));
@@ -155,6 +148,10 @@ public class AnalyticsActivity extends AppCompatActivity {
             tableRow.addView(txt, j);
         }
         titleTable.addView(tableRow);
+
+        ViewGroup.LayoutParams lp = txtForHorizontalLength.getLayoutParams();
+        lp.width = length * 20;
+        titleTable.setLayoutParams(lp);
     }
 
     private void createTable() {
@@ -211,8 +208,6 @@ public class AnalyticsActivity extends AppCompatActivity {
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
-                    Log.d(TAG, "createTable: 1 " + c.getString(c.getColumnIndex(c.getColumnName(1))));
-                    Log.d(TAG, "createTable: 2 " + c.getString(c.getColumnIndex(c.getColumnName(2))));
 
                     countClients += c.getInt(c.getColumnIndex(c.getColumnName(1)));
                     if (c.getString(c.getColumnIndex(c.getColumnName(1))).equals("0")) {
@@ -312,12 +307,9 @@ public class AnalyticsActivity extends AppCompatActivity {
             ar[0] = arrayId[id];
         }
 
-        Log.d(TAG, "ListClients: " + ar.length);
-
         for (int i = 0; ar.length > i; i++) {
 
             String clientId = ar[i];
-            Log.d(TAG, "ListClients: clientId " + clientId);
 
             if (ar[i].contains(",")) {
                 for (String clienId : ar[i].split(",")) {
@@ -384,11 +376,9 @@ public class AnalyticsActivity extends AppCompatActivity {
                             }
                         }
                         cc.close();
-
                         AdapterList fc = new AdapterList(id_client,
                                 client_name, title, created, null, null);
                         client_mas.add(fc);
-
                     }
                 }
                 c.close();

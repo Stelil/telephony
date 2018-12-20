@@ -63,23 +63,40 @@
             android:layout_marginTop="5dp"
             android:background="#000000" />
 
-        <TableLayout
-            android:id="@+id/titleTable"
+        <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp" />
+            android:layout_height="match_parent">
 
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="2dp"
-            android:layout_marginTop="5dp"
-            android:background="#000000" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <TableLayout
-            android:id="@+id/analyticsTable"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
+                <TableLayout
+                    android:id="@+id/titleTable"
+                    android:layout_width="640dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:layout_marginTop="5dp"
+                    android:background="#000000" />
+
+                <TableLayout
+                    android:id="@+id/analyticsTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/txtForHorizontalLength"
+                    android:text=""/>
+            </LinearLayout>
+        </HorizontalScrollView>
 
     </LinearLayout>
 </LinearLayout>
