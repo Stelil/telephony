@@ -32,6 +32,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -40,6 +41,20 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.VKCallback;
+import com.vk.sdk.VKScope;
+import com.vk.sdk.VKSdk;
+import com.vk.sdk.VKUIHelper;
+import com.vk.sdk.api.VKApi;
+import com.vk.sdk.api.VKApiConst;
+import com.vk.sdk.api.VKError;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
+import com.vk.sdk.api.methods.VKApiUsers;
+import com.vk.sdk.api.model.VKApiUser;
+import com.vk.sdk.api.model.VkAudioArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,7 +73,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    String domen = "calc",
+    String domen = "test1",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -82,6 +97,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
     final public static String ONE_TIME = "onetime";
 
     private String[] scope = new String[]{
+            VKScope.EMAIL
     };
 
     private static final int RC_SIGN_IN = 9001;
@@ -96,8 +112,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authorization);
-
-        //VKSdk.login(this, scope);
 
         login = findViewById(R.id.login);
         password = findViewById(R.id.password);
@@ -127,8 +141,13 @@ public class AuthorizationActivity extends AppCompatActivity implements
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
 
+        SignInButton sb = findViewById(R.id.sign_in_button);
+        sb.setSize(SignInButton.SIZE_ICON_ONLY);
         // Button listeners
         findViewById(R.id.sign_in_button).setOnClickListener(this);
+
+        // Button listeners
+        findViewById(R.id.buttonVK).setOnClickListener(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com")
@@ -143,23 +162,20 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
+
     }
 
-    // [START on_start_check_user]
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
     }
-    // [END on_start_check_user]
 
-    // [START onactivityresult]
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        // Google
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             if (result.isSuccess()) {
@@ -168,10 +184,57 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 firebaseAuthWithGoogle(account);
             }
         }
-    }
-    // [END onactivityresult]
 
-    // [START auth_with_google]
+        //VK
+        if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
+            @Override
+            public void onResult(final VKAccessToken res) {
+
+                String email = "";
+                final String[] fullName = {""};
+                email = res.email;
+
+                if (email ==""){
+
+                } else {
+                    VKRequest request = VKApi.users().get();
+                    final String finalEmail = email;
+                    request.executeWithListener(new VKRequest.VKRequestListener() {
+                        public void onComplete(VKResponse response) {
+                            try {
+                                JSONObject obj = new JSONObject(response.json.toString());
+                                JSONArray arr = obj.getJSONArray("response");
+                                String first_name = arr.getJSONObject(0).getString("first_name");
+                                String last_name = arr.getJSONObject(0).getString("last_name");
+
+                                fullName[0] = first_name + " " + last_name;
+                                createUserVK(finalEmail, fullName[0]);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onError(VKError error) {
+//Do error stuff
+                        }
+
+                        @Override
+                        public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
+//I don't really believe in progress
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(VKError error) {
+            }
+        })) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         // [START_EXCLUDE silent]
         progressBar.setVisibility(View.VISIBLE);
@@ -198,14 +261,11 @@ public class AuthorizationActivity extends AppCompatActivity implements
                     }
                 });
     }
-    // [END auth_with_google]
 
-    // [START signin]
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
-    // [END signin]
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -220,6 +280,9 @@ public class AuthorizationActivity extends AppCompatActivity implements
         if (i == R.id.sign_in_button) {
             signIn();
         }
+        if (i == R.id.buttonVK) {
+            VKSdk.login(this, scope);
+        }
     }
 
     @Override
@@ -227,51 +290,8 @@ public class AuthorizationActivity extends AppCompatActivity implements
         super.onStop();
     }
 
-    /*
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
-            @Override
-            public void onResult(VKAccessToken res) {
-
-                VKRequest request = VKApi.users().get();
-
-                Log.d(TAG, "onResult: " + request.toString());
-
-                request.executeWithListener(new VKRequest.VKRequestListener() {
-                    @Override
-                    public void onComplete(VKResponse response) {
-                        Log.d(TAG, "onComplete 1: " + response.json.toString());
-
-                    }
-
-                    @Override
-                    public void onError(VKError error) {
-                    }
-
-                    @Override
-                    public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
-                    }
-                });
-
-                createUserVK();
-            }
-
-
-            @Override
-            public void onError(VKError error) {
-            }
-        })) {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    private void createUserVK() {
-
-    }
-    */
-
     private void registrationGoogleOnDB(FirebaseUser user) {
+
         org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
         jsonObjectAuth.put("email", user.getEmail());
         jsonObjectAuth.put("fio", user.getDisplayName());
@@ -283,10 +303,27 @@ public class AuthorizationActivity extends AppCompatActivity implements
         mProgressDialog.setCancelable(false);
         mProgressDialog.show();
 
-        new sendGoogleAuthorization().execute();
+        new SocialAuth().execute();
     }
 
-    class sendGoogleAuthorization extends AsyncTask<Void, Void, Void> {
+    private void createUserVK(String email, String fullName) {
+
+        org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
+        jsonObjectAuth.put("email", email);
+        jsonObjectAuth.put("fio", fullName);
+        jsonAuth = String.valueOf(jsonObjectAuth);
+
+        mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
+        mProgressDialog.setMessage("Проверяем...");
+        mProgressDialog.setIndeterminate(false);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.show();
+
+        new SocialAuth().execute();
+    }
+
+
+    class SocialAuth extends AsyncTask<Void, Void, Void> {
 
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.register";
 
@@ -381,7 +418,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
                     parameters.put("r_data", jsonAuth);
-                    Log.d(TAG, "getParams: " + parameters);
+                    Log.d(TAG, "getParams: " + parameters + " " + domen);
                     return parameters;
                 }
             };
@@ -393,7 +430,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
             return null;
         }
     }
-
 
     public void buttonVhod(View view) {
         if (login.getText().toString().equals("") || password.getText().toString().equals("")) {
@@ -432,7 +468,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
     public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
-
 
     class SendAuthorization extends AsyncTask<Void, Void, Void> {
 
