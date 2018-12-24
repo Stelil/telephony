@@ -114,10 +114,10 @@ public class CallbackReceiver extends BroadcastReceiver {
                                     PendingIntent.FLAG_CANCEL_CURRENT);
 
                             Intent resultIntentTwo = new Intent(context, ClientActivity.class);
-                            resultIntentTwo.putExtra("id_client", "1046");
+                            resultIntentTwo.putExtra("id_client", client_id);
 
                             Intent intentClient = new Intent(context, ClientActivity.class);
-                            intentClient.putExtra("id_client", "1046");
+                            intentClient.putExtra("id_client", client_id);
                             intentClient.putExtra("check", "true");
 
                             TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);

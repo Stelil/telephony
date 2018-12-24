@@ -74,7 +74,7 @@ public class ClientActivity extends AppCompatActivity {
     private LinearLayout layoutPhonesClient, layoutEmailClient;
     private Button btnEditCallback;
     private LinearLayout layoutCallback;
-    private String dealer_id, check = "";
+    private String dealer_id, check = "false";
     private List<TextView> txtPhoneList = new ArrayList<TextView>();
     private List<TextView> txtEmailList = new ArrayList<TextView>();
     String TAG = "logd";
@@ -157,10 +157,12 @@ public class ClientActivity extends AppCompatActivity {
         });
 
         check = getIntent().getStringExtra("check");
-        if (check != null && check.equals("true")) {
+        if (check.equals("true")) {
             btnEditCallback = findViewById(R.id.btnEditCallback);
             btnEditCallback.setVisibility(View.VISIBLE);
         }
+
+        Log.d(TAG, "onCreate: " + check);
 
         layoutPhonesClient = findViewById(R.id.layoutPhonesClient);
         layoutEmailClient = findViewById(R.id.layoutEmailClient);
@@ -1029,7 +1031,6 @@ public class ClientActivity extends AppCompatActivity {
         }
     }
 
-
     public void onButtonAddVoiceComment(View view) {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -1090,7 +1091,6 @@ public class ClientActivity extends AppCompatActivity {
             Log.d(TAG, "onEvent " + eventType);
         }
     }
-
 
     public void onButtonAddEmail(View view) {
         TextView addEmailClient = findViewById(R.id.addEmailClient);
@@ -1189,9 +1189,12 @@ public class ClientActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (txtCallback.getText().toString().length() > 0) {
-                    if (check != null && check.equals("")) {
+                    if (check.equals("false")) {
+
+                        Log.d(TAG, "onClick: history new");
                         HelperClass.addHistory("Добавлен звонок на " + txtCallback.getText().toString(),
                                 ClientActivity.this, id_client);
+
                         HelperClass.addCallback(txtCallbackComment.getText().toString(),
                                 ClientActivity.this, id_client, callbackDate);
                         txtCallback.setText("");
@@ -1203,6 +1206,7 @@ public class ClientActivity extends AppCompatActivity {
                         toast.show();
                     } else {
 
+                        Log.d(TAG, "onClick: history callback upd");
                         String sqlQuewy;
                         Cursor c;
                         sqlQuewy = "SELECT _id "
@@ -1233,6 +1237,8 @@ public class ClientActivity extends AppCompatActivity {
                                         "Звонок перенесён ", Toast.LENGTH_SHORT);
                                 toast.show();
                             } else {
+
+                                Log.d(TAG, "onClick: history callback new");
 
                                 HelperClass.addCallback(txtCallbackComment.getText().toString(),
                                         ClientActivity.this, id_client, callbackDate);

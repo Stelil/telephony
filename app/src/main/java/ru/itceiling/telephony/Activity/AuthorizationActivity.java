@@ -195,10 +195,8 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 email = res.email;
 
                 if (email ==""){
-
                     Toast.makeText(AuthorizationActivity.this, "Для авторизации нам необходимо знать Вашу почту",
                             Toast.LENGTH_SHORT).show();
-
                 } else {
                     VKRequest request = VKApi.users().get();
                     final String finalEmail = email;
