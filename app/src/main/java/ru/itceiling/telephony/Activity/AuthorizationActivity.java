@@ -73,7 +73,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    String domen = "test1",
+    String domen = "calc",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -195,6 +195,9 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 email = res.email;
 
                 if (email ==""){
+
+                    Toast.makeText(AuthorizationActivity.this, "Для авторизации нам необходимо знать Вашу почту",
+                            Toast.LENGTH_SHORT).show();
 
                 } else {
                     VKRequest request = VKApi.users().get();

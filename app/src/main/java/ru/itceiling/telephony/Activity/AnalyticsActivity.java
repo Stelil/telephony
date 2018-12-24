@@ -175,6 +175,12 @@ public class AnalyticsActivity extends AppCompatActivity {
         int[] arrayStatusCount = new int[countStatuses];
         arrayId = new String[countStatuses];
 
+		//SELECT COUNT(last_id)
+        //FROM (SELECT MAX(id) last_id, client_id
+        //FROM `rgzbn_gm_ceiling_clients_statuses_map`
+        //GROUP BY client_id) AS last_st 
+        //INNER JOIN rgzbn_gm_ceiling_clients_statuses_map AS st ON st.id = last_st.last_id AND st.status_id = 1
+        
         int countClients = 0;
         int index = 0;
 
