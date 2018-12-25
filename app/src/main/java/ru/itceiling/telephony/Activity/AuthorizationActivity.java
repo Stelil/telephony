@@ -338,8 +338,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 @Override
                 public void onResponse(String res) {
 
-                    Log.d(TAG, res);
-
                     mProgressDialog.dismiss();
                     int dealer_id = 0;
                     try {

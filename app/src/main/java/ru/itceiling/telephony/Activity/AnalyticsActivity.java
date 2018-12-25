@@ -16,6 +16,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amigold.fundapter.BindDictionary;
 import com.amigold.fundapter.FunDapter;
@@ -86,8 +88,18 @@ public class AnalyticsActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+            case R.id.manager:
+                Intent intent = new Intent(this, ManagerActivity.class);
+                startActivity(intent);
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_manager, menu);
+        return true;
     }
 
     private void createTitleTable() {
@@ -175,12 +187,12 @@ public class AnalyticsActivity extends AppCompatActivity {
         int[] arrayStatusCount = new int[countStatuses];
         arrayId = new String[countStatuses];
 
-		//SELECT COUNT(last_id)
+        //SELECT COUNT(last_id)
         //FROM (SELECT MAX(id) last_id, client_id
         //FROM `rgzbn_gm_ceiling_clients_statuses_map`
         //GROUP BY client_id) AS last_st 
         //INNER JOIN rgzbn_gm_ceiling_clients_statuses_map AS st ON st.id = last_st.last_id AND st.status_id = 1
-        
+
         int countClients = 0;
         int index = 0;
 
