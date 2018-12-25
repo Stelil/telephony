@@ -416,10 +416,14 @@ public class CallReceiver extends BroadcastReceiver {
 
     static private String getCallDetails() {
 
-        StringBuffer sb = new StringBuffer();
+        StringBuffer sb = new StringBuffer("0");
         if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
         } else {
-            Cursor managedCursor = ctx.getContentResolver().query(CallLog.Calls.CONTENT_URI, null, null, null, null);
+            Cursor managedCursor = ctx.getContentResolver().query(CallLog.Calls.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    null);
             int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
             managedCursor.moveToLast();
             String callDuration = managedCursor.getString(duration);

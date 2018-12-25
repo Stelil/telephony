@@ -29,16 +29,18 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:replace="android:icon">
-        <activity android:name=".Activity.AuthorizationActivity"
-            android:screenOrientation="portrait" >
+        <activity
+            android:name=".Activity.AuthorizationActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity.MainActivity"
-            android:screenOrientation="portrait"  />
+        <activity
+            android:name=".Activity.MainActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Activity.ClientActivity"
             android:screenOrientation="portrait"
@@ -53,7 +55,6 @@
             android:name=".Activity.SettingsActivity"
             android:screenOrientation="portrait" />
         <activity android:name=".Activity.AnalyticsActivity" />
-
         <activity android:name=".Activity.VerifyPhoneActivity" />
 
         <!--
@@ -65,7 +66,7 @@
                     <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
                 </intent-filter>
             </receiver>
-            -->
+        -->
 
         <receiver
             android:name=".Broadcaster.CallbackReceiver"
@@ -73,6 +74,8 @@
         <receiver android:name=".Broadcaster.ImportDataReceiver" />
         <receiver android:name=".Broadcaster.ExportDataReceiver" />
         <receiver android:name=".Broadcaster.BroadcastNotification" />
+
+        <activity android:name=".Activity.ManagerActivity"></activity>
     </application>
 
 </manifest>
