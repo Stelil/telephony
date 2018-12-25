@@ -69,7 +69,8 @@ import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
 public class AuthorizationActivity extends AppCompatActivity implements
-        GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+        View.OnClickListener,
+        GoogleApiClient.OnConnectionFailedListener {
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
@@ -217,12 +218,10 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
                         @Override
                         public void onError(VKError error) {
-//Do error stuff
                         }
 
                         @Override
                         public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
-//I don't really believe in progress
                         }
                     });
                 }
@@ -270,9 +269,9 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
-        // be available.
-        Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,
+                "Google Play Services error.",
+                Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -322,7 +321,6 @@ public class AuthorizationActivity extends AppCompatActivity implements
 
         new SocialAuth().execute();
     }
-
 
     class SocialAuth extends AsyncTask<Void, Void, Void> {
 
