@@ -108,17 +108,19 @@ public class CallbackReceiver extends BroadcastReceiver {
                             cc.close();
 
                             String message = "ФИО клиента: " + client_name + "\nКомментарий: " + comment;
-                            Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + phone));
 
+                            //позвонить клиенту
+                            Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + phone));
                             PendingIntent phoneIntent = PendingIntent.getActivity(context, 0, resultIntent,
                                     PendingIntent.FLAG_CANCEL_CURRENT);
 
-                            Intent resultIntentTwo = new Intent(context, ClientActivity.class);
-                            resultIntentTwo.putExtra("id_client", client_id);
+                            //Intent resultIntentTwo = new Intent(context, ClientActivity.class);
+                            //resultIntentTwo.putExtra("id_client", client_id);
 
+                            //открыть клиента
                             Intent intentClient = new Intent(context, ClientActivity.class);
                             intentClient.putExtra("id_client", client_id);
-                            intentClient.putExtra("check", "true");
+                            intentClient.putExtra("check", "false");
 
                             TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
                             stackBuilder.addParentStack(ClientsListActivity.class);
@@ -127,6 +129,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                             PendingIntent resultPendingIntent =
                                     stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
+                            //перенести перезвон
                             Intent intentBr = new Intent(context, BroadcastNotification.class);
                             intentBr.putExtra("client_id", client_id);
                             intentBr.putExtra("notifyID", notifyID);
@@ -207,10 +210,11 @@ public class CallbackReceiver extends BroadcastReceiver {
                 0,
                 intent,
                 0);
-        am.setRepeating(AlarmManager.RTC_WAKEUP,
+        am.setRepeating(AlarmManager.RTC,
                 System.currentTimeMillis(),
-                1000 * 60,
+                60000,
                 pi);
+
     }
 
     public void CancelAlarm(Context context) {

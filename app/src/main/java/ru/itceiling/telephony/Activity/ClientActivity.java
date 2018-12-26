@@ -1,6 +1,7 @@
 package ru.itceiling.telephony.Activity;
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,6 +12,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -73,7 +75,7 @@ public class ClientActivity extends AppCompatActivity {
     private EditText editCommentClient, txtEditCallbackComment;
     private LinearLayout layoutPhonesClient, layoutEmailClient;
     private Button btnEditCallback;
-    private LinearLayout layoutCallback;
+    private LinearLayout layoutCallback, linearNewCall;
     private String dealer_id, check = "false";
     private List<TextView> txtPhoneList = new ArrayList<TextView>();
     private List<TextView> txtEmailList = new ArrayList<TextView>();
@@ -288,7 +290,6 @@ public class ClientActivity extends AppCompatActivity {
             }
         }
         c.close();
-
 
         sqlQuewy = "SELECT status_id "
                 + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
@@ -1257,6 +1258,15 @@ public class ClientActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void onButtonNewCallback(View view){
+        linearNewCall = findViewById(R.id.linearNewCall);
+        if (linearNewCall.getVisibility() == View.GONE) {
+            linearNewCall.setVisibility(View.VISIBLE);
+        } else {
+            linearNewCall.setVisibility(View.GONE);
+        }
     }
 
     public void setDate(View v) {

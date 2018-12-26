@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -13,10 +12,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +24,6 @@ import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.amigold.fundapter.BindDictionary;
 import com.amigold.fundapter.FunDapter;
@@ -96,11 +92,13 @@ public class AnalyticsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_manager, menu);
         return true;
     }
+    */
 
     private void createTitleTable() {
 

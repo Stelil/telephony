@@ -1,5 +1,6 @@
 package ru.itceiling.telephony.Activity;
 
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -7,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -84,8 +86,34 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
     protected void onResume() {
         super.onResume();
 
-        ListClients("");
+        MyTask mt = new MyTask();
+        mt.execute();
 
+    }
+
+    class MyTask extends AsyncTask<Void, Void, Void> {
+        ProgressDialog mProgressDialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = new ProgressDialog(ClientsListActivity.this);
+            mProgressDialog.setMessage("Загрузка...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            ListClients("");
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            mProgressDialog.dismiss();
+        }
     }
 
     @Override
@@ -228,7 +256,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     private void ListClients(String query) {
 
-        ListView listView = findViewById(R.id.list_client);
+        final ListView listView = findViewById(R.id.list_client);
         client_mas.clear();
 
         String sqlQuewy;
@@ -321,8 +349,14 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
             }
         });
 
-        FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
-        listView.setAdapter(adapter);
+        final FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listView.setAdapter(adapter);
+            }
+        });
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {

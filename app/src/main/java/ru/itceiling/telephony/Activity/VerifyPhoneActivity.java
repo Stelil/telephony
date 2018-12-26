@@ -36,7 +36,6 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     //firebase auth object
     private FirebaseAuth mAuth;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +71,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
         });
 
     }
+
 
     //the method is sending verification code
     //the country id is concatenated
@@ -160,5 +160,6 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
 }

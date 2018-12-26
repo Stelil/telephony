@@ -45,16 +45,10 @@ import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
-import com.vk.sdk.VKUIHelper;
 import com.vk.sdk.api.VKApi;
-import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
-import com.vk.sdk.api.methods.VKApiUsers;
-import com.vk.sdk.api.model.VKApiUser;
-import com.vk.sdk.api.model.VkAudioArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,9 +62,7 @@ import java.util.Map;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
-public class AuthorizationActivity extends AppCompatActivity implements
-        View.OnClickListener,
-        GoogleApiClient.OnConnectionFailedListener {
+public class AuthorizationActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
@@ -143,12 +135,13 @@ public class AuthorizationActivity extends AppCompatActivity implements
         mDetailTextView = (TextView) findViewById(R.id.detail);
 
         SignInButton sb = findViewById(R.id.sign_in_button);
-        sb.setSize(SignInButton.SIZE_ICON_ONLY);
-        // Button listeners
+        sb.setSize(SignInButton.SIZE_WIDE);
+        //Button listeners
         findViewById(R.id.sign_in_button).setOnClickListener(this);
 
-        // Button listeners
+        //Button listeners
         findViewById(R.id.buttonVK).setOnClickListener(this);
+
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com")
@@ -195,7 +188,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 final String[] fullName = {""};
                 email = res.email;
 
-                if (email ==""){
+                if (email == "") {
                     Toast.makeText(AuthorizationActivity.this, "Для авторизации нам необходимо знать Вашу почту",
                             Toast.LENGTH_SHORT).show();
                 } else {
@@ -339,6 +332,7 @@ public class AuthorizationActivity extends AppCompatActivity implements
                 public void onResponse(String res) {
 
                     mProgressDialog.dismiss();
+
                     int dealer_id = 0;
                     try {
                         JSONObject jsonObject = new JSONObject(res);
@@ -387,18 +381,21 @@ public class AuthorizationActivity extends AppCompatActivity implements
                             }
                         }
 
+                        pd = new ProgressDialog(AuthorizationActivity.this);
+                        pd.setTitle("Загрузка клиентов ... ");
+                        pd.setMessage("Пожалуйста подождите");
+                        pd.setIndeterminate(false);
+                        pd.setCancelable(false);
+                        pd.show();
+
+                        importData();
+
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Toast toast = Toast.makeText(getApplicationContext(),
+                                res, Toast.LENGTH_SHORT);
+                        toast.show();
+
                     }
-
-                    pd = new ProgressDialog(AuthorizationActivity.this);
-                    pd.setTitle("Загрузка клиентов ... ");
-                    pd.setMessage("Пожалуйста подождите");
-                    pd.setIndeterminate(false);
-                    pd.setCancelable(false);
-                    pd.show();
-
-                    importData();
 
                 }
 

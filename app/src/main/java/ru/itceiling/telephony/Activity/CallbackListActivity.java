@@ -1,12 +1,14 @@
 package ru.itceiling.telephony.Activity;
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -65,15 +67,18 @@ public class CallbackListActivity extends AppCompatActivity {
 
         txtSelectDay = findViewById(R.id.txtSelectDay);
         txtSelectDay.setText(HelperClass.now_date().substring(0, 10));
-        listClients(HelperClass.now_date().substring(0, 10));
+
+        MyTask mt = new MyTask();
+        mt.execute();
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         if (ii > 0) {
-            listClients(txtSelectDay.getText().toString());
+            MyTaskResume mt = new MyTaskResume();
+            mt.execute();
         }
         ii++;
     }
@@ -87,9 +92,59 @@ public class CallbackListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    class MyTask extends AsyncTask<Void, Void, Void> {
+        ProgressDialog mProgressDialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = new ProgressDialog(CallbackListActivity.this);
+            mProgressDialog.setMessage("Загрузка...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            listClients(HelperClass.now_date().substring(0, 10));
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            mProgressDialog.dismiss();
+        }
+    }
+
+    class MyTaskResume extends AsyncTask<Void, Void, Void> {
+        ProgressDialog mProgressDialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = new ProgressDialog(CallbackListActivity.this);
+            mProgressDialog.setMessage("Загрузка...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            listClients(txtSelectDay.getText().toString());
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            mProgressDialog.dismiss();
+        }
+    }
+
     private void listClients(String date) {
 
-        ListView listView = findViewById(R.id.list_client);
+        final ListView listView = findViewById(R.id.list_client);
         client_mas.clear();
 
         String sqlQuewy;
@@ -132,6 +187,10 @@ public class CallbackListActivity extends AppCompatActivity {
 
                     String id = c.getString(c.getColumnIndex(c.getColumnName(3)));
 
+                    if(date_time.length() == 19){
+                        date_time = date_time.substring(0,16);
+                    }
+
                     AdapterList fc = new AdapterList(client_id,
                             client_name, date_time, comment, id, null);
                     client_mas.add(fc);
@@ -162,8 +221,15 @@ public class CallbackListActivity extends AppCompatActivity {
             }
         });
 
-        FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
-        listView.setAdapter(adapter);
+        final FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listView.setAdapter(adapter);
+            }
+        });
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -186,8 +252,6 @@ public class CallbackListActivity extends AppCompatActivity {
 
                 AdapterList selectedid = client_mas.get(pos);
                 final int cId = Integer.parseInt(selectedid.getFour());
-
-                Log.d(TAG, "onItemLongClick: " + cId);
 
                 AlertDialog.Builder ad = new AlertDialog.Builder(CallbackListActivity.this);
                 ad.setMessage("Удалить звонок ?"); // сообщение

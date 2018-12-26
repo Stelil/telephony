@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Activity.ClientsListActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
@@ -70,7 +72,6 @@ public class CallReceiver extends BroadcastReceiver {
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             //получаем исходящий номер
             phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
-            phoneNumber = phoneNumber.substring(1, 12);
             callStatus = 2;
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
@@ -80,8 +81,7 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                    phoneNumber = phoneNumber.substring(1, 12);
-                    newClient();
+                    phoneNumber = phoneNumber.substring(1, phoneNumber.length());
                     historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
@@ -96,6 +96,8 @@ public class CallReceiver extends BroadcastReceiver {
                         //timeDifference();
                     }
 
+                    phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+                    newClient();
                     addHistoryClientCall();
                 }
             }
@@ -155,8 +157,6 @@ public class CallReceiver extends BroadcastReceiver {
     }
 
     private void newClient() {
-
-        //phoneNumber = phoneNumber.substring(1, phoneNumber.length());
 
         Log.d(TAG, "newClient: " + phoneNumber);
 
@@ -231,6 +231,8 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void addHistoryClientCall() {
 
+        Log.d(TAG, "addHistoryClientCall: " + phoneNumber);
+
         SharedPreferences SP = ctx.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
         String checkTime = SP.getString("", "");
 
@@ -246,7 +248,6 @@ public class CallReceiver extends BroadcastReceiver {
 
         int duration = Integer.parseInt(getCallDetails());
         try {
-            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
             if (duration >= Integer.valueOf(json.getString("CheckTimeCall"))) {
                 int client_id = 0;
                 String sqlQuewy = "SELECT client_id "
@@ -319,6 +320,8 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void historyClient() {
 
+        Log.d(TAG, "historyClient: " + phoneNumber);
+
         dbHelper = new DBHelper(ctx);
         db = dbHelper.getWritableDatabase();
         int id = 0;
@@ -365,6 +368,17 @@ public class CallReceiver extends BroadcastReceiver {
             }
             c.close();
 
+            Intent intentClient = new Intent(ctx, ClientActivity.class);
+            intentClient.putExtra("id_client", String.valueOf(id));
+            intentClient.putExtra("check", "false");
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(ctx);
+            stackBuilder.addParentStack(ClientsListActivity.class);
+            stackBuilder.addNextIntent(intentClient);
+
+            PendingIntent resultPendingIntent =
+                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 int notifyID = 1;
                 String CHANNEL_ID = "my_channel_01";
@@ -382,6 +396,7 @@ public class CallReceiver extends BroadcastReceiver {
                         .setContentText(message)
                         .setChannelId(CHANNEL_ID)
                         .setAutoCancel(true)
+                        .setContentIntent(resultPendingIntent)
                         .build();
 
                 NotificationManager mNotificationManager =
@@ -403,6 +418,7 @@ public class CallReceiver extends BroadcastReceiver {
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                                 .setContentTitle(client_name)
                                 .setAutoCancel(true)
+                                .setContentIntent(resultPendingIntent)
                                 .setContentText(message);
                 Notification notification = builder.build();
                 NotificationManager notificationManager = (NotificationManager) ctx

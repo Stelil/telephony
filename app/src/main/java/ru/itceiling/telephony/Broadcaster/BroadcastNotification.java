@@ -47,18 +47,15 @@ public class BroadcastNotification extends BroadcastReceiver {
                 DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 DateTimeFormatter outDf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-                Log.d("serviceCallback", "onReceive: " + date_time);
                 LocalDateTime dateTime = LocalDateTime
                         .parse(date_time,df)
                         .plusMinutes(10);
                 String dateEnd = dateTime.format(outDf);
 
                 ContentValues values = new ContentValues();
-                values.put(DBHelper.KEY_DATE_TIME, dateEnd.substring(1,16));
+                values.put(DBHelper.KEY_DATE_TIME, dateEnd.substring(0,16));
                 values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                 db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
-
-                Log.d("serviceCallback", "onReceive: " + dateEnd);
 
                 HelperClass.addExportData(
                         context,
@@ -71,7 +68,7 @@ public class BroadcastNotification extends BroadcastReceiver {
                         client_id);
 
                 NotificationManager notificationManager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);;
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(notific);
 
                 Toast toast = Toast.makeText(context,
