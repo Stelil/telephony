@@ -175,8 +175,10 @@ public class CallReceiver extends BroadcastReceiver {
         if (id == 0) {
             Intent resultIntent = new Intent(ctx, ClientsListActivity.class);
             resultIntent.putExtra("phone", phoneNumber);
+            resultIntent.setAction(Long.toString(System.currentTimeMillis()));
+
             PendingIntent resultPendingIntent = PendingIntent.getActivity(ctx, 0, resultIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
+                    PendingIntent.FLAG_ONE_SHOT);
 
             String message = "Данный клиент не найден. Хотите добавить его?" +
                     "\nНомер клиента: " + phoneNumber +

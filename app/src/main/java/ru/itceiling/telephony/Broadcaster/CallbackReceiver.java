@@ -112,7 +112,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                             //позвонить клиенту
                             Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + phone));
                             PendingIntent phoneIntent = PendingIntent.getActivity(context, 0, resultIntent,
-                                    PendingIntent.FLAG_CANCEL_CURRENT);
+                                    PendingIntent.FLAG_ONE_SHOT);
 
                             //Intent resultIntentTwo = new Intent(context, ClientActivity.class);
                             //resultIntentTwo.putExtra("id_client", client_id);
@@ -121,22 +121,21 @@ public class CallbackReceiver extends BroadcastReceiver {
                             Intent intentClient = new Intent(context, ClientActivity.class);
                             intentClient.putExtra("id_client", client_id);
                             intentClient.putExtra("check", "false");
+                            intentClient.setAction(Long.toString(System.currentTimeMillis() + notifyID));
 
-                            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-                            stackBuilder.addParentStack(ClientsListActivity.class);
-                            stackBuilder.addNextIntent(intentClient);
+                            PendingIntent pendingIntentClient = PendingIntent.getActivity(
+                                    context, 0, intentClient, PendingIntent.FLAG_ONE_SHOT);
 
-                            PendingIntent resultPendingIntent =
-                                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                            //перенести перезвон
+                            //перенести звонок
                             Intent intentBr = new Intent(context, BroadcastNotification.class);
                             intentBr.putExtra("client_id", client_id);
                             intentBr.putExtra("notifyID", notifyID);
+                            intentBr.setAction(Long.toString(System.currentTimeMillis()));
+
                             PendingIntent pi = PendingIntent.getBroadcast(context,
                                     0,
                                     intentBr,
-                                    PendingIntent.FLAG_CANCEL_CURRENT);
+                                    PendingIntent.FLAG_ONE_SHOT);
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 String CHANNEL_ID = "my_channel_01";
@@ -155,7 +154,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                         .addAction(R.raw.icon_notif,
                                                 "Перенести время", pi)
                                         .setStyle(new Notification.BigTextStyle().bigText(message))
-                                        .setContentIntent(resultPendingIntent)
+                                        .setContentIntent(pendingIntentClient)
                                         .setContentText(message)
                                         .setChannelId(CHANNEL_ID)
                                         .build();
@@ -181,7 +180,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                                 .addAction(R.raw.icon_notif,
                                                         "Перенести время", pi)
                                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                                                .setContentIntent(resultPendingIntent)
+                                                .setContentIntent(pendingIntentClient)
                                                 .setContentText(message);
 
                                 Notification notification = builder.build();

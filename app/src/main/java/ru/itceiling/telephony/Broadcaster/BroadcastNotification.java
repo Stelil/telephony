@@ -24,7 +24,7 @@ public class BroadcastNotification extends BroadcastReceiver {
                 "onReceive: BroadcastNotification " + intent.getStringExtra("client_id"));
 
         String client_id = intent.getStringExtra("client_id");
-        int notific = intent.getIntExtra("notifyID",0);
+        int notific = intent.getIntExtra("notifyID", 0);
         Log.d("serviceCallback", "client_id: " + client_id);
         Log.d("serviceCallback", "notifyID: " + notific);
 
@@ -44,16 +44,28 @@ public class BroadcastNotification extends BroadcastReceiver {
                 String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
                 String date_time = c.getString(c.getColumnIndex(c.getColumnName(1)));
 
-                DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                DateTimeFormatter outDf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                String dateEnd;
 
-                LocalDateTime dateTime = LocalDateTime
-                        .parse(date_time,df)
-                        .plusMinutes(10);
-                String dateEnd = dateTime.format(outDf);
+                try {
+                    DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    DateTimeFormatter outDf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+                    LocalDateTime dateTime = LocalDateTime
+                            .parse(date_time, df)
+                            .plusMinutes(10);
+                    dateEnd = dateTime.format(outDf);
+                } catch (Exception e) {
+                    DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                    DateTimeFormatter outDf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+                    LocalDateTime dateTime = LocalDateTime
+                            .parse(date_time, df)
+                            .plusMinutes(10);
+                    dateEnd = dateTime.format(outDf);
+                }
 
                 ContentValues values = new ContentValues();
-                values.put(DBHelper.KEY_DATE_TIME, dateEnd.substring(0,16));
+                values.put(DBHelper.KEY_DATE_TIME, dateEnd.substring(0, 16));
                 values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
                 db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
 
@@ -68,7 +80,7 @@ public class BroadcastNotification extends BroadcastReceiver {
                         client_id);
 
                 NotificationManager notificationManager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(notific);
 
                 Toast toast = Toast.makeText(context,
