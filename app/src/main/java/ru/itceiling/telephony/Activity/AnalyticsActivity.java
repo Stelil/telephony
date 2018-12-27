@@ -200,38 +200,6 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         sqlQuewy = "SELECT s._id AS status_id, " +
                 "COUNT(ls.max_id) AS count, " +
-                "GROUP_CONCAT(ls.client_id) AS clients, " +
-                "s.dealer_id " +
-                "FROM rgzbn_gm_ceiling_clients_statuses AS s " +
-                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
-                "ON s._id = sm.status_id " +
-                "LEFT JOIN (SELECT MAX(_id) AS max_id, client_id " +
-                "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                "GROUP BY client_id " +
-                ") AS ls " +
-                "ON sm._id = ls.max_id " +
-                "AND sm.change_time >= ? " +
-                "AND sm.change_time <= ? " +
-                "WHERE (s.dealer_id = ? " +
-                "OR s.dealer_id = ?) " +
-                "GROUP BY s._id " +
-                "ORDER BY s._id ";
-        c = db.rawQuery(sqlQuewy, new String[]{date1 + "00:00:00", date2 + "23:59:59", dealer_id, "null"});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    Log.d(TAG, "createTable: " + c.getInt(c.getColumnIndex(c.getColumnName(0)))
-                            + " " + c.getInt(c.getColumnIndex(c.getColumnName(1)))
-                            + " " + c.getInt(c.getColumnIndex(c.getColumnName(2)))
-                            + " " + c.getInt(c.getColumnIndex(c.getColumnName(3))));
-
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
-        sqlQuewy = "SELECT s._id AS status_id, " +
-                "COUNT(ls.max_id) AS count, " +
                 "GROUP_CONCAT(ls.client_id) AS clients " +
                 "FROM rgzbn_gm_ceiling_clients_statuses AS s " +
                 "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
@@ -251,7 +219,6 @@ public class AnalyticsActivity extends AppCompatActivity {
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
-                    Log.d(TAG, "createTable: " + c.getInt(c.getColumnIndex(c.getColumnName(0))));
                     countClients += c.getInt(c.getColumnIndex(c.getColumnName(1)));
                     if (c.getString(c.getColumnIndex(c.getColumnName(1))).equals("0")) {
                         arrayStatusCount[index] = 0;
