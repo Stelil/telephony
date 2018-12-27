@@ -24,11 +24,13 @@ import android.text.format.DateUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.RotateAnimation;
@@ -54,6 +56,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.AndroidBug5497Workaround;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -158,13 +161,12 @@ public class ClientActivity extends AppCompatActivity {
             }
         });
 
+
         check = getIntent().getStringExtra("check");
         if (check.equals("true")) {
             btnEditCallback = findViewById(R.id.btnEditCallback);
             btnEditCallback.setVisibility(View.VISIBLE);
         }
-
-        Log.d(TAG, "onCreate: " + check);
 
         layoutPhonesClient = findViewById(R.id.layoutPhonesClient);
         layoutEmailClient = findViewById(R.id.layoutEmailClient);
@@ -192,8 +194,7 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public void onEditButtonCallback(View view) {
-        setTimeEditCallback(txtEditCallback);
-        setDate(txtEditCallback);
+        setDateEditCallback(txtEditCallback);
 
         ImageButton btnEditAddCallback = findViewById(R.id.btnEditAddCallback);
         final TextView txtEditCallbackComment = findViewById(R.id.txtEditCallbackComment);
@@ -248,6 +249,34 @@ public class ClientActivity extends AppCompatActivity {
         });
     }
 
+    public void setDateEditCallback(final View v) {
+        final Calendar cal = Calendar.getInstance();
+        int mYear = cal.get(Calendar.YEAR);
+        int mMonth = cal.get(Calendar.MONTH);
+        int mDay = cal.get(Calendar.DAY_OF_MONTH);
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        String editTextDateParam;
+                        if (monthOfYear < 9) {
+                            editTextDateParam = year + "-0" + (monthOfYear + 1);
+                        } else {
+                            editTextDateParam = year + "-" + (monthOfYear + 1);
+                        }
+                        if (dayOfMonth < 10) {
+                            editTextDateParam += "-0" + dayOfMonth;
+                        } else {
+                            editTextDateParam += "-" + dayOfMonth;
+                        }
+                        callbackDate = editTextDateParam;
+
+                        setTimeEditCallback(txtEditCallback);
+                    }
+                }, mYear, mMonth, mDay);
+        datePickerDialog.show();
+    }
+
     public void setTimeEditCallback(View v) {
         new TimePickerDialog(this, callTimeEditCallback,
                 dateAndTime.get(Calendar.HOUR_OF_DAY),
@@ -272,7 +301,6 @@ public class ClientActivity extends AppCompatActivity {
                 dateAndTime.getTimeInMillis(), DateUtils.FORMAT_SHOW_TIME);
 
     }
-
 
     private void info() {
 
@@ -1180,7 +1208,6 @@ public class ClientActivity extends AppCompatActivity {
 
     public void onButtonCallback(View view) {
         Log.d(TAG, "onButtonCallback: ");
-        setTime(txtCallback);
         setDate(txtCallback);
 
         ImageButton btnAddCallback = findViewById(R.id.btnAddCallback);
@@ -1260,7 +1287,7 @@ public class ClientActivity extends AppCompatActivity {
         });
     }
 
-    public void onButtonNewCallback(View view){
+    public void onButtonNewCallback(View view) {
         linearNewCall = findViewById(R.id.linearNewCall);
         if (linearNewCall.getVisibility() == View.GONE) {
             linearNewCall.setVisibility(View.VISIBLE);
@@ -1269,7 +1296,7 @@ public class ClientActivity extends AppCompatActivity {
         }
     }
 
-    public void setDate(View v) {
+    public void setDate(final View v) {
         final Calendar cal = Calendar.getInstance();
         int mYear = cal.get(Calendar.YEAR);
         int mMonth = cal.get(Calendar.MONTH);
@@ -1290,6 +1317,8 @@ public class ClientActivity extends AppCompatActivity {
                             editTextDateParam += "-" + dayOfMonth;
                         }
                         callbackDate = editTextDateParam;
+
+                        setTime(txtCallback);
                     }
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
