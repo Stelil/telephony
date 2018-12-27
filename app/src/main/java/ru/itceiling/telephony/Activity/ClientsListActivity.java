@@ -89,6 +89,11 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         MyTask mt = new MyTask();
         mt.execute();
 
+        ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+        if (exportDataReceiver != null) {
+            exportDataReceiver.SetAlarm(this);
+        }
+
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {

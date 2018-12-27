@@ -31,6 +31,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -81,6 +82,11 @@ public class CallbackListActivity extends AppCompatActivity {
             mt.execute();
         }
         ii++;
+
+        ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+        if (exportDataReceiver != null) {
+            exportDataReceiver.SetAlarm(this);
+        }
     }
 
     @Override

@@ -1871,6 +1871,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 public void onResponse(String res) {
 
+                    Log.d(TAG, "onResponse: " + res);
+
                     if (res.equals("") || res.equals("\u041e\u0448\u0438\u0431\u043a\u0430!")) {
                     }
                     SQLiteDatabase db;
@@ -1982,6 +1984,11 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                 values.put(DBHelper.KEY_SYNC, "0");
                                 values.put(DBHelper.KEY_TYPE, "check");
                                 db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
+
+                                values = new ContentValues();
+                                values.put(DBHelper.KEY_STATUS_ID, new_id);
+                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values, "status_id = ?",
+                                        new String[]{String.valueOf(old_id)});
                             }
 
                             checkClientsStatus = "[";
@@ -2076,7 +2083,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
                                         values = new ContentValues();
                                         values.put(DBHelper.KEY_SYNC, "1");
-                                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, values,
+                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
                                                 "id_new = ? and name_table=? and sync=?",
                                                 new String[]{new_id, "rgzbn_gm_ceiling_clients_statuses", "0"});
 
@@ -2084,6 +2091,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                 }
                             }
                             cursor.close();
+
                         }
                     } catch (Exception e) {
                     }
@@ -2257,7 +2265,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
                                         values = new ContentValues();
                                         values.put(DBHelper.KEY_SYNC, "1");
-                                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, values,
+                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
                                                 "id_new = ? and name_table=? and sync=?",
                                                 new String[]{new_id, "rgzbn_gm_ceiling_calls_status_history", "0"});
 
@@ -2308,6 +2316,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 public void onResponse(String res) {
 
+                    Log.d(TAG, "SendClientStatusMap: " + res );
                     if (res.equals("")) {
 
                     } else {
@@ -2603,7 +2612,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
                                         values = new ContentValues();
                                         values.put(DBHelper.KEY_SYNC, "1");
-                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values, "id_new = ? and name_table=? and sync=?",
+                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
+                                                "id_new = ? and name_table=? and sync=?",
                                                 new String[]{new_id, "rgzbn_gm_ceiling_api_phones", "0"});
 
                                     } while (cursor.moveToNext());
@@ -2782,7 +2792,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
                                         values = new ContentValues();
                                         values.put(DBHelper.KEY_SYNC, "1");
-                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values, "id_new = ? and sync=? and name_table = ?",
+                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
+                                                "id_new = ? and sync=? and name_table = ?",
                                                 new String[]{new_id, "0", "rgzbn_users"});
 
                                     } while (cursor.moveToNext());
