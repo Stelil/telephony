@@ -321,10 +321,11 @@ public class ClientActivity extends AppCompatActivity {
 
         sqlQuewy = "SELECT status_id "
                 + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                " WHERE client_id = ? ";
+                " WHERE client_id = ? " +
+                "order by _id";
         c = db.rawQuery(sqlQuewy, new String[]{id_client});
         if (c != null) {
-            if (c.moveToFirst()) {
+            if (c.moveToLast()) {
                 String status_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
 
                 sqlQuewy = "SELECT title "
@@ -924,48 +925,21 @@ public class ClientActivity extends AppCompatActivity {
                 }
 
                 ContentValues values = new ContentValues();
-                int count = 0;
-                sqlQuewy = "SELECT * "
-                        + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                        " WHERE client_id = ?";
-                c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id_client)});
-                if (c != null) {
-                    if (c.moveToFirst()) {
 
-                        int idStatusesMap = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
+                        ClientActivity.this,
+                        dealer_id);
+                values.put(DBHelper.KEY_ID, maxId);
+                values.put(DBHelper.KEY_CLIENT_ID, id_client);
+                values.put(DBHelper.KEY_STATUS_ID, idStatus);
+                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
 
-                        values.put(DBHelper.KEY_STATUS_ID, idStatus);
-                        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
-                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, values,
-                                "client_id = ?",
-                                new String[]{id_client});
-                        count++;
-
-                        HelperClass.addExportData(
-                                ClientActivity.this,
-                                idStatusesMap,
-                                "rgzbn_gm_ceiling_clients_statuses_map",
-                                "send");
-                    }
-                }
-                c.close();
-
-                if (count == 0) {
-                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
-                            ClientActivity.this,
-                            dealer_id);
-                    values.put(DBHelper.KEY_ID, maxId);
-                    values.put(DBHelper.KEY_CLIENT_ID, id_client);
-                    values.put(DBHelper.KEY_STATUS_ID, idStatus);
-                    values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
-                    db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
-
-                    HelperClass.addExportData(
-                            ClientActivity.this,
-                            maxId,
-                            "rgzbn_gm_ceiling_clients_statuses_map",
-                            "send");
-                }
+                HelperClass.addExportData(
+                        ClientActivity.this,
+                        maxId,
+                        "rgzbn_gm_ceiling_clients_statuses_map",
+                        "send");
 
                 Toast.makeText(getApplicationContext(), "Статус изменён",
                         Toast.LENGTH_SHORT).show();

@@ -200,6 +200,38 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         sqlQuewy = "SELECT s._id AS status_id, " +
                 "COUNT(ls.max_id) AS count, " +
+                "GROUP_CONCAT(ls.client_id) AS clients, " +
+                "s.dealer_id " +
+                "FROM rgzbn_gm_ceiling_clients_statuses AS s " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
+                "ON s._id = sm.status_id " +
+                "LEFT JOIN (SELECT MAX(_id) AS max_id, client_id " +
+                "FROM rgzbn_gm_ceiling_clients_statuses_map " +
+                "GROUP BY client_id " +
+                ") AS ls " +
+                "ON sm._id = ls.max_id " +
+                "AND sm.change_time >= ? " +
+                "AND sm.change_time <= ? " +
+                "WHERE (s.dealer_id = ? " +
+                "OR s.dealer_id = ?) " +
+                "GROUP BY s._id " +
+                "ORDER BY s._id ";
+        c = db.rawQuery(sqlQuewy, new String[]{date1 + "00:00:00", date2 + "23:59:59", dealer_id, "null"});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    Log.d(TAG, "createTable: " + c.getInt(c.getColumnIndex(c.getColumnName(0)))
+                            + " " + c.getInt(c.getColumnIndex(c.getColumnName(1)))
+                            + " " + c.getInt(c.getColumnIndex(c.getColumnName(2)))
+                            + " " + c.getInt(c.getColumnIndex(c.getColumnName(3))));
+
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        sqlQuewy = "SELECT s._id AS status_id, " +
+                "COUNT(ls.max_id) AS count, " +
                 "GROUP_CONCAT(ls.client_id) AS clients " +
                 "FROM rgzbn_gm_ceiling_clients_statuses AS s " +
                 "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
@@ -212,11 +244,10 @@ public class AnalyticsActivity extends AppCompatActivity {
                 "AND sm.change_time >= ? " +
                 "AND sm.change_time <= ? " +
                 "WHERE (s.dealer_id = ? " +
-                "OR s.dealer_id IS NULL " +
-                "OR s.dealer_id = 0) " +
+                "OR s.dealer_id = ?) " +
                 "GROUP BY s._id " +
                 "ORDER BY s._id ";
-        c = db.rawQuery(sqlQuewy, new String[]{date1 + "00:00:00", date2 + "23:59:59", dealer_id});
+        c = db.rawQuery(sqlQuewy, new String[]{date1 + "00:00:00", date2 + "23:59:59", dealer_id, "null"});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
@@ -428,96 +459,7 @@ public class AnalyticsActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(AnalyticsActivity.this, ClientActivity.class);
                 intent.putExtra("id_client", id_client);
-                startActivity(intent);
-            }
-        });
-    }
-
-    private void ListClients(ListView listView) {
-
-        client_mas.clear();
-
-        String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
-        if (!txtSelectDay.getText().toString().equals("")) {
-            date1 = txtSelectDay.getText().toString();
-        }
-        if (!txtSelectDayTwo.getText().toString().equals("")) {
-            date2 = txtSelectDayTwo.getText().toString();
-        }
-
-        String sqlQuewy;
-        Cursor c;
-        sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
-                + "FROM rgzbn_gm_ceiling_clients c " +
-                "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                "       on c._id = s.client_id " +
-                "where s.change_time >= ? and s.change_time <= ?";
-        c = db.rawQuery(sqlQuewy, new String[]{date1 + " 00:00:01",
-                date2 + " 23:59:59"});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                    String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    String title = null;
-
-                    int status_id = c.getInt(c.getColumnIndex(c.getColumnName(3)));
-
-                    sqlQuewy = "SELECT title "
-                            + "FROM rgzbn_gm_ceiling_clients_statuses " +
-                            " WHERE _id = ? ";
-                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
-                    if (cc != null) {
-                        if (cc.moveToFirst()) {
-                            title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
-                    }
-                    cc.close();
-
-                    AdapterList fc = new AdapterList(id_client,
-                            client_name, title, created, null, null);
-                    client_mas.add(fc);
-
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
-
-        BindDictionary<AdapterList> dict = new BindDictionary<>();
-
-        dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getThree();
-            }
-        });
-        dict.addStringField(R.id.secondColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getOne();
-            }
-        });
-        dict.addStringField(R.id.thirdColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getTwo();
-            }
-        });
-
-        FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-
-                AdapterList selectedid = client_mas.get(position);
-                String id_client = selectedid.getId();
-
-                Intent intent = new Intent(AnalyticsActivity.this, ClientActivity.class);
-                intent.putExtra("id_client", id_client);
+                intent.putExtra("check", "false");
                 startActivity(intent);
             }
         });

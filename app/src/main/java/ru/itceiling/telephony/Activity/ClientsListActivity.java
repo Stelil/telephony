@@ -301,10 +301,11 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                     String client_status = null;
                     sqlQuewy = "SELECT status_id, change_time "
                             + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                            "    WHERE client_id = ? ";
+                            "    WHERE client_id = ? " +
+                            "order by _id";
                     Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
                     if (cc != null) {
-                        if (cc.moveToFirst()) {
+                        if (cc.moveToLast()) {
                             client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
                         }
                     }
