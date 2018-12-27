@@ -40,7 +40,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".Activity.ClientActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
         <activity
             android:name=".Activity.ClientsListActivity"
             android:screenOrientation="portrait" />

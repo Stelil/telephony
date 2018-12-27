@@ -28,14 +28,14 @@
 
         <TextView
             android:id="@+id/countCallback"
-            android:layout_width="21dp"
-            android:layout_height="21dp"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:layout_alignRight="@id/relative1"
             android:layout_marginTop="3dp"
             android:background="@drawable/ic_menu_cart"
             android:gravity="center"
             android:textColor="#ffffff"
-            android:visibility="gone" />
+            android:visibility="gone"/>
 
     </RelativeLayout>
 

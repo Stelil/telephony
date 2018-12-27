@@ -167,8 +167,6 @@ public class MainActivity extends AppCompatActivity {
             if (c.moveToFirst()) {
                 do {
                     count_zamer = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-
-
                 } while (c.moveToNext());
             }
         }
@@ -176,7 +174,11 @@ public class MainActivity extends AppCompatActivity {
 
         if (count_zamer > 0) {
             countCallback.setVisibility(View.VISIBLE);
-            countCallback.setText(String.valueOf(count_zamer));
+            if (count_zamer<100) {
+                countCallback.setText(String.valueOf(count_zamer));
+            } else {
+                countCallback.setText("99+");
+            }
         }
 
         importDataReceiver = new ImportDataReceiver();
