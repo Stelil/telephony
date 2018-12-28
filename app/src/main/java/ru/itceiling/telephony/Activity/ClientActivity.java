@@ -1,7 +1,6 @@
 package ru.itceiling.telephony.Activity;
 
 import android.app.DatePickerDialog;
-import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,7 +11,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -24,13 +22,11 @@ import android.text.format.DateUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.RotateAnimation;
@@ -56,7 +52,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
-import ru.itceiling.telephony.AndroidBug5497Workaround;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
