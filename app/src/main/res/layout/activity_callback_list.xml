@@ -59,7 +59,7 @@
 
             <TableRow>
 
-                <TextView
+                <ru.itceiling.telephony.UnderlineTextView
                     style="@style/text_style_spisok"
                     android:layout_width="15dp"
                     android:layout_height="match_parent"
@@ -70,9 +70,11 @@
                     android:minLines="2"
                     android:text="ФИО клиента"
                     android:textSize="13dp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:id="@+id/titleFio"
+                    android:onClick="onFioOrder"/>
 
-                <TextView
+                <ru.itceiling.telephony.UnderlineTextView
                     style="@style/text_style_spisok"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -83,9 +85,11 @@
                     android:gravity="center"
                     android:text="Дата"
                     android:textSize="13dp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:id="@+id/titleDate"
+                    android:onClick="onDateOrder"/>
 
-                <TextView
+                <ru.itceiling.telephony.UnderlineTextView
                     style="@style/text_style_spisok"
                     android:layout_width="40dp"
                     android:layout_height="match_parent"
@@ -97,7 +101,9 @@
                     android:paddingRight="10dp"
                     android:text="Примечание"
                     android:textSize="13dp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:id="@+id/titleComment"
+                    android:onClick="onCommentOrder"/>
             </TableRow>
         </TableLayout>
 

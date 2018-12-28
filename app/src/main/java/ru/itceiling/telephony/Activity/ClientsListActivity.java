@@ -25,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amigold.fundapter.BindDictionary;
@@ -32,9 +33,14 @@ import com.amigold.fundapter.FunDapter;
 import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
+import ru.itceiling.telephony.Comparators.ComparatorCreate;
+import ru.itceiling.telephony.Comparators.ComparatorName;
+import ru.itceiling.telephony.Comparators.ComparatorStatus;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -48,7 +54,9 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     String TAG = "logd";
 
-    String getPhone = "";
+    String getPhone = "", textSearch="";
+
+    TextView titleStatus, titleCreate, titleClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +78,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         } else {
             getPhone = getIntent().getStringExtra("phone");
 
-            long notifyID = getIntent().getLongExtra("notifyID",0);
+            long notifyID = getIntent().getLongExtra("notifyID", 0);
 
             NotificationManager notificationManager =
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -82,10 +90,9 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
             onButtonAddClient(view);
         }
 
-        ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
-        Intent intent = new Intent(this, ExportDataReceiver.class);
-        exportDataReceiver.onReceive(this, intent);
-
+        titleClient = findViewById(R.id.titleClient);
+        titleStatus = findViewById(R.id.titleStatus);
+        titleCreate = findViewById(R.id.titleCreate);
     }
 
     @Override
@@ -96,14 +103,14 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
-        if (exportDataReceiver != null) {
-            exportDataReceiver.SetAlarm(this);
-        }
+        Intent intent = new Intent(this, ExportDataReceiver.class);
+        exportDataReceiver.onReceive(this, intent);
 
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {
         ProgressDialog mProgressDialog;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -150,12 +157,14 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     @Override
     public boolean onQueryTextSubmit(String query) {
+        textSearch = query;
         ListClients(query);
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
+        textSearch = newText;
         ListClients(newText);
         return false;
     }
@@ -265,9 +274,77 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     }
 
+    public void onStatusOrder(View view) {
+        if (titleStatus.getText().toString().equals("Статус")) {
+            titleStatus.setText("Статус ▼");
+            ComparatorStatus comparatorStatus = new ComparatorStatus();
+            Collections.sort(client_mas, comparatorStatus);
+
+            createList();
+
+            titleClient.setText("Клиент");
+            titleCreate.setText("Создан");
+
+        } else if (titleStatus.getText().toString().equals("Статус ▼")) {
+            titleStatus.setText("Статус ▲");
+            ComparatorStatus comparatorStatus = new ComparatorStatus();
+            Collections.sort(client_mas, comparatorStatus.reversed());
+
+            createList();
+        } else {
+            titleStatus.setText("Статус");
+            ListClients(textSearch);
+        }
+    }
+
+    public void onClientOrder(View view){
+        if (titleClient.getText().toString().equals("Клиент")) {
+            titleClient.setText("Клиент ▼");
+            ComparatorName comparatorName = new ComparatorName();
+            Collections.sort(client_mas, comparatorName);
+
+            createList();
+
+            titleStatus.setText("Статус");
+            titleCreate.setText("Создан");
+
+        } else if (titleClient.getText().toString().equals("Клиент ▼")) {
+            titleClient.setText("Клиент ▲");
+            ComparatorName comparatorName = new ComparatorName();
+            Collections.sort(client_mas, comparatorName.reversed());
+
+            createList();
+        } else {
+            titleClient.setText("Клиент");
+            ListClients(textSearch);
+        }
+    }
+
+    public void onCreateOrder(View view){
+        if (titleCreate.getText().toString().equals("Создан")) {
+            titleCreate.setText("Создан ▼");
+            ComparatorCreate comparatorCreate = new ComparatorCreate();
+            Collections.sort(client_mas, comparatorCreate);
+
+            createList();
+
+            titleStatus.setText("Статус");
+            titleClient.setText("Клиент");
+
+        } else if (titleCreate.getText().toString().equals("Создан ▼")) {
+            titleCreate.setText("Создан ▲");
+            ComparatorCreate comparatorCreate = new ComparatorCreate();
+            Collections.sort(client_mas, comparatorCreate.reversed());
+
+            createList();
+        } else {
+            titleCreate.setText("Создан");
+            ListClients(textSearch);
+        }
+    }
+
     private void ListClients(String query) {
 
-        final ListView listView = findViewById(R.id.list_client);
         client_mas.clear();
 
         String sqlQuewy;
@@ -340,6 +417,13 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         }
         c.close();
 
+        createList();
+
+    }
+
+    void createList() {
+
+        final ListView listView = findViewById(R.id.list_client);
         BindDictionary<AdapterList> dict = new BindDictionary<>();
 
         dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
