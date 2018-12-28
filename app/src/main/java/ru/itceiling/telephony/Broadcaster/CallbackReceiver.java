@@ -5,7 +5,6 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,7 +22,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
-import ru.itceiling.telephony.Activity.ClientsListActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -34,8 +32,6 @@ public class CallbackReceiver extends BroadcastReceiver {
 
     static DBHelper dbHelper;
     private static final String TAG = "serviceCallback";
-
-    static int notifyID = 0;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -107,6 +103,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                             }
                             cc.close();
 
+                            long notifyID = System.currentTimeMillis();
                             String message = "ФИО клиента: " + client_name + "\nКомментарий: " + comment;
 
                             //позвонить клиенту
@@ -121,16 +118,16 @@ public class CallbackReceiver extends BroadcastReceiver {
                             Intent intentClient = new Intent(context, ClientActivity.class);
                             intentClient.putExtra("id_client", client_id);
                             intentClient.putExtra("check", "false");
-                            intentClient.setAction(Long.toString(System.currentTimeMillis() + notifyID));
+                            intentClient.setAction(Long.toString(notifyID));
 
                             PendingIntent pendingIntentClient = PendingIntent.getActivity(
                                     context, 0, intentClient, PendingIntent.FLAG_ONE_SHOT);
 
                             //перенести звонок
-                            Intent intentBr = new Intent(context, BroadcastNotification.class);
+                            Intent intentBr = new Intent(context, BroadcastCallToPostpone.class);
                             intentBr.putExtra("client_id", client_id);
-                            intentBr.putExtra("notifyID", notifyID);
-                            intentBr.setAction(Long.toString(System.currentTimeMillis()));
+                            intentBr.putExtra("notifyID", Long.toString(notifyID));
+                            intentBr.setAction(Long.toString(notifyID));
 
                             PendingIntent pi = PendingIntent.getBroadcast(context,
                                     0,
@@ -145,7 +142,6 @@ public class CallbackReceiver extends BroadcastReceiver {
                                 Notification notification = new Notification.Builder(context)
                                         .setAutoCancel(true)
                                         .setTicker("Звонок")
-                                        .setWhen(System.currentTimeMillis())
                                         .setDefaults(Notification.DEFAULT_ALL)
                                         .setSmallIcon(R.raw.icon_notif)
                                         .setAutoCancel(true)
@@ -162,7 +158,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                 NotificationManager mNotificationManager =
                                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                                 mNotificationManager.createNotificationChannel(mChannel);
-                                mNotificationManager.notify(notifyID, notification);
+                                mNotificationManager.notify((int) notifyID, notification);
 
                                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
@@ -171,7 +167,6 @@ public class CallbackReceiver extends BroadcastReceiver {
                                         new NotificationCompat.Builder(context)
                                                 .setAutoCancel(true)
                                                 .setTicker("Звонок")
-                                                .setWhen(System.currentTimeMillis())
                                                 .setDefaults(Notification.DEFAULT_ALL)
                                                 .setSmallIcon(R.raw.icon_notif)
                                                 .setAutoCancel(true)
@@ -186,7 +181,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                                 Notification notification = builder.build();
                                 NotificationManager notificationManager = (NotificationManager) context
                                         .getSystemService(Context.NOTIFICATION_SERVICE);
-                                notificationManager.notify(notifyID, notification);
+                                notificationManager.notify((int) notifyID, notification);
 
                                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
 

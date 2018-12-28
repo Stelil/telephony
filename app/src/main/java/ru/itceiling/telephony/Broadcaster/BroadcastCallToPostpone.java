@@ -16,15 +16,15 @@ import java.time.format.DateTimeFormatter;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 
-public class BroadcastNotification extends BroadcastReceiver {
+public class BroadcastCallToPostpone extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d("serviceCall",
-                "onReceive: BroadcastNotification " + intent.getStringExtra("client_id"));
+                "onReceive: BroadcastCallToPostpone " + intent.getStringExtra("client_id"));
 
         String client_id = intent.getStringExtra("client_id");
-        int notific = intent.getIntExtra("notifyID", 0);
+        long notific = intent.getIntExtra("notifyID", 0);
         Log.d("serviceCallback", "client_id: " + client_id);
         Log.d("serviceCallback", "notifyID: " + notific);
 
@@ -81,7 +81,7 @@ public class BroadcastNotification extends BroadcastReceiver {
 
                 NotificationManager notificationManager =
                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.cancel(notific);
+                notificationManager.cancel((int) notific);
 
                 Toast toast = Toast.makeText(context,
                         "Звонок перенесён на 10 минут", Toast.LENGTH_SHORT);

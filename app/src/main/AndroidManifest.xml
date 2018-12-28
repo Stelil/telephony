@@ -70,7 +70,7 @@
             android:enabled="true" />
         <receiver android:name=".Broadcaster.ImportDataReceiver" />
         <receiver android:name=".Broadcaster.ExportDataReceiver" />
-        <receiver android:name=".Broadcaster.BroadcastNotification" />
+        <receiver android:name=".Broadcaster.BroadcastCallToPostpone" />
 
         <activity android:name=".Activity.ManagerActivity"></activity>
     </application>

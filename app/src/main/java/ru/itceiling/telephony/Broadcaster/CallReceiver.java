@@ -81,7 +81,6 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                    phoneNumber = phoneNumber.substring(1, phoneNumber.length());
                     historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
@@ -96,7 +95,6 @@ public class CallReceiver extends BroadcastReceiver {
                         //timeDifference();
                     }
 
-                    phoneNumber = phoneNumber.substring(1, phoneNumber.length());
                     newClient();
                     addHistoryClientCall();
                 }
@@ -158,6 +156,10 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void newClient() {
 
+        if (phoneNumber.contains("+")) {
+            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+        }
+
         Log.d(TAG, "newClient: " + phoneNumber);
 
         int id = 0;
@@ -172,10 +174,12 @@ public class CallReceiver extends BroadcastReceiver {
         }
         c.close();
 
+        long notifyID = (int) System.currentTimeMillis();
         if (id == 0) {
             Intent resultIntent = new Intent(ctx, ClientsListActivity.class);
             resultIntent.putExtra("phone", phoneNumber);
-            resultIntent.setAction(Long.toString(System.currentTimeMillis()));
+            resultIntent.putExtra("notifyID", notifyID);
+            resultIntent.setAction(Long.toString(notifyID));
 
             PendingIntent resultPendingIntent = PendingIntent.getActivity(ctx, 0, resultIntent,
                     PendingIntent.FLAG_ONE_SHOT);
@@ -191,7 +195,6 @@ public class CallReceiver extends BroadcastReceiver {
                 Notification notification = new Notification.Builder(ctx)
                         .setAutoCancel(true)
                         .setTicker("Звонок")
-                        .setWhen(System.currentTimeMillis())
                         .setDefaults(Notification.DEFAULT_ALL)
                         .setSmallIcon(R.raw.icon_notif)
                         .addAction(R.raw.plus, "Добавить", resultPendingIntent)
@@ -205,7 +208,7 @@ public class CallReceiver extends BroadcastReceiver {
                 NotificationManager mNotificationManager =
                         (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.createNotificationChannel(mChannel);
-                mNotificationManager.notify(notifyID++, notification);
+                mNotificationManager.notify((int) notifyID, notification);
 
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             } else {
@@ -213,7 +216,6 @@ public class CallReceiver extends BroadcastReceiver {
                         new NotificationCompat.Builder(ctx)
                                 .setAutoCancel(true)
                                 .setTicker("Звонок")
-                                .setWhen(System.currentTimeMillis())
                                 .setDefaults(Notification.DEFAULT_ALL)
                                 .setSmallIcon(R.raw.icon_notif)
                                 .addAction(R.raw.plus, "Добавить", resultPendingIntent)
@@ -224,7 +226,7 @@ public class CallReceiver extends BroadcastReceiver {
                 Notification notification = builder.build();
                 NotificationManager notificationManager = (NotificationManager) ctx
                         .getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(notifyID++, notification);
+                notificationManager.notify((int) notifyID, notification);
 
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }
@@ -232,6 +234,10 @@ public class CallReceiver extends BroadcastReceiver {
     }
 
     private void addHistoryClientCall() {
+
+        if (phoneNumber.contains("+")) {
+            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+        }
 
         Log.d(TAG, "addHistoryClientCall: " + phoneNumber);
 
@@ -322,6 +328,10 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void historyClient() {
 
+        if (phoneNumber.contains("+")) {
+            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
+        }
+
         Log.d(TAG, "historyClient: " + phoneNumber);
 
         dbHelper = new DBHelper(ctx);
@@ -370,19 +380,21 @@ public class CallReceiver extends BroadcastReceiver {
             }
             c.close();
 
+            long notifyID = (int) System.currentTimeMillis();
+
             Intent intentClient = new Intent(ctx, ClientActivity.class);
             intentClient.putExtra("id_client", String.valueOf(id));
             intentClient.putExtra("check", "false");
+            intentClient.setAction(String.valueOf(notifyID));
 
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(ctx);
             stackBuilder.addParentStack(ClientsListActivity.class);
             stackBuilder.addNextIntent(intentClient);
 
             PendingIntent resultPendingIntent =
-                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_ONE_SHOT);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                int notifyID = 1;
                 String CHANNEL_ID = "my_channel_01";
                 CharSequence name = "1";
                 int importance = NotificationManager.IMPORTANCE_HIGH;
@@ -390,7 +402,6 @@ public class CallReceiver extends BroadcastReceiver {
                 Notification notification = new Notification.Builder(ctx)
                         .setAutoCancel(true)
                         .setTicker("Звонок")
-                        .setWhen(System.currentTimeMillis())
                         .setDefaults(Notification.DEFAULT_ALL)
                         .setSmallIcon(R.raw.icon_notif)
                         .setStyle(new Notification.BigTextStyle().bigText(message))
@@ -404,7 +415,7 @@ public class CallReceiver extends BroadcastReceiver {
                 NotificationManager mNotificationManager =
                         (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.createNotificationChannel(mChannel);
-                mNotificationManager.notify(notifyID, notification);
+                mNotificationManager.notify((int) notifyID, notification);
 
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
@@ -414,7 +425,6 @@ public class CallReceiver extends BroadcastReceiver {
                         new NotificationCompat.Builder(ctx)
                                 .setAutoCancel(true)
                                 .setTicker("Звонок")
-                                .setWhen(System.currentTimeMillis())
                                 .setDefaults(Notification.DEFAULT_ALL)
                                 .setSmallIcon(R.raw.icon_notif)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
@@ -425,7 +435,7 @@ public class CallReceiver extends BroadcastReceiver {
                 Notification notification = builder.build();
                 NotificationManager notificationManager = (NotificationManager) ctx
                         .getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(2, notification);
+                notificationManager.notify((int) notifyID, notification);
 
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }

@@ -1,5 +1,6 @@
 package ru.itceiling.telephony.Activity;
 
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -68,7 +69,12 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         if (getIntent().getStringExtra("phone") == null) {
         } else {
             getPhone = getIntent().getStringExtra("phone");
-            Log.d(TAG, "phone: " + getPhone);
+
+            long notifyID = getIntent().getLongExtra("notifyID",0);
+
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel((int) notifyID);
         }
 
         if (!getPhone.equals("")) {
