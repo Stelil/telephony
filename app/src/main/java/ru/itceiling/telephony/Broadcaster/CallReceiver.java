@@ -74,7 +74,6 @@ public class CallReceiver extends BroadcastReceiver {
             //получаем исходящий номер
 
             TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-
             telephony.listen(new PhoneStateListener() {
                 @Override
                 public void onCallStateChanged(int state, final String number) {
@@ -82,8 +81,6 @@ public class CallReceiver extends BroadcastReceiver {
                     phoneNumber = number;
                 }
             }, PhoneStateListener.LISTEN_CALL_STATE);
-
-            Log.d(TAG, "onReceive: 1 " + phoneNumber);
 
             callStatus = 2;
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
@@ -94,21 +91,18 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                    Log.d(TAG, "onReceive: 2 " + phoneNumber);
                     historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
                     date1 = HelperClass.now_date();
                     //recordCall();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                    Log.d(TAG, "onReceive: 4 " + phoneNumber);
                     //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
                     date2 = HelperClass.now_date();
                     if (date2.equals("")) {
                     } else {
                         //timeDifference();
                     }
-
                     newClient();
                     addHistoryClientCall();
                 }

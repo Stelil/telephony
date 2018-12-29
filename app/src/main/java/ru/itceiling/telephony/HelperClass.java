@@ -192,7 +192,7 @@ public class HelperClass {
         values.put(DBHelper.KEY_CLIENT_ID, clientId);
         values.put(DBHelper.KEY_STATUS, status);
         values.put(DBHelper.KEY_CALL_LENGTH, callLength);
-        values.put(DBHelper.KEY_CHANGE_TIME, now_date());
+        values.put(DBHelper.KEY_CHANGE_TIME, date);
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, null, values);
 
         HelperClass.addExportData(

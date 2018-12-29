@@ -88,6 +88,11 @@ public class MainActivity extends AppCompatActivity {
                     ed.putString("", "");
                     ed.commit();
 
+                    SP = getSharedPreferences("user_id", MODE_PRIVATE);
+                    ed = SP.edit();
+                    ed.putString("", "");
+                    ed.commit();
+
                     SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
                     ed = SP.edit();
                     ed.putString("", "");

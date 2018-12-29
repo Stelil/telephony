@@ -333,15 +333,12 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                     mProgressDialog.dismiss();
 
+                    Log.d(TAG, "onResponse: " + res);
+
                     try {
                         JSONObject jsonObject = new JSONObject(res);
 
-                        int user_id = 0;
-                        try {
-                            user_id = jsonObject.getInt("new_id");
-                        } catch (Exception E) {
-                            user_id = jsonObject.getInt("id");
-                        }
+                        int user_id = jsonObject.getInt("id");
                         String name = jsonObject.getString("name");
                         String username = jsonObject.getString("username");
                         String email = jsonObject.getString("email");
@@ -351,13 +348,13 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         String lastvisitDate = jsonObject.getString("lastvisitDate");
                         String activation = jsonObject.getString("activation");
                         String params = jsonObject.getString("params");
-                        int dealer_id = jsonObject.getInt("dealer_id");
+                        String dealer_id = jsonObject.getString("dealer_id");
                         String change_time = jsonObject.getString("change_time");
                         String associated_client = jsonObject.getString("associated_client");
 
                         SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
                         SharedPreferences.Editor ed = SP.edit();
-                        ed.putString("", String.valueOf(dealer_id));
+                        ed.putString("", dealer_id);
                         ed.commit();
 
                         SP = getSharedPreferences("user_id", MODE_PRIVATE);
@@ -406,7 +403,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             if (c.moveToFirst()) {
                             } else {
                                 ContentValues values = new ContentValues();
-                                values.put(DBHelper.KEY_ID, dealer_id);
+                                values.put(DBHelper.KEY_ID, user_id);
                                 values.put(DBHelper.KEY_NAME, name);
                                 values.put(DBHelper.KEY_USERNAME, username);
                                 values.put(DBHelper.KEY_EMAIL, email);
@@ -432,10 +429,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         importData();
 
                     } catch (JSONException e) {
-                        Toast toast = Toast.makeText(getApplicationContext(),
-                                res, Toast.LENGTH_SHORT);
-                        toast.show();
-
+                        Log.d(TAG, "onResponse: " + e);
                     }
                 }
 
