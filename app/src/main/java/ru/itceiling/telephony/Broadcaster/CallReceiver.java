@@ -22,6 +22,7 @@ import android.os.Build;
 import android.provider.CallLog;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -71,7 +72,19 @@ public class CallReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             //получаем исходящий номер
-            phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
+
+            TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+            telephony.listen(new PhoneStateListener() {
+                @Override
+                public void onCallStateChanged(int state, final String number) {
+                    super.onCallStateChanged(state, number);
+                    phoneNumber = number;
+                }
+            }, PhoneStateListener.LISTEN_CALL_STATE);
+
+            Log.d(TAG, "onReceive: 1 " + phoneNumber);
+
             callStatus = 2;
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
@@ -81,13 +94,14 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                    Log.d(TAG, "onReceive: 2 " + phoneNumber);
                     historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
-                    phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                     date1 = HelperClass.now_date();
                     //recordCall();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                    Log.d(TAG, "onReceive: 4 " + phoneNumber);
                     //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
                     date2 = HelperClass.now_date();
                     if (date2.equals("")) {
@@ -156,7 +170,7 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void newClient() {
 
-        if (phoneNumber.contains("+")) {
+        if (phoneNumber.indexOf("+") != -1) {
             phoneNumber = phoneNumber.substring(1, phoneNumber.length());
         }
 
@@ -276,10 +290,8 @@ public class CallReceiver extends BroadcastReceiver {
                         }
 
                         HelperClass.addHistory(text, ctx, String.valueOf(client_id));
-                        //int maxId = HelperClass.lastIdTable(
-                        //        "rgzbn_gm_ceiling_calls_status_history",
-                        //        this,
-                        //        dealer_id);
+
+                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, duration);
                     }
                 }
                 c.close();
@@ -301,6 +313,8 @@ public class CallReceiver extends BroadcastReceiver {
                     String text = "Исходящий недозвон";
                     HelperClass.addHistory(text, ctx, String.valueOf(client_id));
 
+                    HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, 0);
+
                     call = false;
                 }
             }
@@ -319,7 +333,6 @@ public class CallReceiver extends BroadcastReceiver {
 
                     String text = "Пропущенный звонок";
                     HelperClass.addHistory(text, ctx, String.valueOf(client_id));
-
                 }
             }
             c.close();

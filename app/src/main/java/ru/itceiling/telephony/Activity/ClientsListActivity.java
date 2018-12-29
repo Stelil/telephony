@@ -352,6 +352,8 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
         String associated_client = HelperClass.associated_client(this, dealer_id);
 
+        Log.d(TAG, "ListClients: " + associated_client);
+
         if (!query.equals("")) {
             sqlQuewy = "SELECT created, " +
                     "          client_name," +

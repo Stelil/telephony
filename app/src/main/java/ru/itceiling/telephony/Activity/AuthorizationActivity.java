@@ -333,19 +333,36 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                     mProgressDialog.dismiss();
 
-                    int dealer_id = 0;
                     try {
                         JSONObject jsonObject = new JSONObject(res);
 
+                        int user_id = 0;
                         try {
-                            dealer_id = jsonObject.getInt("new_id");
+                            user_id = jsonObject.getInt("new_id");
                         } catch (Exception E) {
-                            dealer_id = jsonObject.getInt("id");
+                            user_id = jsonObject.getInt("id");
                         }
+                        String name = jsonObject.getString("name");
+                        String username = jsonObject.getString("username");
+                        String email = jsonObject.getString("email");
+                        String block = jsonObject.getString("block");
+                        String sendEmail = jsonObject.getString("sendEmail");
+                        String registerDate = jsonObject.getString("registerDate");
+                        String lastvisitDate = jsonObject.getString("lastvisitDate");
+                        String activation = jsonObject.getString("activation");
+                        String params = jsonObject.getString("params");
+                        int dealer_id = jsonObject.getInt("dealer_id");
+                        String change_time = jsonObject.getString("change_time");
+                        String associated_client = jsonObject.getString("associated_client");
 
                         SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
                         SharedPreferences.Editor ed = SP.edit();
                         ed.putString("", String.valueOf(dealer_id));
+                        ed.commit();
+
+                        SP = getSharedPreferences("user_id", MODE_PRIVATE);
+                        ed = SP.edit();
+                        ed.putString("", String.valueOf(user_id));
                         ed.commit();
 
                         SP = getSharedPreferences("enter", MODE_PRIVATE);
@@ -381,6 +398,30 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             }
                         }
 
+                        sqlQuewy = "SELECT _id "
+                                + "FROM rgzbn_users " +
+                                "where _id = ?";
+                        c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
+                        if (c != null) {
+                            if (c.moveToFirst()) {
+                            } else {
+                                ContentValues values = new ContentValues();
+                                values.put(DBHelper.KEY_ID, dealer_id);
+                                values.put(DBHelper.KEY_NAME, name);
+                                values.put(DBHelper.KEY_USERNAME, username);
+                                values.put(DBHelper.KEY_EMAIL, email);
+                                values.put(DBHelper.KEY_BLOCK, block);
+                                values.put(DBHelper.KEY_SENDEMAIL, sendEmail);
+                                values.put(DBHelper.KEY_REGISTERDATE, registerDate);
+                                values.put(DBHelper.KEY_LASTVISITDATE, lastvisitDate);
+                                values.put(DBHelper.KEY_ACTIVATION, activation);
+                                values.put(DBHelper.KEY_PARAMS, params);
+                                values.put(DBHelper.KEY_ASSOCIATED_CLIENT, associated_client);
+                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
+                                db.insert(DBHelper.TABLE_USERS, null, values);
+                            }
+                        }
+
                         pd = new ProgressDialog(AuthorizationActivity.this);
                         pd.setTitle("Загрузка клиентов ... ");
                         pd.setMessage("Пожалуйста подождите");
@@ -396,7 +437,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         toast.show();
 
                     }
-
                 }
 
             }, new Response.ErrorListener() {
@@ -482,7 +522,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                     try {
 
                         JSONObject jsonObject = new JSONObject(res);
-                        int dealer_id = jsonObject.getInt("id");
+                        int user_id = jsonObject.getInt("id");
                         String name = jsonObject.getString("name");
                         String username = jsonObject.getString("username");
                         String email = jsonObject.getString("email");
@@ -492,6 +532,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         String lastvisitDate = jsonObject.getString("lastvisitDate");
                         String activation = jsonObject.getString("activation");
                         String params = jsonObject.getString("params");
+                        String dealer_id = jsonObject.getString("dealer_id");
                         String change_time = jsonObject.getString("change_time");
                         String associated_client = jsonObject.getString("associated_client");
 
@@ -501,6 +542,11 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
                         SharedPreferences.Editor ed = SP.edit();
                         ed.putString("", String.valueOf(dealer_id));
+                        ed.commit();
+
+                        SP = getSharedPreferences("user_id", MODE_PRIVATE);
+                        ed = SP.edit();
+                        ed.putString("", String.valueOf(user_id));
                         ed.commit();
 
                         SP = getSharedPreferences("enter", MODE_PRIVATE);

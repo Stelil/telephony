@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (count_zamer > 0) {
             countCallback.setVisibility(View.VISIBLE);
-            if (count_zamer<100) {
+            if (count_zamer < 100) {
                 countCallback.setText(String.valueOf(count_zamer));
             } else {
                 countCallback.setText("99+");
@@ -178,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
         filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+        filter.addAction(Intent.EXTRA_PHONE_NUMBER);
         registerReceiver(callRecv, filter);
 
     }
@@ -224,54 +225,6 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.WRITE_CALL_LOG,
                             Manifest.permission.INTERNET},
                     1);
-        }
-
-        try {
-            SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
-            if (SP.getString("", "").equals("1")) {
-            } else {
-                SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
-                SharedPreferences.Editor ed = SP.edit();
-                ed.putString("", "138");
-                ed.commit();
-
-                dealer_id = "138";
-
-                SP = getSharedPreferences("enter", MODE_PRIVATE);
-                ed = SP.edit();
-                ed.putString("", "1");
-                ed.commit();
-
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
-                jsonObject.put("CheckTimeCall", 10);    // для CallReceiver
-
-                SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-                ed = SP.edit();
-                ed.putString("", String.valueOf(jsonObject));
-                ed.commit();
-
-                SP = getSharedPreferences("link", MODE_PRIVATE);
-                ed = SP.edit();
-                ed.putString("", "test1");
-                ed.commit();
-
-                String sqlQuewy = "SELECT change_time "
-                        + "FROM history_import_to_server";
-                Cursor c = db.rawQuery(sqlQuewy, new String[]{});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-
-                    } else {
-                        ContentValues values = new ContentValues();
-                        values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
-                        values.put(DBHelper.KEY_USER_ID, "138");
-                        db.insert(DBHelper.HISTORY_IMPORT_TO_SERVER, null, values);
-                    }
-                }
-
-            }
-        } catch (Exception e) {
         }
     }
 

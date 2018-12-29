@@ -200,7 +200,7 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         sqlQuewy = "SELECT s._id AS status_id, " +
                 "COUNT(ls.max_id) AS count, " +
-                "GROUP_CONCAT(ls.client_id) AS clients " +
+                "GROUP_CONCAT(ls.client_id) AS clients, " +
                 "FROM rgzbn_gm_ceiling_clients_statuses AS s " +
                 "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
                 "ON s._id = sm.status_id " +
