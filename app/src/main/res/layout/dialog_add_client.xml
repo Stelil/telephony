@@ -45,4 +45,26 @@
         android:background="@drawable/blue_corners_text"
         android:id="@+id/phoneClient"
         android:inputType="number"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Почта"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:id="@+id/textEmailClient"
+        android:visibility="gone"
+        style="@style/text_style"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:hint="Почта"
+        android:gravity="center"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/blue_corners_text"
+        android:id="@+id/emailClient"
+        android:visibility="gone"
+        android:inputType="textEmailAddress"/>
+
 </LinearLayout>

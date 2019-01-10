@@ -15,6 +15,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -93,13 +94,11 @@ public class AnalyticsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_manager, menu);
         return true;
     }
-    */
 
     private void createTitleTable() {
 

@@ -41,15 +41,15 @@ public class ExportDataReceiver extends BroadcastReceiver {
     private static DBHelper dbHelper;
     private static RequestQueue requestQueue;
 
-    static String checkApiPhones = "[", checkClientHistory = "[", checkCallback = "[", checkCallStatusHistory = "[",
-            checkClientsStatus = "[", checkClientStatusMap = "[", checkClientsContacts = "[", checkClientsDopContacts = "[",
-            checkUsers = "[", checkClient = "[";
-
     static String sendClient = "[", sendClientContacts = "[", sendClientDopContacts = "[", sendClientsStatus = "[",
-            sendUsers = "[", sendApiPhones = "[", sendClientHistory = "[", sendCallback = "[",
+            sendUsers = "[", sendUsersMap = "[", sendApiPhones = "[", sendClientHistory = "[", sendCallback = "[",
             sendCallStatusHistory = "[", sendClientStatusMap = "[";
 
-    static String jsonDelete = "[", jsonDeleteTable = "";
+    static String checkApiPhones = "[", checkClientHistory = "[", checkCallback = "[", checkCallStatusHistory = "[",
+            checkClientsStatus = "[", checkClientStatusMap = "[", checkClientsContacts = "[", checkClientsDopContacts = "[",
+            checkUsers = "[", checkUsersMap = "[", checkClient = "[";
+
+    static String jsonDelete = "[", jsonDeleteTable = "", jsonNewUser = "";
 
     static org.json.simple.JSONObject jsonObjectClient = new org.json.simple.JSONObject();
     static org.json.simple.JSONObject jsonObjectClientContacts = new org.json.simple.JSONObject();
@@ -435,7 +435,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                                 }
                                             } catch (Exception e) {
                                             }
-
                                         }
                                         sendUsers += String.valueOf(jsonObjectUsers) + ",";
                                     } while (c.moveToNext());
@@ -484,8 +483,26 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 new SendUsersData().execute();
             }
 
-            Log.d(TAG, "--------------------------DELETE------------------------");
-            //клиент send
+            Log.d(TAG, "-------------------------- NEW USERS ------------------------");
+            //send
+            sqlQuewy = "SELECT date "
+                    + "FROM history_send_to_server " +
+                    "where id_old = 0 and date is not null";
+            cursor = db.rawQuery(sqlQuewy, new String[]{});
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    jsonNewUser = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(0)));
+                }
+            }
+            cursor.close();
+
+            if (jsonNewUser.equals("")) {
+            } else {
+                new SendNewUser().execute();
+            }
+
+            Log.d(TAG, "-------------------------- DELETE ------------------------");
+            //send
             jsonDelete = "[";
             sqlQuewy = "SELECT id_old, name_table "
                     + "FROM history_send_to_server " +
@@ -2316,7 +2333,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 public void onResponse(String res) {
 
-                    Log.d(TAG, "SendClientStatusMap: " + res );
+                    Log.d(TAG, "SendClientStatusMap: " + res);
                     if (res.equals("")) {
 
                     } else {
@@ -2816,6 +2833,88 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 protected Map<String, String> getParams() throws AuthFailureError {
                     parameters.put("rgzbn_users", checkUsers);
                     Log.d(TAG, "CHECK rgzbn_users " + checkUsers);
+                    return parameters;
+                }
+            };
+            requestQueue.add(request);
+            return null;
+        }
+    }
+
+
+    static class SendNewUser extends AsyncTask<Void, Void, Void> {
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&amp;task=api.registerUser";
+        Map<String, String> parameters = new HashMap<String, String>();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(final Void... params) {
+            // try {
+
+            StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+
+                    Log.d(TAG, "registerUser = " + res);
+
+                    if (res.equals("") || res.equals("\u041e\u0448\u0438\u0431\u043a\u0430!")) {
+                    }
+                    SQLiteDatabase db;
+                    db = dbHelper.getWritableDatabase();
+                    ContentValues values = new ContentValues();
+                    try {
+                        org.json.JSONObject dat = new org.json.JSONObject(res);
+
+                        String old_id = "";
+                        String new_id = dat.getString("id");
+                        String username = dat.getString("username");
+
+                        String sqlQuewy = "SELECT _id "
+                                + "FROM rgzbn_users " +
+                                "where username = ? ";
+                        Cursor cursor = db.rawQuery(sqlQuewy, new String[]{username});
+                        if (cursor != null) {
+                            if (cursor.moveToFirst()) {
+                                do {
+                                    old_id = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(0)));
+
+                                } while (cursor.moveToNext());
+                            }
+                        }
+                        cursor.close();
+
+                        values = new ContentValues();
+                        values.put(DBHelper.KEY_ID, new_id);
+                        db.update(DBHelper.TABLE_USERS, values,
+                                "_id = ?",
+                                new String[]{old_id});
+
+                        values = new ContentValues();
+                        values.put(DBHelper.KEY_SYNC, "1");
+                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
+                                "name_table=? and sync = ? ",
+                                new String[]{"rgzbn_users_manager", "0"});
+
+                        delete();
+                    } catch (Exception e) {
+                    }
+
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }) {
+                @Override
+
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    parameters.put("r_data", jsonNewUser);
+                    Log.d(TAG, "send r_data " + parameters);
                     return parameters;
                 }
             };

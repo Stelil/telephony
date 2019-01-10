@@ -86,6 +86,9 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP = "rgzbn_gm_ceiling_clients_statuses_map";
     public static final String KEY_STATUS_ID = "status_id";
 
+    public static final String TABLE_RGZBN_USER_USERGROUP_MAP = "rgzbn_gm_user_usergroup_map";
+    public static final String KEY_GROUP_ID = "group_id";
+
     public static final String HISTORY_SEND_TO_SERVER = "history_send_to_server";
     public static final String KEY_ID_NEW = "id_new";
     public static final String KEY_ID_OLD = "id_old";
@@ -137,9 +140,9 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_users (_id INTEGER PRIMARY KEY, " +
                 "name TEXT, username TEXT, email TEXT, password TEXT, dealer_id INTEGER, associated_client TEXT," +
                 "dealer_type INTEGER, refused_to_cooperate INTEGER, block INTEGER, sendEmail INTEGER, registerDate TEXT, " +
-                "lastvisitDate TEXT, activation TEXT, params TEXT, lastResetTime TEXT, resetCount INTEGER, otpKey TEXT," +
-                " otep TEXT, requireReset INTEGER, discount INTEGER,  wages TEXT, change_time TEXT, dealer_mounters INTEGER," +
-                " demo_end_date TEXT)");
+                "lastvisitDate TEXT, activation TEXT, params TEXT, lastResetTime TEXT, resetCount INTEGER, otpKey TEXT, " +
+                "otep TEXT, requireReset INTEGER, discount INTEGER,  wages TEXT, change_time TEXT, dealer_mounters INTEGER, " +
+                "demo_end_date TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS history_import_to_server (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "user_id INTEGER, title TEXT, change_time TEXT)");
@@ -147,6 +150,9 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS history_send_to_server (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "id_new INTEGER, id_old INTEGER, name_table TEXT, sync INTEGER, type TEXT, date TEXT, date_sync TEXT, " +
                 "status TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_user_usergroup_map (_id INTEGER, user_id TEXT, group_id TEXT, " +
+                "change_time TEXT)");
 
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, 1);

@@ -159,7 +159,7 @@ public class HelperClass {
         return count;
     }
 
-    public static void addExportData(Context context, int id, String nameTable, String type) {
+    public static void addExportData(Context context, Integer id, String nameTable, String type) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db;
@@ -172,6 +172,23 @@ public class HelperClass {
         values.put(DBHelper.KEY_SYNC, "0");
         values.put(DBHelper.KEY_TYPE, type);
         values.put(DBHelper.KEY_STATUS, "1");
+        db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
+    }
+
+    public static void addExportData(Context context, Integer id, String nameTable, String type, String date) {
+
+        DBHelper dbHelper = new DBHelper(context);
+        SQLiteDatabase db;
+        db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID_OLD, id);
+        values.put(DBHelper.KEY_ID_NEW, "0");
+        values.put(DBHelper.KEY_NAME_TABLE, nameTable);
+        values.put(DBHelper.KEY_SYNC, "0");
+        values.put(DBHelper.KEY_TYPE, type);
+        values.put(DBHelper.KEY_STATUS, "1");
+        values.put(DBHelper.KEY_DATE, date);
         db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
     }
 
