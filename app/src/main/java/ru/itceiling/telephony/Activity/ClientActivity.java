@@ -101,6 +101,18 @@ public class ClientActivity extends AppCompatActivity {
         Log.d(TAG, "id_client: " + id_client);
 
         nameClient = findViewById(R.id.nameClient);
+        nameClient.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+
+                Intent intent = new Intent(ClientActivity.this, ClientBrowserActivity.class);
+                intent.putExtra("id_client", id_client);
+                startActivity(intent);
+
+                return false;
+            }
+        });
+
         phoneClient = findViewById(R.id.phoneClient);
         txtStatusOfClient = findViewById(R.id.txtStatusOfClient);
         //txtApiPhone = findViewById(R.id.txtApiPhone);
