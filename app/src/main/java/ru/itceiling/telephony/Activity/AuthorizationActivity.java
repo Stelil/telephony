@@ -66,7 +66,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    String domen = "calc",
+    String domen = "test1",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -478,10 +478,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
             SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
             SharedPreferences.Editor ed = SP.edit();
-            ed.putString("", "calc");
+            ed.putString("", "test1");
             ed.commit();
 
-            domen = "calc";
+            domen = "test1";
 
             new SendAuthorization().execute();
         }
@@ -514,7 +514,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 public void onResponse(String res) {
                     Log.d(TAG, res);
                     try {
-
                         JSONObject jsonObject = new JSONObject(res);
                         int user_id = jsonObject.getInt("id");
                         String name = jsonObject.getString("name");
@@ -603,6 +602,19 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             } else {
                                 for (String retval1 : retval.split(":")) {
                                     retval1 = retval1.replaceAll("[^0-9]", "");
+
+                                    if (retval1.equals("13")) {
+                                        SP = getSharedPreferences("group_id", MODE_PRIVATE);
+                                        ed = SP.edit();
+                                        ed.putString("", "13");
+                                        ed.commit();
+                                    } else if (retval1.equals("14")) {
+                                        SP = getSharedPreferences("group_id", MODE_PRIVATE);
+                                        ed = SP.edit();
+                                        ed.putString("", "14");
+                                        ed.commit();
+                                    }
+
                                     if (retval1.equals("25")) {
                                         i[0]++;
                                         String[] array = {"test1", "calc"};

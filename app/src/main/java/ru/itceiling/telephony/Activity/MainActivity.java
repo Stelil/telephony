@@ -67,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
 
         registerReceiver();
         registerCallbackReceiver();
+
+
+        SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
+        String group_id = SP.getString("", "");
+
     }
 
     @Override
@@ -102,6 +107,11 @@ public class MainActivity extends AppCompatActivity {
                     SP = getSharedPreferences("enter", MODE_PRIVATE);
                     ed = SP.edit();
                     ed.putString("", "0");
+                    ed.commit();
+
+                    SP = getSharedPreferences("group_id", MODE_PRIVATE);
+                    ed = SP.edit();
+                    ed.putString("", "");
                     ed.commit();
 
                     callbackReceiver.CancelAlarm(this);
