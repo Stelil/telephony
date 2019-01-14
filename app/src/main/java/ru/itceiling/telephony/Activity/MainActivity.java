@@ -1,12 +1,10 @@
 package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -19,14 +17,9 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import org.json.JSONObject;
 
 import java.io.File;
 
@@ -38,7 +31,6 @@ import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.AnalyticsFragment;
 import ru.itceiling.telephony.Fragments.CallbackListFragment;
 import ru.itceiling.telephony.Fragments.ClientsListFragment;
-import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 public class MainActivity extends AppCompatActivity {

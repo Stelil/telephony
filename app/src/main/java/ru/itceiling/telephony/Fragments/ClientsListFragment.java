@@ -16,7 +16,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,9 +38,11 @@ import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Activity.ClientsListActivity;
+import ru.itceiling.telephony.Adapter.RVAdapter;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Comparators.ComparatorCreate;
@@ -45,6 +50,7 @@ import ru.itceiling.telephony.Comparators.ComparatorName;
 import ru.itceiling.telephony.Comparators.ComparatorStatus;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
+import ru.itceiling.telephony.Person;
 import ru.itceiling.telephony.R;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -55,16 +61,18 @@ import static android.content.Context.MODE_PRIVATE;
 public class ClientsListFragment extends Fragment {
     DBHelper dbHelper;
     SQLiteDatabase db;
-    String dealer_id,user_id;
+    String dealer_id, user_id;
     ArrayList<AdapterList> client_mas = new ArrayList<>();
 
     String TAG = "logd";
 
-    String getPhone = "", textSearch="";
-
-    TextView titleStatus, titleCreate, titleClient;
+    String getPhone = "", textSearch = "";
 
     private View view;
+
+    List<Person> persons;
+
+    RecyclerView recyclerView;
 
     public ClientsListFragment() {
         // Required empty public constructor
@@ -79,10 +87,6 @@ public class ClientsListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         view = inflater.inflate(R.layout.fragment_clients_list, container, false);
-
-        //ActionBar actionBar = getSupportActionBar();
-        //actionBar.setHomeButtonEnabled(true);
-        //actionBar.setDisplayHomeAsUpEnabled(true);
 
         SharedPreferences SP = getActivity().getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
@@ -117,86 +121,10 @@ public class ClientsListFragment extends Fragment {
             onButtonAddClient(view);
         }
 
-        titleClient = view.findViewById(R.id.titleClient);
-        titleClient.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (titleClient.getText().toString().equals("Клиент")) {
-                    titleClient.setText("Клиент ▼");
-                    ComparatorName comparatorName = new ComparatorName();
-                    Collections.sort(client_mas, comparatorName);
-
-                    createList();
-
-                    titleStatus.setText("Статус");
-                    titleCreate.setText("Создан");
-
-                } else if (titleClient.getText().toString().equals("Клиент ▼")) {
-                    titleClient.setText("Клиент ▲");
-                    ComparatorName comparatorName = new ComparatorName();
-                    Collections.sort(client_mas, comparatorName.reversed());
-
-                    createList();
-                } else {
-                    titleClient.setText("Клиент");
-                    ListClients(textSearch);
-                }
-            }
-        });
-
-        titleStatus = view.findViewById(R.id.titleStatus);
-        titleStatus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (titleStatus.getText().toString().equals("Статус")) {
-                    titleStatus.setText("Статус ▼");
-                    ComparatorStatus comparatorStatus = new ComparatorStatus();
-                    Collections.sort(client_mas, comparatorStatus);
-
-                    createList();
-
-                    titleClient.setText("Клиент");
-                    titleCreate.setText("Создан");
-
-                } else if (titleStatus.getText().toString().equals("Статус ▼")) {
-                    titleStatus.setText("Статус ▲");
-                    ComparatorStatus comparatorStatus = new ComparatorStatus();
-                    Collections.sort(client_mas, comparatorStatus.reversed());
-
-                    createList();
-                } else {
-                    titleStatus.setText("Статус");
-                    ListClients(textSearch);
-                }
-            }
-        });
-
-        titleCreate = view.findViewById(R.id.titleCreate);
-        titleCreate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (titleCreate.getText().toString().equals("Создан")) {
-                    titleCreate.setText("Создан ▼");
-                    ComparatorCreate comparatorCreate = new ComparatorCreate();
-                    Collections.sort(client_mas, comparatorCreate);
-
-                    createList();
-
-                    titleStatus.setText("Статус");
-                    titleClient.setText("Клиент");
-
-                } else if (titleCreate.getText().toString().equals("Создан ▼")) {
-                    titleCreate.setText("Создан ▲");
-                    ComparatorCreate comparatorCreate = new ComparatorCreate();
-                    Collections.sort(client_mas, comparatorCreate.reversed());
-
-                    createList();
-                } else {
-                    titleCreate.setText("Создан");
-                    ListClients(textSearch);
-                }
-            }
-        });
+        recyclerView = view.findViewById(R.id.recyclerViewClients);
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        recyclerView.setLayoutManager(llm);
+        recyclerView.setHasFixedSize(true);
 
         return view;
     }
@@ -204,7 +132,6 @@ public class ClientsListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
 
         MyTask mt = new MyTask();
         mt.execute();
@@ -241,31 +168,6 @@ public class ClientsListFragment extends Fragment {
             mProgressDialog.dismiss();
         }
     }
-
-    //@Override
-    //public boolean onCreateOptionsMenu(Menu menu) {
-    //    getMenuInflater().inflate(R.menu.menu_search, menu);
-
-    //    MenuItem searchItem = menu.findItem(R.id.search);
-    //    SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-    //    searchView.setOnQueryTextListener(this);
-
-    //    return true;
-    //}
-
-    //@Override
-    //public boolean onQueryTextSubmit(String query) {
-    //    textSearch = query;
-    //    ListClients(query);
-    //    return false;
-    //}
-
-    //@Override
-    //public boolean onQueryTextChange(String newText) {
-    //    textSearch = newText;
-    //    ListClients(newText);
-    //    return false;
-    //}
 
     public void onButtonAddClient(View view) {
 
@@ -376,37 +278,28 @@ public class ClientsListFragment extends Fragment {
 
         client_mas.clear();
 
+        persons = new ArrayList<>();
+
         String sqlQuewy;
         Cursor c;
 
         String associated_client = HelperClass.associated_client(getActivity(), dealer_id);
-        if (!query.equals("")) {
-            sqlQuewy = "SELECT created, " +
-                    "          client_name," +
-                    "          _id " +
-                    "     FROM rgzbn_gm_ceiling_clients" +
-                    "    WHERE dealer_id = ? and " +
-                    "          _id <> ? and " +
-                    "         client_name like '%" + query + "%'" +
-                    " order by created desc";
-            c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
-        } else {
-
-            sqlQuewy = "SELECT created, " +
-                    "          client_name, " +
-                    "          _id " +
-                    "     FROM rgzbn_gm_ceiling_clients" +
-                    "    WHERE dealer_id = ? and " +
-                    "         _id <> ? " +
-                    " order by created desc";
-            c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
-        }
+        sqlQuewy = "SELECT created, " +
+                "          client_name, " +
+                "          _id," +
+                "          manager_id " +
+                "     FROM rgzbn_gm_ceiling_clients" +
+                "    WHERE dealer_id = ? and " +
+                "         _id <> ? " +
+                " order by created desc";
+        c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
                     String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                     String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                    String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
                     String title = "-";
 
                     String client_status = null;
@@ -436,106 +329,54 @@ public class ClientsListFragment extends Fragment {
                     } catch (Exception e) {
                     }
 
-                    AdapterList fc = new AdapterList(id_client,
-                            client_name, title, created, null, null);
-                    client_mas.add(fc);
+                    String phone = "-";
+                    sqlQuewy = "SELECT phone "
+                            + "   FROM rgzbn_gm_ceiling_clients_contacts" +
+                            "    WHERE client_id = ?";
+                    cc = db.rawQuery(sqlQuewy, new String[]{id_client});
+                    if (cc != null) {
+                        if (cc.moveToLast()) {
+                            phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                        }
+                    }
+                    cc.close();
 
+                    String nameManager = "-";
+                    sqlQuewy = "SELECT name "
+                            + "   FROM rgzbn_users" +
+                            "    WHERE _id = ? " +
+                            "order by _id";
+                    cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
+                    if (cc != null) {
+                        if (cc.moveToLast()) {
+                            nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                        }
+                    }
+                    cc.close();
+
+                    persons.add(new Person(client_name, phone, nameManager, "#000000",
+                            "Холодный", title, Integer.valueOf(id_client)));
                 } while (c.moveToNext());
             }
         }
         c.close();
 
-        createList();
-
-    }
-
-    void createList() {
-
-        final ListView listView = view.findViewById(R.id.list_client);
-        BindDictionary<AdapterList> dict = new BindDictionary<>();
-
-        dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getThree();
-            }
-        });
-        dict.addStringField(R.id.secondColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getOne();
-            }
-        });
-        dict.addStringField(R.id.thirdColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getTwo();
-            }
-        });
-
-        final FunDapter adapter = new FunDapter(getActivity(), client_mas, R.layout.layout_dialog_list, dict);
+        final RVAdapter adapter = new RVAdapter(persons);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listView.setAdapter(adapter);
+                recyclerView.setAdapter(adapter);
             }
         });
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        recyclerView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+            public void onClick(View view) {
 
-                AdapterList selectedid = client_mas.get(position);
-                String id_client = selectedid.getId();
+                int position = getAdapterPosition();
 
-                Intent intent = new Intent(getActivity(), ClientActivity.class);
-                intent.putExtra("id_client", id_client);
-                intent.putExtra("check", "false");
-                startActivity(intent);
+                Log.d(TAG, "onClick: " + position);
             }
         });
-
-        //listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-        //    @Override
-        //    public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-        //                                   int pos, long id) {
-        //        // TODO Auto-generated method stub
-
-        //        AdapterList selectedid = client_mas.get(pos);
-        //        final String cId = selectedid.getId();
-
-        //        AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
-        //        ad.setMessage("Удалить перезвон " + cId + " ?"); // сообщение
-        //        ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
-        //            public void onClick(DialogInterface dialog, int arg1) {
-
-        //                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, "_id = ?",
-        //                        new String[]{cId});
-
-        //                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, "_id = ?",
-        //                        new String[]{cId});
-
-        //                values = new ContentValues();
-        //                values.put(DBHelper.KEY_ID_OLD, cId);
-        //                values.put(DBHelper.KEY_ID_NEW, "0");
-        //                values.put(DBHelper.KEY_NAME_TABLE, "rgzbn_gm_ceiling_projects");
-        //                values.put(DBHelper.KEY_SYNC, "0");
-        //                values.put(DBHelper.KEY_TYPE, "send");
-        //                values.put(DBHelper.KEY_STATUS, "1");
-        //                db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
-
-        //                onResume();
-        //            }
-        //        });
-        //        ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-        //            public void onClick(DialogInterface dialog, int arg1) {
-
-        //            }
-        //        });
-        //        ad.setCancelable(true);
-        //        ad.show();
-        //        return true;
-        //    }
-        //});
     }
 }

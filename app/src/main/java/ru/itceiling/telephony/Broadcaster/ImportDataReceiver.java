@@ -685,7 +685,6 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                 }
                             }
 
-
                             SimpleDateFormat out_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
                             values = new ContentValues();

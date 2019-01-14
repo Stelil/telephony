@@ -1291,6 +1291,55 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                             }
 
+                            JSONArray rgzbn_users = jsonObject.getJSONArray("rgzbn_users");
+                            for (int i = 0; i < rgzbn_users.length(); i++) {
+
+                                values = new ContentValues();
+                                org.json.JSONObject user_v = rgzbn_users.getJSONObject(i);
+
+                                count = 0;
+                                String id = user_v.getString("id");
+                                String name = user_v.getString("name");
+                                String username = user_v.getString("username");
+                                String email = user_v.getString("email");
+                                String dealer_id = user_v.getString("dealer_id");
+                                String change_time = user_v.getString("change_time");
+
+                                values.put(DBHelper.KEY_NAME, name);
+                                values.put(DBHelper.KEY_USERNAME, username);
+                                values.put(DBHelper.KEY_EMAIL, email);
+                                values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+
+                                String sqlQuewy = "SELECT * "
+                                        + "FROM rgzbn_users" +
+                                        " WHERE _id = ?";
+                                Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+                                if (c != null) {
+                                    if (c.moveToFirst()) {
+                                        do {
+                                            db.update(DBHelper.TABLE_USERS, values,
+                                                    "_id = ?", new String[]{id});
+                                            count++;
+                                            Date change = ft.parse(change_time);
+                                            if (change_max.getTime() < change.getTime()) {
+                                                change_max = change;
+                                            }
+                                        } while (c.moveToNext());
+                                    }
+                                }
+                                c.close();
+                                if (count == 0) {
+                                    try {
+                                        values.put(DBHelper.KEY_ID, id);
+                                        db.insert(DBHelper.TABLE_USERS, null, values);
+                                        Date change = ft.parse(change_time);
+                                        if (change_max.getTime() < change.getTime()) {
+                                            change_max = change;
+                                        }
+                                    } catch (Exception e) {
+                                    }
+                                }
+                            }
 
                             SimpleDateFormat out_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
