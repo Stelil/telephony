@@ -74,7 +74,7 @@ public class ClientActivity extends AppCompatActivity {
     private LinearLayout layoutPhonesClient, layoutEmailClient;
     private Button btnEditCallback;
     private LinearLayout layoutCallback, linearNewCall;
-    private String dealer_id, check = "false";
+    private String dealer_id, check = "false", user_id;
     private List<TextView> txtPhoneList = new ArrayList<TextView>();
     private List<TextView> txtEmailList = new ArrayList<TextView>();
     String TAG = "logd";
@@ -185,6 +185,9 @@ public class ClientActivity extends AppCompatActivity {
 
         SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
+
+        SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
+        user_id = SP.getString("", "");
 
         sr = SpeechRecognizer.createSpeechRecognizer(this);
         sr.setRecognitionListener(new listener());
@@ -346,6 +349,20 @@ public class ClientActivity extends AppCompatActivity {
                     }
                 }
                 c.close();
+            }
+        }
+        c.close();
+
+        sqlQuewy = "SELECT client_id, status_id "
+                + "FROM rgzbn_gm_ceiling_clients_statuses_map " +
+                "order by _id";
+        c = db.rawQuery(sqlQuewy, new String[]{});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    Log.d(TAG, "client_id: " + c.getString(c.getColumnIndex(c.getColumnName(0))));
+                    Log.d(TAG, "status_id: " + c.getString(c.getColumnIndex(c.getColumnName(1))));
+                } while (c.moveToNext());
             }
         }
         c.close();
@@ -848,7 +865,7 @@ public class ClientActivity extends AppCompatActivity {
                 if (editText.getText().toString().length() > 0) {
 
                     arrayList.clear();
-                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses", context, dealer_id);
+                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses", context, user_id);
                     ContentValues values = new ContentValues();
                     values.put(DBHelper.KEY_ID, maxId);
                     values.put(DBHelper.KEY_TITLE, editText.getText().toString());
@@ -935,7 +952,7 @@ public class ClientActivity extends AppCompatActivity {
 
                 int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
                         ClientActivity.this,
-                        dealer_id);
+                        user_id);
                 values.put(DBHelper.KEY_ID, maxId);
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
                 values.put(DBHelper.KEY_STATUS_ID, idStatus);
@@ -1109,7 +1126,7 @@ public class ClientActivity extends AppCompatActivity {
 
             try {
                 int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_dop_contacts",
-                        ClientActivity.this, dealer_id);
+                        ClientActivity.this, user_id);
                 ContentValues values = new ContentValues();
                 values.put(DBHelper.KEY_ID, maxId);
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
@@ -1143,7 +1160,7 @@ public class ClientActivity extends AppCompatActivity {
 
             try {
                 int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
-                        ClientActivity.this, dealer_id);
+                        ClientActivity.this, user_id);
                 ContentValues values = new ContentValues();
                 values.put(DBHelper.KEY_ID, maxId);
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
@@ -1205,7 +1222,7 @@ public class ClientActivity extends AppCompatActivity {
                                 ClientActivity.this, id_client);
 
                         HelperClass.addCallback(txtCallbackComment.getText().toString(),
-                                ClientActivity.this, id_client, callbackDate);
+                                ClientActivity.this, id_client, callbackDate, user_id);
                         txtCallback.setText("");
                         txtCallbackComment.setText("");
 
@@ -1250,7 +1267,7 @@ public class ClientActivity extends AppCompatActivity {
                                 Log.d(TAG, "onClick: history callback new");
 
                                 HelperClass.addCallback(txtCallbackComment.getText().toString(),
-                                        ClientActivity.this, id_client, callbackDate);
+                                        ClientActivity.this, id_client, callbackDate, user_id);
 
                                 Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
                                         "Звонок добавлен ", Toast.LENGTH_SHORT);

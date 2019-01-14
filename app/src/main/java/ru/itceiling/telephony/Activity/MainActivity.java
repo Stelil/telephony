@@ -11,7 +11,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
@@ -31,6 +35,9 @@ import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.Fragments.AnalyticsFragment;
+import ru.itceiling.telephony.Fragments.CallbackListFragment;
+import ru.itceiling.telephony.Fragments.ClientsListFragment;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
@@ -61,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        loadFragment(CallbackListFragment.newInstance());
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
@@ -68,15 +76,52 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver();
         registerCallbackReceiver();
 
-
         SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
         String group_id = SP.getString("", "");
 
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+    }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.recall:
+                    loadFragment(CallbackListFragment.newInstance());
+                    return true;
+
+                case R.id.clients:
+                    loadFragment(ClientsListFragment.newInstance());
+                    return true;
+
+                case R.id.analytics:
+                    loadFragment(AnalyticsFragment.newInstance());
+                    return true;
+            }
+            return false;
+        }
+    };
+
+    private void loadFragment(Fragment fragment) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.fl_content, fragment);
+        ft.commit();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
+        if (SP.getString("", "").equals("14")) {
+            MenuItem item = menu.getItem(1);
+            item.setVisible(false);
+        }
+
         return true;
     }
 
@@ -134,6 +179,16 @@ public class MainActivity extends AppCompatActivity {
                 back_pressed = System.currentTimeMillis();
 
                 break;
+
+            case R.id.settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+                break;
+
+            case R.id.manager:
+                intent = new Intent(this, ManagerActivity.class);
+                startActivity(intent);
+                break;
         }
         return false;
     }
@@ -151,29 +206,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        TextView countCallback = (TextView) findViewById(R.id.countCallback);
-        int count_zamer = 0;
-
-        String sqlQuewy = "SELECT count(_id) "
-                + "FROM rgzbn_gm_ceiling_callback " +
-                "where substr(date_time,1,10) <= ? " +
-                " order by date_time desc";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{HelperClass.now_date().substring(0, 10)});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    count_zamer = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
-        if (count_zamer > 0) {
-            countCallback.setVisibility(View.VISIBLE);
-            countCallback.setText(String.valueOf(count_zamer));
-        }
 
         importDataReceiver = new ImportDataReceiver();
         if (importDataReceiver != null) {
@@ -200,26 +232,6 @@ public class MainActivity extends AppCompatActivity {
         callbackReceiver = new CallbackReceiver();
         if (callbackReceiver != null)
             callbackReceiver.SetAlarm(this);
-    }
-
-    public void onButtonRecall(View view) {
-        Intent intent = new Intent(this, CallbackListActivity.class);
-        startActivity(intent);
-    }
-
-    public void onButtonClients(View view) {
-        Intent intent = new Intent(this, ClientsListActivity.class);
-        startActivity(intent);
-    }
-
-    public void onButtonAnalytics(View view) {
-        Intent intent = new Intent(this, AnalyticsActivity.class);
-        startActivity(intent);
-    }
-
-    public void onButtonSettings(View view) {
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
     }
 
     @Override

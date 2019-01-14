@@ -66,7 +66,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    String domen = "test1",
+    String domen = "calc",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -478,10 +478,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
             SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
             SharedPreferences.Editor ed = SP.edit();
-            ed.putString("", "test1");
+            ed.putString("", "calc");
             ed.commit();
 
-            domen = "test1";
+            domen = "calc";
 
             new SendAuthorization().execute();
         }

@@ -1,4 +1,5 @@
-package ru.itceiling.telephony.Activity;
+package ru.itceiling.telephony.Fragments;
+
 
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
@@ -11,16 +12,16 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,9 +34,10 @@ import com.amigold.fundapter.FunDapter;
 import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
+import ru.itceiling.telephony.Activity.ClientActivity;
+import ru.itceiling.telephony.Activity.ClientsListActivity;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Comparators.ComparatorCreate;
@@ -45,8 +47,12 @@ import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
-public class ClientsListActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+import static android.content.Context.MODE_PRIVATE;
 
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class ClientsListFragment extends Fragment {
     DBHelper dbHelper;
     SQLiteDatabase db;
     String dealer_id,user_id;
@@ -58,58 +64,157 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     TextView titleStatus, titleCreate, titleClient;
 
+    private View view;
+
+    public ClientsListFragment() {
+        // Required empty public constructor
+    }
+
+    public static ClientsListFragment newInstance() {
+        return new ClientsListFragment();
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_clients_list);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        setTitle("Клиенты");
+        view = inflater.inflate(R.layout.fragment_clients_list, container, false);
 
-        SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        //ActionBar actionBar = getSupportActionBar();
+        //actionBar.setHomeButtonEnabled(true);
+        //actionBar.setDisplayHomeAsUpEnabled(true);
+
+        SharedPreferences SP = getActivity().getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
 
-        SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
+        SP = getActivity().getSharedPreferences("user_id", MODE_PRIVATE);
         user_id = SP.getString("", "");
 
-        dbHelper = new DBHelper(this);
+        dbHelper = new DBHelper(getActivity());
         db = dbHelper.getWritableDatabase();
 
-        if (getIntent().getStringExtra("phone") == null) {
+        if (getActivity().getIntent().getStringExtra("phone") == null) {
         } else {
-            getPhone = getIntent().getStringExtra("phone");
+            getPhone = getActivity().getIntent().getStringExtra("phone");
 
-            long notifyID = getIntent().getLongExtra("notifyID", 0);
+            long notifyID = getActivity().getIntent().getLongExtra("notifyID", 0);
 
             NotificationManager notificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel((int) notifyID);
         }
+
+        Button addClient = view.findViewById(R.id.AddClient);
+        addClient.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onButtonAddClient(view);
+            }
+        });
 
         if (!getPhone.equals("")) {
             View view = null;
             onButtonAddClient(view);
         }
 
-        titleClient = findViewById(R.id.titleClient);
-        titleStatus = findViewById(R.id.titleStatus);
-        titleCreate = findViewById(R.id.titleCreate);
+        titleClient = view.findViewById(R.id.titleClient);
+        titleClient.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (titleClient.getText().toString().equals("Клиент")) {
+                    titleClient.setText("Клиент ▼");
+                    ComparatorName comparatorName = new ComparatorName();
+                    Collections.sort(client_mas, comparatorName);
+
+                    createList();
+
+                    titleStatus.setText("Статус");
+                    titleCreate.setText("Создан");
+
+                } else if (titleClient.getText().toString().equals("Клиент ▼")) {
+                    titleClient.setText("Клиент ▲");
+                    ComparatorName comparatorName = new ComparatorName();
+                    Collections.sort(client_mas, comparatorName.reversed());
+
+                    createList();
+                } else {
+                    titleClient.setText("Клиент");
+                    ListClients(textSearch);
+                }
+            }
+        });
+
+        titleStatus = view.findViewById(R.id.titleStatus);
+        titleStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (titleStatus.getText().toString().equals("Статус")) {
+                    titleStatus.setText("Статус ▼");
+                    ComparatorStatus comparatorStatus = new ComparatorStatus();
+                    Collections.sort(client_mas, comparatorStatus);
+
+                    createList();
+
+                    titleClient.setText("Клиент");
+                    titleCreate.setText("Создан");
+
+                } else if (titleStatus.getText().toString().equals("Статус ▼")) {
+                    titleStatus.setText("Статус ▲");
+                    ComparatorStatus comparatorStatus = new ComparatorStatus();
+                    Collections.sort(client_mas, comparatorStatus.reversed());
+
+                    createList();
+                } else {
+                    titleStatus.setText("Статус");
+                    ListClients(textSearch);
+                }
+            }
+        });
+
+        titleCreate = view.findViewById(R.id.titleCreate);
+        titleCreate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (titleCreate.getText().toString().equals("Создан")) {
+                    titleCreate.setText("Создан ▼");
+                    ComparatorCreate comparatorCreate = new ComparatorCreate();
+                    Collections.sort(client_mas, comparatorCreate);
+
+                    createList();
+
+                    titleStatus.setText("Статус");
+                    titleClient.setText("Клиент");
+
+                } else if (titleCreate.getText().toString().equals("Создан ▼")) {
+                    titleCreate.setText("Создан ▲");
+                    ComparatorCreate comparatorCreate = new ComparatorCreate();
+                    Collections.sort(client_mas, comparatorCreate.reversed());
+
+                    createList();
+                } else {
+                    titleCreate.setText("Создан");
+                    ListClients(textSearch);
+                }
+            }
+        });
+
+        return view;
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
+
 
         MyTask mt = new MyTask();
         mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
-        Intent intent = new Intent(this, ExportDataReceiver.class);
-        exportDataReceiver.onReceive(this, intent);
+        Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
+        exportDataReceiver.onReceive(getActivity(), intent);
 
     }
+
 
     class MyTask extends AsyncTask<Void, Void, Void> {
         ProgressDialog mProgressDialog;
@@ -117,7 +222,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mProgressDialog = new ProgressDialog(ClientsListActivity.this);
+            mProgressDialog = new ProgressDialog(getActivity());
             mProgressDialog.setMessage("Загрузка...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(false);
@@ -137,44 +242,34 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-        }
-        return super.onOptionsItemSelected(item);
-    }
+    //@Override
+    //public boolean onCreateOptionsMenu(Menu menu) {
+    //    getMenuInflater().inflate(R.menu.menu_search, menu);
 
+    //    MenuItem searchItem = menu.findItem(R.id.search);
+    //    SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+    //    searchView.setOnQueryTextListener(this);
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_search, menu);
+    //    return true;
+    //}
 
-        MenuItem searchItem = menu.findItem(R.id.search);
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-        searchView.setOnQueryTextListener(this);
+    //@Override
+    //public boolean onQueryTextSubmit(String query) {
+    //    textSearch = query;
+    //    ListClients(query);
+    //    return false;
+    //}
 
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        textSearch = query;
-        ListClients(query);
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        textSearch = newText;
-        ListClients(newText);
-        return false;
-    }
+    //@Override
+    //public boolean onQueryTextChange(String newText) {
+    //    textSearch = newText;
+    //    ListClients(newText);
+    //    return false;
+    //}
 
     public void onButtonAddClient(View view) {
 
-        final Context context = this;
+        final Context context = getActivity();
         LayoutInflater li = LayoutInflater.from(context);
         View promptsView = li.inflate(R.layout.dialog_add_client, null);
         AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
@@ -210,7 +305,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
                         if (name.length() > 0) {
                             int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
-                                    ClientsListActivity.this, user_id);
+                                    getActivity(), user_id);
                             String nowDate = HelperClass.now_date();
                             ContentValues values = new ContentValues();
                             values.put(DBHelper.KEY_ID, maxIdClient);
@@ -229,10 +324,10 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                                     "rgzbn_gm_ceiling_clients",
                                     "send");
 
-                            HelperClass.addHistory("Новый клиент", ClientsListActivity.this, String.valueOf(maxIdClient));
+                            HelperClass.addHistory("Новый клиент", getActivity(), String.valueOf(maxIdClient));
 
                             int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
-                                    ClientsListActivity.this, user_id);
+                                    getActivity(), user_id);
                             values = new ContentValues();
                             values.put(DBHelper.KEY_ID, maxId);
                             values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
@@ -248,7 +343,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
                             if ((phone.length() == 11)) {
                                 int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
-                                        ClientsListActivity.this, user_id);
+                                        getActivity(), user_id);
                                 values = new ContentValues();
                                 values.put(DBHelper.KEY_ID, maxIdContacts);
                                 values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
@@ -265,9 +360,9 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
                             ListClients("");
                             dialog.dismiss();
-                            Toast.makeText(getApplicationContext(), "Клиент добавлен", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity().getApplicationContext(), "Клиент добавлен", Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(getApplicationContext(), "Введите имя", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity().getApplicationContext(), "Введите имя", Toast.LENGTH_LONG).show();
                         }
                     }
                 });
@@ -277,75 +372,6 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     }
 
-    public void onStatusOrder(View view) {
-        if (titleStatus.getText().toString().equals("Статус")) {
-            titleStatus.setText("Статус ▼");
-            ComparatorStatus comparatorStatus = new ComparatorStatus();
-            Collections.sort(client_mas, comparatorStatus);
-
-            createList();
-
-            titleClient.setText("Клиент");
-            titleCreate.setText("Создан");
-
-        } else if (titleStatus.getText().toString().equals("Статус ▼")) {
-            titleStatus.setText("Статус ▲");
-            ComparatorStatus comparatorStatus = new ComparatorStatus();
-            Collections.sort(client_mas, comparatorStatus.reversed());
-
-            createList();
-        } else {
-            titleStatus.setText("Статус");
-            ListClients(textSearch);
-        }
-    }
-
-    public void onClientOrder(View view){
-        if (titleClient.getText().toString().equals("Клиент")) {
-            titleClient.setText("Клиент ▼");
-            ComparatorName comparatorName = new ComparatorName();
-            Collections.sort(client_mas, comparatorName);
-
-            createList();
-
-            titleStatus.setText("Статус");
-            titleCreate.setText("Создан");
-
-        } else if (titleClient.getText().toString().equals("Клиент ▼")) {
-            titleClient.setText("Клиент ▲");
-            ComparatorName comparatorName = new ComparatorName();
-            Collections.sort(client_mas, comparatorName.reversed());
-
-            createList();
-        } else {
-            titleClient.setText("Клиент");
-            ListClients(textSearch);
-        }
-    }
-
-    public void onCreateOrder(View view){
-        if (titleCreate.getText().toString().equals("Создан")) {
-            titleCreate.setText("Создан ▼");
-            ComparatorCreate comparatorCreate = new ComparatorCreate();
-            Collections.sort(client_mas, comparatorCreate);
-
-            createList();
-
-            titleStatus.setText("Статус");
-            titleClient.setText("Клиент");
-
-        } else if (titleCreate.getText().toString().equals("Создан ▼")) {
-            titleCreate.setText("Создан ▲");
-            ComparatorCreate comparatorCreate = new ComparatorCreate();
-            Collections.sort(client_mas, comparatorCreate.reversed());
-
-            createList();
-        } else {
-            titleCreate.setText("Создан");
-            ListClients(textSearch);
-        }
-    }
-
     private void ListClients(String query) {
 
         client_mas.clear();
@@ -353,7 +379,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         String sqlQuewy;
         Cursor c;
 
-        String associated_client = HelperClass.associated_client(this, dealer_id);
+        String associated_client = HelperClass.associated_client(getActivity(), dealer_id);
         if (!query.equals("")) {
             sqlQuewy = "SELECT created, " +
                     "          client_name," +
@@ -425,7 +451,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
     void createList() {
 
-        final ListView listView = findViewById(R.id.list_client);
+        final ListView listView = view.findViewById(R.id.list_client);
         BindDictionary<AdapterList> dict = new BindDictionary<>();
 
         dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
@@ -447,8 +473,8 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
             }
         });
 
-        final FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
-        runOnUiThread(new Runnable() {
+        final FunDapter adapter = new FunDapter(getActivity(), client_mas, R.layout.layout_dialog_list, dict);
+        getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 listView.setAdapter(adapter);
@@ -462,7 +488,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                 AdapterList selectedid = client_mas.get(position);
                 String id_client = selectedid.getId();
 
-                Intent intent = new Intent(ClientsListActivity.this, ClientActivity.class);
+                Intent intent = new Intent(getActivity(), ClientActivity.class);
                 intent.putExtra("id_client", id_client);
                 intent.putExtra("check", "false");
                 startActivity(intent);
@@ -512,14 +538,4 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         //    }
         //});
     }
-
 }
-
-
-
-
-
-
-
-
-

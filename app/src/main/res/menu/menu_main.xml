@@ -2,11 +2,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
+
+    <item
+        android:id="@+id/settings"
+        android:orderInCategory="100"
+        android:title="Настройки"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/manager"
+        android:orderInCategory="100"
+        android:title="Менеджеры"
+        app:showAsAction="never"/>
+
     <item
         android:id="@+id/exit"
         android:orderInCategory="100"
         android:title="Выход"
-        android:icon="@drawable/ic_output_black_24dp"
-        app:showAsAction="collapseActionView|ifRoom"/>
+        app:showAsAction="never"/>
 
 </menu>

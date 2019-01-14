@@ -1,0 +1,99 @@
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:descendantFocusability="beforeDescendants"
+    android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="5dp"
+        android:orientation="vertical">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/rounded_button"
+            android:onClick="onButtonAddClient"
+            android:id="@+id/AddClient"
+            android:text="    Добавить клиента    "
+            android:textColor="#ffffff" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="2dp"
+            android:background="#000000" />
+
+        <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="*">
+
+            <TableRow>
+
+                <ru.itceiling.telephony.UnderlineTextView
+                    android:id="@+id/titleCreate"
+                    style="@style/text_style_spisok"
+                    android:layout_width="15dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="1dip"
+                    android:layout_marginRight="10dp"
+                    android:layout_span="1"
+                    android:gravity="center"
+                    android:minLines="2"
+                    android:text="Создан"
+                    android:textSize="13dp"
+                    android:textStyle="bold"
+                    android:onClick="onCreateOrder"/>
+
+                <ru.itceiling.telephony.UnderlineTextView
+                    android:id="@+id/titleClient"
+                    style="@style/text_style_spisok"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="1dip"
+                    android:layout_marginRight="10dp"
+                    android:layout_span="2"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Клиент"
+                    android:textSize="13dp"
+                    android:textStyle="bold"
+                    android:onClick="onClientOrder"/>
+
+                <ru.itceiling.telephony.UnderlineTextView
+                    android:id="@+id/titleStatus"
+                    style="@style/text_style_spisok"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="1dip"
+                    android:layout_span="1"
+                    android:gravity="center"
+                    android:minLines="2"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="10dp"
+                    android:text="Статус"
+                    android:textSize="13dp"
+                    android:textStyle="bold"
+                    android:onClick="onStatusOrder"/>
+            </TableRow>
+        </TableLayout>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="1dp"
+            android:background="#000000" />
+
+        <ListView
+            android:id="@+id/list_client"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
+</TableLayout>

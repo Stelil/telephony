@@ -1,4 +1,5 @@
-package ru.itceiling.telephony.Activity;
+package ru.itceiling.telephony.Fragments;
+
 
 import android.app.DatePickerDialog;
 import android.content.Context;
@@ -8,21 +9,19 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TableLayout;
@@ -38,13 +37,20 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import ru.itceiling.telephony.Activity.AnalyticsActivity;
+import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.UnderlineTextView;
 
-public class AnalyticsActivity extends AppCompatActivity {
+import static android.content.Context.MODE_PRIVATE;
+
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class AnalyticsFragment extends Fragment {
 
     TableLayout analyticsTable, titleTable;
     DBHelper dbHelper;
@@ -57,56 +63,73 @@ public class AnalyticsActivity extends AppCompatActivity {
     ArrayList<AdapterList> client_mas = new ArrayList<>();
     String TAG = "logd";
     LinearLayout linearScrollView;
+    View view;
+
+    public AnalyticsFragment() {
+        // Required empty public constructor
+    }
+
+    public static AnalyticsFragment newInstance() {
+        return new AnalyticsFragment();
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_analytics);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        view = inflater.inflate(R.layout.fragment_analytics, container, false);
 
-        analyticsTable = findViewById(R.id.analyticsTable);
-        titleTable = findViewById(R.id.titleTable);
+        analyticsTable = view.findViewById(R.id.analyticsTable);
+        titleTable = view.findViewById(R.id.titleTable);
 
-        txtSelectDay = findViewById(R.id.txtSelectDay);
-        txtSelectDayTwo = findViewById(R.id.txtSelectDayTwo);
+        txtSelectDay = view.findViewById(R.id.txtSelectDay);
+        txtSelectDayTwo = view.findViewById(R.id.txtSelectDayTwo);
 
-        dbHelper = new DBHelper(this);
+        dbHelper = new DBHelper(getActivity());
         db = dbHelper.getReadableDatabase();
 
-        SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        SharedPreferences SP = getActivity().getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
+
+        SP = getActivity().getSharedPreferences("user_id", MODE_PRIVATE);
+        user_id = SP.getString("", "");
+
+        linearScrollView = view.findViewById(R.id.linearScrollView);
+
+        final TextView txtSelectDay = view.findViewById(R.id.txtSelectDay);
+        txtSelectDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setDate(txtSelectDay);
+            }
+        });
+
+        final TextView txtSelectDayTwo = view.findViewById(R.id.txtSelectDayTwo);
+        txtSelectDayTwo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setDateTwo(txtSelectDayTwo);
+            }
+        });
+
+        final ImageButton btnClearDay = view.findViewById(R.id.btnClearDay);
+        btnClearDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                txtSelectDay.setText("");
+                txtSelectDayTwo.setText("");
+                createTable();
+            }
+        });
 
         createTitleTable();
         createTable();
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-                break;
-            case R.id.manager:
-                Intent intent = new Intent(this, ManagerActivity.class);
-                startActivity(intent);
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
-        if (SP.getString("", "").equals("14")) {
-            getMenuInflater().inflate(R.menu.menu_manager, menu);
-        }
-
-        return true;
+        return view;
     }
 
     private void createTitleTable() {
 
-        TextView txtForHorizontalLength = findViewById(R.id.txtForHorizontalLength);
+        TextView txtForHorizontalLength = view.findViewById(R.id.txtForHorizontalLength);
 
         int countApi = 0;
         String sqlQuewy = "select count(_id) "
@@ -138,14 +161,14 @@ public class AnalyticsActivity extends AppCompatActivity {
         }
         c.close();
 
-        TableRow tableRow = new TableRow(this);
+        TableRow tableRow = new TableRow(getActivity());
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(100,
                 TableRow.LayoutParams.WRAP_CONTENT, 4f);
 
         int length = 0;
         for (int j = 0; j < countApi + 1; j++) {
 
-            TextView txt = new TextView(this);
+            TextView txt = new TextView(getActivity());
             txt.setLayoutParams(tableParams);
 
             if (j == 0) {
@@ -239,13 +262,13 @@ public class AnalyticsActivity extends AppCompatActivity {
         }
         c.close();
 
-        TableRow tableRow = new TableRow(this);
+        TableRow tableRow = new TableRow(getActivity());
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT, 4f);
 
         for (int j = 0; j < index + 1; j++) {
 
-            UnderlineTextView txt = new UnderlineTextView(this);
+            UnderlineTextView txt = new UnderlineTextView(getActivity());
             txt.setLayoutParams(tableParams);
 
             if (j == 0) {
@@ -273,7 +296,7 @@ public class AnalyticsActivity extends AppCompatActivity {
             final TextView textView = txtList.get(id);
             int text = Integer.parseInt(textView.getText().toString());
 
-            final Context context = AnalyticsActivity.this;
+            final Context context = getActivity();
             LayoutInflater li = LayoutInflater.from(context);
             View promptsView = li.inflate(R.layout.activity_clients_list, null);
             AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
@@ -421,7 +444,7 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         });
 
-        FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
+        FunDapter adapter = new FunDapter(getActivity(), client_mas, R.layout.layout_dialog_list, dict);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -430,7 +453,7 @@ public class AnalyticsActivity extends AppCompatActivity {
                 AdapterList selectedid = client_mas.get(position);
                 String id_client = selectedid.getId();
 
-                Intent intent = new Intent(AnalyticsActivity.this, ClientActivity.class);
+                Intent intent = new Intent(getActivity(), ClientActivity.class);
                 intent.putExtra("id_client", id_client);
                 intent.putExtra("check", "false");
                 startActivity(intent);
@@ -441,9 +464,9 @@ public class AnalyticsActivity extends AppCompatActivity {
 
     void createTableManagers() {
 
-        TableLayout analyticsTableLayout = new TableLayout(this);
+        TableLayout analyticsTableLayout = new TableLayout(getActivity());
 
-        TextView textNameManager = new TextView(this);
+        TextView textNameManager = new TextView(getActivity());
         TableRow.LayoutParams textParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT, 0);
         textParams.setMargins(25, 100, 0, 0);
@@ -452,7 +475,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         textNameManager.setTextColor(Color.parseColor("#414099"));
         linearScrollView.addView(textNameManager);
 
-        View view = new View(this);
+        View view = new View(getActivity());
         view.setBackgroundColor(Color.parseColor("#000000"));
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
                 7, 4f);
@@ -532,13 +555,13 @@ public class AnalyticsActivity extends AppCompatActivity {
         }
         c.close();
 
-        TableRow tableRow = new TableRow(this);
+        TableRow tableRow = new TableRow(getActivity());
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT, 4f);
 
         for (int j = 0; j < index + 1; j++) {
 
-            UnderlineTextView txt = new UnderlineTextView(this);
+            UnderlineTextView txt = new UnderlineTextView(getActivity());
             txt.setLayoutParams(tableParams);
 
             if (j == 0) {
@@ -559,26 +582,12 @@ public class AnalyticsActivity extends AppCompatActivity {
 
     }
 
-    public void onButtonSelectDay(View view) {
-        setDate(txtSelectDay);
-    }
-
-    public void onButtonSelectDayTwo(View view) {
-        setDateTwo(txtSelectDayTwo);
-    }
-
-    public void onButtonClearDay(View view) {
-        txtSelectDay.setText("");
-        txtSelectDayTwo.setText("");
-        createTable();
-    }
-
     public void setDate(View v) {
         final Calendar cal = Calendar.getInstance();
         int mYear = cal.get(Calendar.YEAR);
         int mMonth = cal.get(Calendar.MONTH);
         int mDay = cal.get(Calendar.DAY_OF_MONTH);
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -614,10 +623,10 @@ public class AnalyticsActivity extends AppCompatActivity {
 
     private void setInitialDateTimeCall() {
         txtSelectDay.setText(txtSelectDay.getText().toString() + " " +
-                DateUtils.formatDateTime(this,
+                DateUtils.formatDateTime(getActivity(),
                         dateAndTime.getTimeInMillis(),
                         DateUtils.FORMAT_SHOW_TIME));
-        analyticDate += " " + DateUtils.formatDateTime(this,
+        analyticDate += " " + DateUtils.formatDateTime(getActivity(),
                 dateAndTime.getTimeInMillis(), DateUtils.FORMAT_SHOW_TIME);
     }
 
@@ -626,7 +635,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         int mYear = cal.get(Calendar.YEAR);
         int mMonth = cal.get(Calendar.MONTH);
         int mDay = cal.get(Calendar.DAY_OF_MONTH);
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -650,5 +659,4 @@ public class AnalyticsActivity extends AppCompatActivity {
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
     }
-
 }

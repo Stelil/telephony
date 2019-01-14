@@ -1,8 +1,8 @@
-package ru.itceiling.telephony.Activity;
+package ru.itceiling.telephony.Fragments;
+
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,15 +10,16 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
-import android.util.Log;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -31,6 +32,8 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 
+import ru.itceiling.telephony.Activity.CallbackListActivity;
+import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Comparators.ComparatorComment;
@@ -40,7 +43,12 @@ import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
-public class CallbackListActivity extends AppCompatActivity {
+import static android.content.Context.MODE_PRIVATE;
+
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class CallbackListFragment extends Fragment {
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -56,39 +64,158 @@ public class CallbackListActivity extends AppCompatActivity {
 
     TextView titleFio, titleDate, titleComment;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_callback_list);
+    View view;
 
-        dbHelper = new DBHelper(this);
+    public CallbackListFragment() {
+        // Required empty public constructor
+    }
+
+    public static CallbackListFragment newInstance() {
+        return new CallbackListFragment();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        view =  inflater.inflate(R.layout.fragment_callback_list, container, false);
+
+        dbHelper = new DBHelper(getActivity());
         db = dbHelper.getWritableDatabase();
 
-        SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        SharedPreferences SP = getActivity().getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
 
-        SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
+        SP = getActivity().getSharedPreferences("user_id", MODE_PRIVATE);
         user_id = SP.getString("", "");
 
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        setTitle("Перезвоны");
-
-        txtSelectDay = findViewById(R.id.txtSelectDay);
+        txtSelectDay = view.findViewById(R.id.txtSelectDay);
         txtSelectDay.setText(HelperClass.now_date().substring(0, 10));
 
         MyTask mt = new MyTask();
         mt.execute();
 
-        titleFio = findViewById(R.id.titleFio);
-        titleDate = findViewById(R.id.titleDate);
-        titleComment = findViewById(R.id.titleComment);
+        titleFio = view.findViewById(R.id.titleFio);
+        titleFio.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (titleFio.getText().toString().equals("ФИО клиента")) {
+                    titleFio.setText("ФИО клиента ▼");
+                    ComparatorFio comparatorFio = new ComparatorFio();
+                    Collections.sort(client_mas, comparatorFio);
 
+                    createList();
+
+                    titleComment.setText("Примечание");
+                    titleDate.setText("Дата");
+
+                } else if (titleFio.getText().toString().equals("ФИО клиента ▼")) {
+                    titleFio.setText("ФИО клиента ▲");
+                    ComparatorFio comparatorFio = new ComparatorFio();
+                    Collections.sort(client_mas, comparatorFio.reversed());
+
+                    createList();
+                } else {
+                    titleFio.setText("ФИО клиента");
+
+                    if (txtSelectDay.getText().equals("")){
+                        listClients("");
+                    } else {
+                        listClients(txtSelectDay.getText().toString());
+                    }
+                }
+            }
+        });
+
+        titleDate = view.findViewById(R.id.titleDate);
+        titleDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (titleDate.getText().toString().equals("Дата")) {
+                    titleDate.setText("Дата ▼");
+                    ComparatorDate comparatorDate = new ComparatorDate();
+                    Collections.sort(client_mas, comparatorDate);
+
+                    createList();
+
+                    titleComment.setText("Примечание");
+                    titleFio.setText("ФИО клиента");
+
+                } else if (titleDate.getText().toString().equals("Дата ▼")) {
+                    titleDate.setText("Дата ▲");
+                    ComparatorDate comparatorDate = new ComparatorDate();
+                    Collections.sort(client_mas, comparatorDate.reversed());
+
+                    createList();
+                } else {
+                    titleDate.setText("Дата");
+
+                    if (txtSelectDay.getText().equals("")){
+                        listClients("");
+                    } else {
+                        listClients(txtSelectDay.getText().toString());
+                    }
+                }
+            }
+        });
+
+        titleComment  = view.findViewById(R.id.titleComment);
+        titleComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (titleComment.getText().toString().equals("Примечание")) {
+                    titleComment.setText("Примечание ▼");
+                    ComparatorComment comparatorComment = new ComparatorComment();
+                    Collections.sort(client_mas, comparatorComment);
+
+                    createList();
+
+                    titleDate.setText("Дата");
+                    titleFio.setText("ФИО клиента");
+
+                } else if (titleComment.getText().toString().equals("Примечание ▼")) {
+                    titleComment.setText("Примечание ▲");
+                    ComparatorComment comparatorComment = new ComparatorComment();
+                    Collections.sort(client_mas, comparatorComment.reversed());
+
+                    createList();
+                } else {
+                    titleComment.setText("Примечание");
+
+                    if (txtSelectDay.getText().equals("")){
+                        listClients("");
+                    } else {
+                        listClients(txtSelectDay.getText().toString());
+                    }
+                }
+            }
+        });
+
+        final TextView txtSelectDay = view.findViewById(R.id.txtSelectDay);
+        txtSelectDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setDate(txtSelectDay);
+            }
+        });
+
+        ImageButton btnClearDay = view.findViewById(R.id.btnClearDay);
+        btnClearDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listClients("");
+                txtSelectDay.setText("");
+                titleDate.setText("Дата");
+                titleComment.setText("Примечание");
+                titleFio.setText("ФИО клиента");
+            }
+        });
+
+        return view;
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         if (ii > 0) {
             MyTaskResume mt = new MyTaskResume();
@@ -97,17 +224,8 @@ public class CallbackListActivity extends AppCompatActivity {
         ii++;
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
-        Intent intent = new Intent(this, ExportDataReceiver.class);
-        exportDataReceiver.onReceive(this, intent);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-        }
-        return super.onOptionsItemSelected(item);
+        Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
+        exportDataReceiver.onReceive(getActivity(), intent);
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {
@@ -116,7 +234,7 @@ public class CallbackListActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mProgressDialog = new ProgressDialog(CallbackListActivity.this);
+            mProgressDialog = new ProgressDialog(getActivity());
             mProgressDialog.setMessage("Загрузка...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(false);
@@ -142,7 +260,7 @@ public class CallbackListActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mProgressDialog = new ProgressDialog(CallbackListActivity.this);
+            mProgressDialog = new ProgressDialog(getActivity());
             mProgressDialog.setMessage("Загрузка...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(false);
@@ -224,7 +342,7 @@ public class CallbackListActivity extends AppCompatActivity {
 
     void createList(){
 
-        final ListView listView = findViewById(R.id.list_client);
+        final ListView listView = view.findViewById(R.id.list_client);
 
         BindDictionary<AdapterList> dict = new BindDictionary<>();
 
@@ -247,9 +365,9 @@ public class CallbackListActivity extends AppCompatActivity {
             }
         });
 
-        final FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
+        final FunDapter adapter = new FunDapter(getActivity(), client_mas, R.layout.layout_dialog_list, dict);
 
-        runOnUiThread(new Runnable() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 listView.setAdapter(adapter);
@@ -263,7 +381,7 @@ public class CallbackListActivity extends AppCompatActivity {
                 AdapterList selectedid = client_mas.get(position);
                 String id_client = selectedid.getId();
 
-                Intent intent = new Intent(CallbackListActivity.this, ClientActivity.class);
+                Intent intent = new Intent(getActivity(), ClientActivity.class);
                 intent.putExtra("id_client", id_client);
                 intent.putExtra("check", "true");
                 startActivity(intent);
@@ -279,7 +397,7 @@ public class CallbackListActivity extends AppCompatActivity {
                 AdapterList selectedid = client_mas.get(pos);
                 final int cId = Integer.parseInt(selectedid.getFour());
 
-                AlertDialog.Builder ad = new AlertDialog.Builder(CallbackListActivity.this);
+                AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
                 ad.setMessage("Удалить звонок ?"); // сообщение
                 ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int arg1) {
@@ -289,7 +407,7 @@ public class CallbackListActivity extends AppCompatActivity {
                                 new String[]{String.valueOf(cId)});
 
                         HelperClass.addExportData(
-                                CallbackListActivity.this,
+                                getActivity(),
                                 cId,
                                 "rgzbn_gm_ceiling_callback",
                                 "delete");
@@ -310,24 +428,12 @@ public class CallbackListActivity extends AppCompatActivity {
         });
     }
 
-    public void onButtonSelectDay(View view) {
-        setDate(txtSelectDay);
-    }
-
-    public void onButtonClearDay(View view) {
-        listClients("");
-        txtSelectDay.setText("");
-        titleDate.setText("Дата");
-        titleComment.setText("Примечание");
-        titleFio.setText("ФИО клиента");
-    }
-
     public void setDate(View v) {
         final Calendar cal = Calendar.getInstance();
         int mYear = cal.get(Calendar.YEAR);
         int mMonth = cal.get(Calendar.MONTH);
         int mDay = cal.get(Calendar.DAY_OF_MONTH);
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -351,90 +457,6 @@ public class CallbackListActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    public void onFioOrder(View view){
-        if (titleFio.getText().toString().equals("ФИО клиента")) {
-            titleFio.setText("ФИО клиента ▼");
-            ComparatorFio comparatorFio = new ComparatorFio();
-            Collections.sort(client_mas, comparatorFio);
-
-            createList();
-
-            titleComment.setText("Примечание");
-            titleDate.setText("Дата");
-
-        } else if (titleFio.getText().toString().equals("ФИО клиента ▼")) {
-            titleFio.setText("ФИО клиента ▲");
-            ComparatorFio comparatorFio = new ComparatorFio();
-            Collections.sort(client_mas, comparatorFio.reversed());
-
-            createList();
-        } else {
-            titleFio.setText("ФИО клиента");
-
-            if (txtSelectDay.getText().equals("")){
-                listClients("");
-            } else {
-                listClients(txtSelectDay.getText().toString());
-            }
-        }
-    }
-
-    public void onDateOrder(View view){
-        if (titleDate.getText().toString().equals("Дата")) {
-            titleDate.setText("Дата ▼");
-            ComparatorDate comparatorDate = new ComparatorDate();
-            Collections.sort(client_mas, comparatorDate);
-
-            createList();
-
-            titleComment.setText("Примечание");
-            titleFio.setText("ФИО клиента");
-
-        } else if (titleDate.getText().toString().equals("Дата ▼")) {
-            titleDate.setText("Дата ▲");
-            ComparatorDate comparatorDate = new ComparatorDate();
-            Collections.sort(client_mas, comparatorDate.reversed());
-
-            createList();
-        } else {
-            titleDate.setText("Дата");
-
-            if (txtSelectDay.getText().equals("")){
-                listClients("");
-            } else {
-                listClients(txtSelectDay.getText().toString());
-            }
-        }
-    }
-
-    public void onCommentOrder(View view){
-        if (titleComment.getText().toString().equals("Примечание")) {
-            titleComment.setText("Примечание ▼");
-            ComparatorComment comparatorComment = new ComparatorComment();
-            Collections.sort(client_mas, comparatorComment);
-
-            createList();
-
-            titleDate.setText("Дата");
-            titleFio.setText("ФИО клиента");
-
-        } else if (titleComment.getText().toString().equals("Примечание ▼")) {
-            titleComment.setText("Примечание ▲");
-            ComparatorComment comparatorComment = new ComparatorComment();
-            Collections.sort(client_mas, comparatorComment.reversed());
-
-            createList();
-        } else {
-            titleComment.setText("Примечание");
-
-            if (txtSelectDay.getText().equals("")){
-                listClients("");
-            } else {
-                listClients(txtSelectDay.getText().toString());
-            }
-        }
-    }
-
     DatePickerDialog.OnDateSetListener call_date = new DatePickerDialog.OnDateSetListener() {
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
             dateAndTime.set(Calendar.YEAR, year);
@@ -446,11 +468,12 @@ public class CallbackListActivity extends AppCompatActivity {
 
     private void setInitialDateTimeCall() {
         txtSelectDay.setText(txtSelectDay.getText().toString() + " " +
-                DateUtils.formatDateTime(this,
+                DateUtils.formatDateTime(getActivity(),
                         dateAndTime.getTimeInMillis(),
                         DateUtils.FORMAT_SHOW_TIME));
-        callbackDate += " " + DateUtils.formatDateTime(this,
+        callbackDate += " " + DateUtils.formatDateTime(getActivity(),
                 dateAndTime.getTimeInMillis(), DateUtils.FORMAT_SHOW_TIME);
 
     }
+
 }

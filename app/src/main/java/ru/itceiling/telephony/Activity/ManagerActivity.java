@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -14,12 +15,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amigold.fundapter.BindDictionary;
+import com.amigold.fundapter.FunDapter;
+import com.amigold.fundapter.extractors.StringExtractor;
+
+import java.util.ArrayList;
+
+import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -30,6 +40,7 @@ public class ManagerActivity extends AppCompatActivity {
     SQLiteDatabase db;
     String dealer_id;
     String TAG = "logd";
+    ArrayList<AdapterList> client_mas = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +52,8 @@ public class ManagerActivity extends AppCompatActivity {
 
         SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
+
+        createTable();
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setHomeButtonEnabled(true);
@@ -112,6 +125,7 @@ public class ManagerActivity extends AppCompatActivity {
                             jsonObjectClient.put("fio", name);
                             jsonObjectClient.put("username", phone);
                             jsonObjectClient.put("group", "13");
+                            jsonObjectClient.put("dealer_id", dealer_id);
                             String data = String.valueOf(jsonObjectClient);
 
                             int maxId = HelperClass.lastIdTable("rgzbn_user_usergroup_map",
@@ -135,5 +149,77 @@ public class ManagerActivity extends AppCompatActivity {
             }
         });
         dialog.show();
+    }
+
+    void createTable(){
+
+        client_mas.clear();
+
+        String sqlQuewy;
+        Cursor c;
+
+        sqlQuewy = "SELECT _id, name, username, email " +
+                "     FROM rgzbn_users" +
+                "    WHERE dealer_id = ? " +
+                " order by registerDate desc";
+        c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    String name = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    String username = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                    String email = c.getString(c.getColumnIndex(c.getColumnName(3)));
+
+                    AdapterList fc = new AdapterList(id,
+                            name, username, email, null, null);
+                    client_mas.add(fc);
+
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        final ListView listView = findViewById(R.id.listManager);
+        BindDictionary<AdapterList> dict = new BindDictionary<>();
+
+        dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
+            @Override
+            public String getStringValue(AdapterList nc, int position) {
+                return nc.getOne();
+            }
+        });
+        dict.addStringField(R.id.secondColumn, new StringExtractor<AdapterList>() {
+            @Override
+            public String getStringValue(AdapterList nc, int position) {
+                return nc.getTwo();
+            }
+        });
+        dict.addStringField(R.id.thirdColumn, new StringExtractor<AdapterList>() {
+            @Override
+            public String getStringValue(AdapterList nc, int position) {
+                return nc.getThree();
+            }
+        });
+
+        final FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_dialog_list, dict);
+        listView.setAdapter(adapter);
+
+        /*
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                AdapterList selectedid = client_mas.get(position);
+                String id_client = selectedid.getId();
+
+                Intent intent = new Intent(ClientsListActivity.this, ClientActivity.class);
+                intent.putExtra("id_client", id_client);
+                intent.putExtra("check", "false");
+                startActivity(intent);
+            }
+        });
+        */
+
     }
 }

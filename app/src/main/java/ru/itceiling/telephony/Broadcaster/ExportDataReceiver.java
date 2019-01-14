@@ -36,7 +36,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
     final public static String ONE_TIME = "onetime";
     private static String TAG = "ExportLog";
     static private String domen;
-    private static Integer dealer_id;
+    private static Integer user_id;
     private static Context ctx;
     private static DBHelper dbHelper;
     private static RequestQueue requestQueue;
@@ -89,9 +89,9 @@ public class ExportDataReceiver extends BroadcastReceiver {
             }
             delete();
 
-            SP = ctx.getSharedPreferences("dealer_id", MODE_PRIVATE);
+            SP = ctx.getSharedPreferences("user_id", MODE_PRIVATE);
             String gager_id = SP.getString("", "");
-            dealer_id = Integer.parseInt(gager_id) * 100000;
+            user_id = Integer.parseInt(gager_id) * 100000;
 
             Log.d(TAG, "-------------------------- CLIENTS ------------------------");
             //клиент send
@@ -100,7 +100,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                     + "FROM history_send_to_server " +
                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
             Cursor cursor = db.rawQuery(sqlQuewy,
-                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                             "send", "0", "rgzbn_gm_ceiling_clients", "1"});
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
@@ -157,7 +157,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                     + "FROM history_send_to_server " +
                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
             cursor = db.rawQuery(sqlQuewy,
-                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                             "send", "0", "rgzbn_gm_ceiling_clients_statuses", "1"});
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
@@ -172,7 +172,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                 if (c.moveToFirst()) {
                                     do {
                                         JSONObject jsonObjectClient = new JSONObject();
-                                        for (int j = 0; j < HelperClass.countColumns(ctx, "rgzbn_gm_ceiling_clients_statuses"); j++) {
+                                        for (int j = 0; j < HelperClass.countColumns(ctx,
+                                                "rgzbn_gm_ceiling_clients_statuses"); j++) {
                                             String status = c.getColumnName(c.getColumnIndex(c.getColumnName(j)));
                                             String status1 = c.getString(c.getColumnIndex(c.getColumnName(j)));
 
@@ -202,7 +203,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             + "FROM history_send_to_server " +
                             "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                     cursor = db.rawQuery(sqlQuewy,
-                            new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                            new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                     "check", "0", "rgzbn_gm_ceiling_clients_statuses"});
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -231,7 +232,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             + "FROM history_send_to_server " +
                             "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
                     cursor = db.rawQuery(sqlQuewy,
-                            new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                            new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                     "send", "0", "rgzbn_gm_ceiling_clients_statuses_map", "1"});
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -278,7 +279,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_clients_statuses_map"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -323,7 +324,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                     + "FROM history_send_to_server " +
                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
             cursor = db.rawQuery(sqlQuewy,
-                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                             "send", "0", "rgzbn_gm_ceiling_api_phones", "1"});
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
@@ -368,7 +369,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             + "FROM history_send_to_server " +
                             "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                     cursor = db.rawQuery(sqlQuewy,
-                            new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                            new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                     "check", "0", "rgzbn_gm_ceiling_api_phones"});
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -406,7 +407,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                     + "FROM history_send_to_server " +
                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
             cursor = db.rawQuery(sqlQuewy,
-                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                             "send", "0", "rgzbn_users", "1"});
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
@@ -452,7 +453,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             + "FROM history_send_to_server " +
                             "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                     cursor = db.rawQuery(sqlQuewy,
-                            new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                            new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                     "check", "0", "rgzbn_users"});
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -507,8 +508,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
             sqlQuewy = "SELECT id_old, name_table "
                     + "FROM history_send_to_server " +
                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and status=?";
-            cursor = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id),
-                    String.valueOf(dealer_id + 999999), String.valueOf(999999), "delete", "0", "1"});
+            cursor = db.rawQuery(sqlQuewy, new String[]{String.valueOf(user_id),
+                    String.valueOf(user_id + 999999), String.valueOf(999999), "delete", "0", "1"});
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
                     String id_old = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(0)));
@@ -597,7 +598,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 + "FROM history_send_to_server " +
                 "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
         Cursor cursor = db.rawQuery(sqlQuewy,
-                new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                         "check", "0", "rgzbn_gm_ceiling_clients"});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -623,7 +624,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 + "FROM history_send_to_server " +
                 "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
         cursor = db.rawQuery(sqlQuewy,
-                new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                         "send", "0", "rgzbn_gm_ceiling_clients_contacts", "1"});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -666,7 +667,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                         + "FROM history_send_to_server " +
                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                 cursor = db.rawQuery(sqlQuewy,
-                        new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                        new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                 "check", "0", "rgzbn_gm_ceiling_clients_contacts"});
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
@@ -700,7 +701,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 + "FROM history_send_to_server " +
                 "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
         cursor = db.rawQuery(sqlQuewy,
-                new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                         "send", "0", "rgzbn_gm_ceiling_clients_dop_contacts", "1"});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -748,7 +749,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                         + "FROM history_send_to_server " +
                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                 cursor = db.rawQuery(sqlQuewy,
-                        new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                        new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                 "check", "0", "rgzbn_gm_ceiling_clients_dop_contacts"});
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
@@ -782,13 +783,12 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 + "FROM history_send_to_server " +
                 "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
         cursor = db.rawQuery(sqlQuewy,
-                new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                         "send", "0", "rgzbn_gm_ceiling_client_history", "1"});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
                     String id_old = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(0)));
-
                     try {
                         sqlQuewy = "SELECT * "
                                 + "FROM rgzbn_gm_ceiling_client_history " +
@@ -798,7 +798,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
                             if (c.moveToFirst()) {
                                 do {
                                     JSONObject jsonObjectClient = new JSONObject();
-                                    for (int j = 0; j < HelperClass.countColumns(ctx, "rgzbn_gm_ceiling_client_history"); j++) {
+                                    for (int j = 0; j < HelperClass.countColumns(ctx,
+                                            "rgzbn_gm_ceiling_client_history"); j++) {
                                         String status = c.getColumnName(c.getColumnIndex(c.getColumnName(j)));
                                         String status1 = c.getString(c.getColumnIndex(c.getColumnName(j)));
 
@@ -810,6 +811,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                             jsonObjectClient.put(status, status1);
                                         }
                                     }
+
                                     sendClientHistory += String.valueOf(jsonObjectClient) + ",";
                                 } while (c.moveToNext());
                             } else {
@@ -828,7 +830,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                         + "FROM history_send_to_server " +
                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                 cursor = db.rawQuery(sqlQuewy,
-                        new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                        new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                 "check", "0", "rgzbn_gm_ceiling_client_history"});
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
@@ -853,6 +855,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
         }
         cursor.close();
         sendClientHistory = sendClientHistory.substring(0, sendClientHistory.length() - 1) + "]";
+
         if (sendClientHistory.equals("]")) {
         } else {
             new SendClientHistory().execute();
@@ -865,7 +868,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 + "FROM history_send_to_server " +
                 "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
         cursor = db.rawQuery(sqlQuewy,
-                new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                         "send", "0", "rgzbn_gm_ceiling_callback", "1"});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -912,7 +915,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                         + "FROM history_send_to_server " +
                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                 cursor = db.rawQuery(sqlQuewy,
-                        new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                        new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                 "check", "0", "rgzbn_gm_ceiling_callback"});
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
@@ -949,7 +952,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 + "FROM history_send_to_server " +
                 "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=? and status=?";
         cursor = db.rawQuery(sqlQuewy,
-                new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                         "send", "0", "rgzbn_gm_ceiling_calls_status_history", "1"});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -996,7 +999,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                         + "FROM history_send_to_server " +
                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                 cursor = db.rawQuery(sqlQuewy,
-                        new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                        new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                 "check", "0", "rgzbn_gm_ceiling_calls_status_history"});
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
@@ -1281,7 +1284,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_clients_contacts"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -1470,7 +1473,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_clients_dop_contacts"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -1644,7 +1647,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_client_history"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -1825,7 +1828,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_callback"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -2013,7 +2016,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_clients_statuses"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -2195,7 +2198,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_calls_status_history"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -2377,7 +2380,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_clients_statuses_map"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -2542,7 +2545,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     + "FROM history_send_to_server " +
                                     "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                             Cursor cursor = db.rawQuery(sqlQuewy,
-                                    new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                    new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                             "check", "0", "rgzbn_gm_ceiling_api_phones"});
                             if (cursor != null) {
                                 if (cursor.moveToFirst()) {
@@ -2724,7 +2727,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                         + "FROM history_send_to_server " +
                                         "where ((id_old>=? and id_old<=?) or (id_old<=?)) and type=? and sync=? and name_table=?";
                                 Cursor cursor = db.rawQuery(sqlQuewy,
-                                        new String[]{String.valueOf(dealer_id), String.valueOf(dealer_id + 999999), String.valueOf(999999),
+                                        new String[]{String.valueOf(user_id), String.valueOf(user_id + 999999), String.valueOf(999999),
                                                 "check", "0", "rgzbn_users"});
                                 if (cursor != null) {
                                     if (cursor.moveToFirst()) {

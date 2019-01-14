@@ -82,10 +82,10 @@ public class HelperClass {
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        SharedPreferences SPI = context.getSharedPreferences("dealer_id", MODE_PRIVATE);
-        String dealer_id = SPI.getString("", "");
+        SharedPreferences SPI = context.getSharedPreferences("user_id", MODE_PRIVATE);
+        String user_id = SPI.getString("", "");
 
-        int max_id = lastIdTable("rgzbn_gm_ceiling_client_history", context, dealer_id);
+        int max_id = lastIdTable("rgzbn_gm_ceiling_client_history", context, user_id);
 
         String date = HelperClass.now_date();
         ContentValues values = new ContentValues();
@@ -104,7 +104,7 @@ public class HelperClass {
 
     }
 
-    public static void addCallback(String comment, Context context, String id_client, String callDate) {
+    public static void addCallback(String comment, Context context, String id_client, String callDate, String user_id) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -119,7 +119,7 @@ public class HelperClass {
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
         values.put(DBHelper.KEY_DATE_TIME, callDate + ":00");
         values.put(DBHelper.KEY_COMMENT, comment);
-        values.put(DBHelper.KEY_MANAGER_ID, "");
+        values.put(DBHelper.KEY_MANAGER_ID, user_id);
         values.put(DBHelper.KEY_NOTIFY, "");
         values.put(DBHelper.KEY_CHANGE_TIME, now_date());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, null, values);
