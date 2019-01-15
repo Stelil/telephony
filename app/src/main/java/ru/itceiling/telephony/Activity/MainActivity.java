@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
-        if (SP.getString("", "").equals("14")) {
+        if (SP.getString("", "").equals("13")) {
             MenuItem item = menu.getItem(1);
             item.setVisible(false);
         }
