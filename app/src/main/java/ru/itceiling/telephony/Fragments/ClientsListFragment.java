@@ -13,41 +13,24 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amigold.fundapter.BindDictionary;
-import com.amigold.fundapter.FunDapter;
-import com.amigold.fundapter.extractors.StringExtractor;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
-import ru.itceiling.telephony.Activity.ClientsListActivity;
-import ru.itceiling.telephony.Adapter.RVAdapter;
+import ru.itceiling.telephony.Adapter.RVAdapterClient;
+import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
-import ru.itceiling.telephony.Comparators.ComparatorCreate;
-import ru.itceiling.telephony.Comparators.ComparatorName;
-import ru.itceiling.telephony.Comparators.ComparatorStatus;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.Person;
@@ -58,7 +41,7 @@ import static android.content.Context.MODE_PRIVATE;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ClientsListFragment extends Fragment {
+public class ClientsListFragment extends Fragment implements RecyclerViewClickListener {
     DBHelper dbHelper;
     SQLiteDatabase db;
     String dealer_id, user_id;
@@ -71,8 +54,8 @@ public class ClientsListFragment extends Fragment {
     private View view;
 
     List<Person> persons;
-
     RecyclerView recyclerView;
+    RVAdapterClient adapter;
 
     public ClientsListFragment() {
         // Required empty public constructor
@@ -260,7 +243,24 @@ public class ClientsListFragment extends Fragment {
                                         "send");
                             }
 
-                            ListClients("");
+                            String nameManager = "-";
+                            String sqlQuewy = "SELECT name "
+                                    + "   FROM rgzbn_users" +
+                                    "    WHERE _id = ? " +
+                                    "order by _id";
+                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{user_id});
+                            if (cc != null) {
+                                if (cc.moveToLast()) {
+                                    nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                }
+                            }
+                            cc.close();
+
+                            persons.add(0, new Person(name, phone, nameManager, "#000000",
+                                    "Холодный", "Необработанный", Integer.valueOf(maxIdClient)));
+                            adapter.notifyItemInserted(0);
+                            ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(0, 0);
+
                             dialog.dismiss();
                             Toast.makeText(getActivity().getApplicationContext(), "Клиент добавлен", Toast.LENGTH_LONG).show();
                         } else {
@@ -361,7 +361,7 @@ public class ClientsListFragment extends Fragment {
         }
         c.close();
 
-        final RVAdapter adapter = new RVAdapter(persons);
+        adapter = new RVAdapterClient(persons, this);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -369,14 +369,19 @@ public class ClientsListFragment extends Fragment {
             }
         });
 
-        recyclerView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                int position = getAdapterPosition();
-
-                Log.d(TAG, "onClick: " + position);
-            }
-        });
     }
+
+    @Override
+    public void recyclerViewListClicked(View v, int id) {
+        Intent intent = new Intent(getActivity(), ClientActivity.class);
+        intent.putExtra("id_client", " " + id);
+        intent.putExtra("check", "false");
+        startActivity(intent);
+    }
+
+    @Override
+    public void recyclerViewListLongClicked(View v, int id, int pos) {
+
+    }
+
 }

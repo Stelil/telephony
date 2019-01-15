@@ -98,17 +98,13 @@ public class ClientActivity extends AppCompatActivity {
 
         id_client = getIntent().getStringExtra("id_client");
 
-        Log.d(TAG, "id_client: " + id_client);
-
         nameClient = findViewById(R.id.nameClient);
         nameClient.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-
                 Intent intent = new Intent(ClientActivity.this, ClientBrowserActivity.class);
                 intent.putExtra("id_client", id_client);
                 startActivity(intent);
-
                 return false;
             }
         });

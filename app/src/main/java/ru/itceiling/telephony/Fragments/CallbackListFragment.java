@@ -12,6 +12,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +24,7 @@ import android.widget.DatePicker;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amigold.fundapter.BindDictionary;
 import com.amigold.fundapter.FunDapter;
@@ -31,11 +34,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import ru.itceiling.telephony.Activity.CallbackListActivity;
 import ru.itceiling.telephony.Activity.ClientActivity;
+import ru.itceiling.telephony.Adapter.RVAdapterCallback;
+import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
+import ru.itceiling.telephony.Callback;
 import ru.itceiling.telephony.Comparators.ComparatorComment;
 import ru.itceiling.telephony.Comparators.ComparatorDate;
 import ru.itceiling.telephony.Comparators.ComparatorFio;
@@ -48,7 +55,7 @@ import static android.content.Context.MODE_PRIVATE;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class CallbackListFragment extends Fragment {
+public class CallbackListFragment extends Fragment implements RecyclerViewClickListener {
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -62,7 +69,9 @@ public class CallbackListFragment extends Fragment {
 
     int ii = 0;
 
-    TextView titleFio, titleDate, titleComment;
+    List<Callback> callbacks;
+    RecyclerView recyclerView;
+    RVAdapterCallback adapter;
 
     View view;
 
@@ -78,7 +87,7 @@ public class CallbackListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        view =  inflater.inflate(R.layout.fragment_callback_list, container, false);
+        view = inflater.inflate(R.layout.fragment_callback_list, container, false);
 
         dbHelper = new DBHelper(getActivity());
         db = dbHelper.getWritableDatabase();
@@ -95,102 +104,6 @@ public class CallbackListFragment extends Fragment {
         MyTask mt = new MyTask();
         mt.execute();
 
-        titleFio = view.findViewById(R.id.titleFio);
-        titleFio.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (titleFio.getText().toString().equals("ФИО клиента")) {
-                    titleFio.setText("ФИО клиента ▼");
-                    ComparatorFio comparatorFio = new ComparatorFio();
-                    Collections.sort(client_mas, comparatorFio);
-
-                    createList();
-
-                    titleComment.setText("Примечание");
-                    titleDate.setText("Дата");
-
-                } else if (titleFio.getText().toString().equals("ФИО клиента ▼")) {
-                    titleFio.setText("ФИО клиента ▲");
-                    ComparatorFio comparatorFio = new ComparatorFio();
-                    Collections.sort(client_mas, comparatorFio.reversed());
-
-                    createList();
-                } else {
-                    titleFio.setText("ФИО клиента");
-
-                    if (txtSelectDay.getText().equals("")){
-                        listClients("");
-                    } else {
-                        listClients(txtSelectDay.getText().toString());
-                    }
-                }
-            }
-        });
-
-        titleDate = view.findViewById(R.id.titleDate);
-        titleDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (titleDate.getText().toString().equals("Дата")) {
-                    titleDate.setText("Дата ▼");
-                    ComparatorDate comparatorDate = new ComparatorDate();
-                    Collections.sort(client_mas, comparatorDate);
-
-                    createList();
-
-                    titleComment.setText("Примечание");
-                    titleFio.setText("ФИО клиента");
-
-                } else if (titleDate.getText().toString().equals("Дата ▼")) {
-                    titleDate.setText("Дата ▲");
-                    ComparatorDate comparatorDate = new ComparatorDate();
-                    Collections.sort(client_mas, comparatorDate.reversed());
-
-                    createList();
-                } else {
-                    titleDate.setText("Дата");
-
-                    if (txtSelectDay.getText().equals("")){
-                        listClients("");
-                    } else {
-                        listClients(txtSelectDay.getText().toString());
-                    }
-                }
-            }
-        });
-
-        titleComment  = view.findViewById(R.id.titleComment);
-        titleComment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (titleComment.getText().toString().equals("Примечание")) {
-                    titleComment.setText("Примечание ▼");
-                    ComparatorComment comparatorComment = new ComparatorComment();
-                    Collections.sort(client_mas, comparatorComment);
-
-                    createList();
-
-                    titleDate.setText("Дата");
-                    titleFio.setText("ФИО клиента");
-
-                } else if (titleComment.getText().toString().equals("Примечание ▼")) {
-                    titleComment.setText("Примечание ▲");
-                    ComparatorComment comparatorComment = new ComparatorComment();
-                    Collections.sort(client_mas, comparatorComment.reversed());
-
-                    createList();
-                } else {
-                    titleComment.setText("Примечание");
-
-                    if (txtSelectDay.getText().equals("")){
-                        listClients("");
-                    } else {
-                        listClients(txtSelectDay.getText().toString());
-                    }
-                }
-            }
-        });
-
         final TextView txtSelectDay = view.findViewById(R.id.txtSelectDay);
         txtSelectDay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -205,11 +118,14 @@ public class CallbackListFragment extends Fragment {
             public void onClick(View view) {
                 listClients("");
                 txtSelectDay.setText("");
-                titleDate.setText("Дата");
-                titleComment.setText("Примечание");
-                titleFio.setText("ФИО клиента");
             }
         });
+
+
+        recyclerView = view.findViewById(R.id.recyclerViewCallback);
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        recyclerView.setLayoutManager(llm);
+        recyclerView.setHasFixedSize(true);
 
         return view;
     }
@@ -284,6 +200,8 @@ public class CallbackListFragment extends Fragment {
 
         client_mas.clear();
 
+        callbacks = new ArrayList<>();
+
         String sqlQuewy;
         Cursor c;
         if (date.equals("")) {
@@ -328,17 +246,80 @@ public class CallbackListFragment extends Fragment {
                         date_time = date_time.substring(0, 16);
                     }
 
-                    AdapterList fc = new AdapterList(client_id,
-                            client_name, date_time, comment, id, null);
-                    client_mas.add(fc);
+                    String phone = "-";
+                    sqlQuewy = "SELECT phone "
+                            + "   FROM rgzbn_gm_ceiling_clients_contacts" +
+                            "    WHERE client_id = ?";
+                    cc = db.rawQuery(sqlQuewy, new String[]{client_id});
+                    if (cc != null) {
+                        if (cc.moveToLast()) {
+                            phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                        }
+                    }
+                    cc.close();
+
+                    callbacks.add(new Callback(client_name,
+                            phone,
+                            comment,
+                            date_time,
+                            Integer.valueOf(client_id),
+                            Integer.valueOf(id)));
 
                 } while (c.moveToNext());
             }
         }
         c.close();
 
-        createList();
+       adapter = new RVAdapterCallback(callbacks, this);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                recyclerView.setAdapter(adapter);
+            }
+        });
+
     }
+
+    @Override
+    public void recyclerViewListClicked(View v, int id) {
+        Intent intent = new Intent(getActivity(), ClientActivity.class);
+        intent.putExtra("id_client"," " + id);
+        intent.putExtra("check", "true");
+        startActivity(intent);
+    }
+
+    @Override
+    public void recyclerViewListLongClicked(View v, final int idCall, final int pos) {
+        AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
+        ad.setMessage("Удалить звонок ?"); // сообщение
+        ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+
+                callbacks.remove(pos);
+                adapter.notifyItemRemoved(pos);
+
+                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK,
+                        "_id = ?",
+                        new String[]{String.valueOf(idCall)});
+
+                HelperClass.addExportData(
+                        getActivity(),
+                        idCall,
+                        "rgzbn_gm_ceiling_callback",
+                        "delete");
+
+            }
+        });
+        ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+
+            }
+        });
+        ad.setCancelable(true);
+        ad.show();
+    }
+
+    /*
 
     void createList(){
 
@@ -427,6 +408,8 @@ public class CallbackListFragment extends Fragment {
             }
         });
     }
+
+    */
 
     public void setDate(View v) {
         final Calendar cal = Calendar.getInstance();
