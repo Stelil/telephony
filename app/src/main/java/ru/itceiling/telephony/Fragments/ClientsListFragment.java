@@ -296,7 +296,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
-                    String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                     String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));

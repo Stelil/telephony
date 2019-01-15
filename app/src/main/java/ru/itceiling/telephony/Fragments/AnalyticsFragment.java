@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -39,9 +41,12 @@ import java.util.List;
 
 import ru.itceiling.telephony.Activity.AnalyticsActivity;
 import ru.itceiling.telephony.Activity.ClientActivity;
+import ru.itceiling.telephony.Adapter.RVAdapterClient;
+import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
+import ru.itceiling.telephony.Person;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.UnderlineTextView;
 
@@ -50,7 +55,7 @@ import static android.content.Context.MODE_PRIVATE;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class AnalyticsFragment extends Fragment {
+public class AnalyticsFragment extends Fragment implements RecyclerViewClickListener {
 
     TableLayout analyticsTable, titleTable;
     DBHelper dbHelper;
@@ -64,6 +69,10 @@ public class AnalyticsFragment extends Fragment {
     String TAG = "logd";
     LinearLayout linearScrollView;
     View view;
+
+    List<Person> persons;
+    RecyclerView recyclerView;
+    RVAdapterClient adapter;
 
     public AnalyticsFragment() {
         // Required empty public constructor
@@ -298,7 +307,7 @@ public class AnalyticsFragment extends Fragment {
 
             final Context context = getActivity();
             LayoutInflater li = LayoutInflater.from(context);
-            View promptsView = li.inflate(R.layout.activity_clients_list, null);
+            View promptsView = li.inflate(R.layout.fragment_clients_list, null);
             AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
             mDialogBuilder.setView(promptsView);
 
@@ -314,19 +323,27 @@ public class AnalyticsFragment extends Fragment {
 
             } else if (id == 0) {
                 dialog.show();
-                ListView listView = promptsView.findViewById(R.id.list_client);
-                ListClients(null, listView);
+                recyclerView = promptsView.findViewById(R.id.recyclerViewClients);
+                LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+                recyclerView.setLayoutManager(llm);
+                recyclerView.setHasFixedSize(true);
+                ListClients(null, recyclerView);
             } else {
                 dialog.show();
-                ListView listView = promptsView.findViewById(R.id.list_client);
-                ListClients((id - 1), listView);
+                recyclerView = promptsView.findViewById(R.id.recyclerViewClients);
+                LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+                recyclerView.setLayoutManager(llm);
+                recyclerView.setHasFixedSize(true);
+                ListClients((id - 1), recyclerView);
             }
         }
     };
 
-    private void ListClients(Integer id, ListView listView) {
+    private void ListClients(Integer id, RecyclerView listView) {
 
         client_mas.clear();
+
+        persons = new ArrayList<>();
 
         String date1 = "0001-01-01",
                 date2 = HelperClass.now_date().substring(0, 10);
@@ -337,7 +354,6 @@ public class AnalyticsFragment extends Fragment {
             date2 = txtSelectDayTwo.getText().toString();
         }
 
-        String title = "";
         String[] ar;
         if (id == null) {
             ar = arrayId;
@@ -347,49 +363,94 @@ public class AnalyticsFragment extends Fragment {
         }
 
         for (int i = 0; ar.length > i; i++) {
-
             String clientId = ar[i];
-
             if (ar[i].contains(",")) {
                 for (String clienId : ar[i].split(",")) {
-
-                    String sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
-                            + "FROM rgzbn_gm_ceiling_clients c " +
-                            "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                            "       on c._id = s.client_id " +
-                            " WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
+                    String sqlQuewy = "SELECT c.created, " +
+                            "                 c.client_name, " +
+                            "                 c._id, " +
+                            "                 c.manager_id "
+                            + "          FROM rgzbn_gm_ceiling_clients c " +
+                            "                 inner join rgzbn_gm_ceiling_clients_statuses_map s " +
+                            "                 on c._id = s.client_id " +
+                            "           WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
                     Cursor c = db.rawQuery(sqlQuewy,
                             new String[]{clienId,
                                     date1 + " 00:00:01",
                                     date2 + " 23:59:59"});
                     if (c != null) {
                         if (c.moveToLast()) {
-                            String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
+
                             String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                             String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                            String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                            String title = "-";
 
-                            String status_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                            sqlQuewy = "SELECT title "
-                                    + "FROM rgzbn_gm_ceiling_clients_statuses " +
-                                    " WHERE _id = ? ";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
+                            String client_status = null;
+                            sqlQuewy = "SELECT status_id, change_time "
+                                    + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
+                                    "    WHERE client_id = ? " +
+                                    "order by _id";
+                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
                             if (cc != null) {
-                                if (cc.moveToFirst()) {
-                                    title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                if (cc.moveToLast()) {
+                                    client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
                                 }
                             }
                             cc.close();
 
-                            AdapterList fc = new AdapterList(id_client,
-                                    client_name, title, created, null, null);
-                            client_mas.add(fc);
+                            try {
+                                sqlQuewy = "SELECT title "
+                                        + "FROM rgzbn_gm_ceiling_clients_statuses" +
+                                        " WHERE _id = ? ";
+                                cc = db.rawQuery(sqlQuewy, new String[]{client_status});
+                                if (cc != null) {
+                                    if (cc.moveToFirst()) {
+                                        title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                    }
+                                }
+                                cc.close();
+                            } catch (Exception e) {
+                            }
+
+                            String phone = "-";
+                            sqlQuewy = "SELECT phone "
+                                    + "   FROM rgzbn_gm_ceiling_clients_contacts" +
+                                    "    WHERE client_id = ?";
+                            cc = db.rawQuery(sqlQuewy, new String[]{id_client});
+                            if (cc != null) {
+                                if (cc.moveToLast()) {
+                                    phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                }
+                            }
+                            cc.close();
+
+                            String nameManager = "-";
+                            sqlQuewy = "SELECT name "
+                                    + "   FROM rgzbn_users" +
+                                    "    WHERE _id = ? " +
+                                    "order by _id";
+                            cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
+                            if (cc != null) {
+                                if (cc.moveToLast()) {
+                                    nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                }
+                            }
+                            cc.close();
+
+                            persons.add(new Person(client_name, phone, nameManager, "#000000",
+                                    "Холодный", title, Integer.valueOf(id_client)));
 
                         }
                     }
                     c.close();
                 }
-            } else {
-                String sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
+            }
+            else {
+                String sqlQuewy = "SELECT c.created, " +
+                        "                 c.client_name, " +
+                        "                 c._id, " +
+                        "                 c.manager_id "
                         + "FROM rgzbn_gm_ceiling_clients c " +
                         "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
                         "       on c._id = s.client_id " +
@@ -400,30 +461,76 @@ public class AnalyticsFragment extends Fragment {
                                 date2 + " 23:59:59"});
                 if (c != null) {
                     if (c.moveToLast()) {
-                        String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                         String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                         String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                        String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                        String title = "-";
 
-                        String status_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                        sqlQuewy = "SELECT title "
-                                + "FROM rgzbn_gm_ceiling_clients_statuses " +
-                                " WHERE _id = ? ";
-                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
+                        String client_status = null;
+                        sqlQuewy = "SELECT status_id, change_time "
+                                + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
+                                "    WHERE client_id = ? " +
+                                "order by _id";
+                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
                         if (cc != null) {
-                            if (cc.moveToFirst()) {
-                                title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                            if (cc.moveToLast()) {
+                                client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
                             }
                         }
                         cc.close();
-                        AdapterList fc = new AdapterList(id_client,
-                                client_name, title, created, null, null);
-                        client_mas.add(fc);
+
+                        try {
+                            sqlQuewy = "SELECT title "
+                                    + "FROM rgzbn_gm_ceiling_clients_statuses" +
+                                    " WHERE _id = ? ";
+                            cc = db.rawQuery(sqlQuewy, new String[]{client_status});
+                            if (cc != null) {
+                                if (cc.moveToFirst()) {
+                                    title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                }
+                            }
+                            cc.close();
+                        } catch (Exception e) {
+                        }
+
+                        String phone = "-";
+                        sqlQuewy = "SELECT phone "
+                                + "   FROM rgzbn_gm_ceiling_clients_contacts" +
+                                "    WHERE client_id = ?";
+                        cc = db.rawQuery(sqlQuewy, new String[]{id_client});
+                        if (cc != null) {
+                            if (cc.moveToLast()) {
+                                phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                            }
+                        }
+                        cc.close();
+
+                        String nameManager = "-";
+                        sqlQuewy = "SELECT name "
+                                + "   FROM rgzbn_users" +
+                                "    WHERE _id = ? " +
+                                "order by _id";
+                        cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
+                        if (cc != null) {
+                            if (cc.moveToLast()) {
+                                nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                            }
+                        }
+                        cc.close();
+
+                        persons.add(new Person(client_name, phone, nameManager, "#000000",
+                                "Холодный", title, Integer.valueOf(id_client)));
                     }
                 }
                 c.close();
             }
+
         }
 
+        adapter = new RVAdapterClient(persons, this);
+        recyclerView.setAdapter(adapter);
+
+        /*
         BindDictionary<AdapterList> dict = new BindDictionary<>();
         dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
             @Override
@@ -459,6 +566,22 @@ public class AnalyticsFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+        */
+
+    }
+
+
+    @Override
+    public void recyclerViewListClicked(View v, int id) {
+        Intent intent = new Intent(getActivity(), ClientActivity.class);
+        intent.putExtra("id_client", " " + id);
+        intent.putExtra("check", "false");
+        startActivity(intent);
+    }
+
+    @Override
+    public void recyclerViewListLongClicked(View v, int id, int pos) {
 
     }
 

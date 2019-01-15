@@ -134,10 +134,11 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     public void onResume() {
         super.onResume();
         if (ii > 0) {
-            MyTaskResume mt = new MyTaskResume();
-            mt.execute();
         }
         ii++;
+
+        MyTaskResume mt = new MyTaskResume();
+        mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
@@ -270,7 +271,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         }
         c.close();
 
-       adapter = new RVAdapterCallback(callbacks, this);
+        adapter = new RVAdapterCallback(callbacks, this);
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -283,7 +284,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     @Override
     public void recyclerViewListClicked(View v, int id) {
         Intent intent = new Intent(getActivity(), ClientActivity.class);
-        intent.putExtra("id_client"," " + id);
+        intent.putExtra("id_client", " " + id);
         intent.putExtra("check", "true");
         startActivity(intent);
     }
