@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -15,7 +16,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -33,11 +37,23 @@ import android.widget.TextView;
 import com.amigold.fundapter.BindDictionary;
 import com.amigold.fundapter.FunDapter;
 import com.amigold.fundapter.extractors.StringExtractor;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ru.itceiling.telephony.Activity.AnalyticsActivity;
 import ru.itceiling.telephony.Activity.ClientActivity;
@@ -66,13 +82,15 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     TextView txtSelectDay, txtSelectDayTwo;
     Calendar dateAndTime = new GregorianCalendar();
     ArrayList<AdapterList> client_mas = new ArrayList<>();
-    String TAG = "logd";
+    String TAG = "logd", domen = "calc", dataManager;
     LinearLayout linearScrollView;
     View view;
 
     List<Person> persons;
     RecyclerView recyclerView;
     RVAdapterClient adapter;
+
+    static RequestQueue requestQueue;
 
     public AnalyticsFragment() {
         // Required empty public constructor
@@ -133,6 +151,9 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         createTitleTable();
         createTable();
 
+        createTableForManager();
+
+        getActivity().setTitle("Аналитика");
         return view;
     }
 
@@ -172,14 +193,12 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
         TableRow tableRow = new TableRow(getActivity());
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(100,
-                TableRow.LayoutParams.WRAP_CONTENT, 4f);
+                TableRow.LayoutParams.MATCH_PARENT, 4f);
 
         int length = 0;
         for (int j = 0; j < countApi + 1; j++) {
-
             TextView txt = new TextView(getActivity());
             txt.setLayoutParams(tableParams);
-
             if (j == 0) {
                 txt.setText("Всего");
             } else {
@@ -187,17 +206,27 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 txt.setText(title);
                 length += title.length();
             }
-
             txt.setTextColor(Color.parseColor("#414099"));
             txt.setTextSize(13);
             txt.setGravity(Gravity.CENTER);
-            tableRow.addView(txt, j);
+            tableRow.addView(txt);
         }
+
         titleTable.addView(tableRow);
+
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        DisplayMetrics metricsB = new DisplayMetrics();
+        display.getMetrics(metricsB);
 
         ViewGroup.LayoutParams lp = txtForHorizontalLength.getLayoutParams();
         lp.width = length * 20;
+
+        if (metricsB.widthPixels > lp.width) {
+            lp.width = metricsB.widthPixels;
+        }
+
         titleTable.setLayoutParams(lp);
+        titleTable.setGravity(Gravity.CENTER);
     }
 
     private void createTable() {
@@ -320,7 +349,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
             addClient.setVisibility(View.GONE);
 
             if (text == 0) {
-
             } else if (id == 0) {
                 dialog.show();
                 recyclerView = promptsView.findViewById(R.id.recyclerViewClients);
@@ -445,8 +473,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                     }
                     c.close();
                 }
-            }
-            else {
+            } else {
                 String sqlQuewy = "SELECT c.created, " +
                         "                 c.client_name, " +
                         "                 c._id, " +
@@ -571,7 +598,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
     }
 
-
     @Override
     public void recyclerViewListClicked(View v, int id) {
         Intent intent = new Intent(getActivity(), ClientActivity.class);
@@ -585,125 +611,163 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
     }
 
-    void createTableManagers() {
+    void createTableForManager() {
 
-        TableLayout analyticsTableLayout = new TableLayout(getActivity());
+        createTitleManager(138);
+
+    }
+
+    private void createTitleManager(int managerId) {
+
+        SharedPreferences SP = getActivity().getSharedPreferences("link", MODE_PRIVATE);
+        domen = SP.getString("", "");
+        requestQueue = Volley.newRequestQueue(getActivity().getApplicationContext());
+
+        JSONObject jsonObj = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        try {
+            jsonObj.put("date1", "2001-01-01 00:00:00");
+            jsonObj.put("date2", "2019-01-01 00:00:00");
+
+            jsonArray.put(managerId);
+
+            jsonObj.put("managers", jsonArray);
+        } catch (Exception e) {
+        }
+
+        dataManager = String.valueOf(jsonObj);
+        new ImportDate().execute();
 
         TextView textNameManager = new TextView(getActivity());
         TableRow.LayoutParams textParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT, 0);
         textParams.setMargins(25, 100, 0, 0);
         textNameManager.setLayoutParams(textParams);
-        textNameManager.setText("NAME MANAGER");
+        textNameManager.setText("" + managerId);
         textNameManager.setTextColor(Color.parseColor("#414099"));
         linearScrollView.addView(textNameManager);
 
+
         View view = new View(getActivity());
         view.setBackgroundColor(Color.parseColor("#000000"));
-        TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
-                7, 4f);
-        view.setLayoutParams(tableParams);
+        TableRow.LayoutParams tableParamsView = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
+                6, 4f);
+        view.setLayoutParams(tableParamsView);
         linearScrollView.addView(view);
 
-        createTableManager("754");
+        LinearLayout linearLayout = new LinearLayout(getActivity());
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
 
-    }
+        TableLayout analyticsTableLayout = new TableLayout(getActivity());
+        TableRow.LayoutParams tableParamsAnalyticsTable = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
+                TableRow.LayoutParams.MATCH_PARENT, 4f);
+        analyticsTableLayout.setLayoutParams(tableParamsAnalyticsTable);
 
-    private void createTableManager(String user_id) {
+        linearLayout.addView(analyticsTableLayout);
 
-        analyticsTable.removeAllViews();
-        txtList.clear();
-
-        int countStatuses = 0;
-        String sqlQuewy = "select count(_id) "
-                + "FROM rgzbn_gm_ceiling_clients_statuses ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    countStatuses = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
-        int[] arrayStatusCount = new int[countStatuses];
-        arrayId = new String[countStatuses];
-
-        int countClients = 0;
-        int index = 0;
-
-        String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
-        if (!txtSelectDay.getText().toString().equals("")) {
-            date1 = txtSelectDay.getText().toString();
-        }
-        if (!txtSelectDayTwo.getText().toString().equals("")) {
-            date2 = txtSelectDayTwo.getText().toString();
-        }
-
-        sqlQuewy = "SELECT s._id AS status_id, " +
-                "COUNT(ls.max_id) AS count, " +
-                "GROUP_CONCAT(ls.client_id) AS clients " +
-                "FROM rgzbn_gm_ceiling_clients_statuses AS s " +
-                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
-                "ON s._id = sm.status_id " +
-                "LEFT JOIN (SELECT MAX(_id) AS max_id, client_id " +
-                "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                "GROUP BY client_id " +
-                ") AS ls " +
-                "ON sm._id = ls.max_id " +
-                "AND sm.change_time >= ? " +
-                "AND sm.change_time <= ? " +
-                "WHERE (s.dealer_id = ? " +
-                "OR s.dealer_id = ?) " +
-                "GROUP BY s._id " +
-                "ORDER BY s._id ";
-        c = db.rawQuery(sqlQuewy, new String[]{date1 + "00:00:00", date2 + "23:59:59", dealer_id, "null"});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    countClients += c.getInt(c.getColumnIndex(c.getColumnName(1)));
-                    if (c.getString(c.getColumnIndex(c.getColumnName(1))).equals("0")) {
-                        arrayStatusCount[index] = 0;
-                        arrayId[index] = "0";
-                    } else {
-                        arrayStatusCount[index] = c.getInt(c.getColumnIndex(c.getColumnName(1)));
-                        arrayId[index] = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    }
-
-                    index++;
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
+        linearScrollView.addView(linearLayout);
 
         TableRow tableRow = new TableRow(getActivity());
-        TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
-                TableRow.LayoutParams.WRAP_CONTENT, 4f);
+        TableRow.LayoutParams tableParams = new TableRow.LayoutParams(100,
+                TableRow.LayoutParams.MATCH_PARENT, 4f);
 
-        for (int j = 0; j < index + 1; j++) {
+        TextView textTitle = new TextView(getActivity());
+        tableParams.setMargins(25, 0, 0, 0);
+        textTitle.setLayoutParams(tableParams);
+        textTitle.setText("Всего");
+        textTitle.setGravity(Gravity.CENTER);
+        textTitle.setTextColor(Color.parseColor("#414099"));
+        tableRow.addView(textTitle);
 
-            UnderlineTextView txt = new UnderlineTextView(getActivity());
-            txt.setLayoutParams(tableParams);
+        textTitle = new TextView(getActivity());
+        tableParams.setMargins(25, 0, 0, 0);
+        textTitle.setLayoutParams(tableParams);
+        textTitle.setText("Недозвон");
+        textTitle.setGravity(Gravity.CENTER);
+        textTitle.setTextColor(Color.parseColor("#414099"));
+        tableRow.addView(textTitle);
 
-            if (j == 0) {
-                txt.setText(String.valueOf(countClients));
-            } else {
-                txt.setText(String.valueOf(arrayStatusCount[j - 1]));
-            }
+        textTitle = new TextView(getActivity());
+        tableParams.setMargins(25, 0, 0, 0);
+        textTitle.setLayoutParams(tableParams);
+        textTitle.setText("Входящие");
+        textTitle.setGravity(Gravity.CENTER);
+        textTitle.setTextColor(Color.parseColor("#414099"));
+        tableRow.addView(textTitle);
 
-            txt.setTextColor(Color.parseColor("#414099"));
-            txt.setTextSize(17);
-            txt.setId(j);
-            txt.setGravity(Gravity.CENTER);
-            txt.setOnClickListener(onClickTxt);
-            txtList.add(txt);
-            tableRow.addView(txt, j);
-        }
-        analyticsTable.addView(tableRow);
+        textTitle = new TextView(getActivity());
+        tableParams.setMargins(25, 0, 0, 0);
+        textTitle.setLayoutParams(tableParams);
+        textTitle.setText("Исходящие");
+        textTitle.setGravity(Gravity.CENTER);
+        textTitle.setTextColor(Color.parseColor("#414099"));
+        tableRow.addView(textTitle);
+
+        analyticsTableLayout.addView(tableRow);
+        analyticsTableLayout.setGravity(Gravity.CENTER);
+
+        view = new View(getActivity());
+        view.setBackgroundColor(Color.parseColor("#000000"));
+        tableParamsView = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
+                2, 4f);
+        view.setLayoutParams(tableParamsView);
+        linearScrollView.addView(view);
+
+        createTableManager(managerId);
+    }
+
+    private void createTableManager(int user_id) {
+
+
 
     }
+
+    class ImportDate extends AsyncTask<Void, Void, Void> {
+
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.getManagersAnalytic";
+        Map<String, String> parameters = new HashMap<String, String>();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(final Void... params) {
+            // try {
+
+            StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+
+                    Log.d(TAG, res);
+
+
+                }
+
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d(TAG, "onErrorResponse: " + error);
+                }
+            }) {
+
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    parameters.put("data", dataManager);
+                    Log.d(TAG, "getParams: " + domen);
+                    Log.d(TAG, String.valueOf(parameters));
+                    return parameters;
+                }
+            };
+
+            requestQueue.add(request);
+
+            return null;
+        }
+
+    }
+
 
     public void setDate(View v) {
         final Calendar cal = Calendar.getInstance();
@@ -782,4 +846,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
     }
+
+
 }

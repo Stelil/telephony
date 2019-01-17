@@ -149,67 +149,74 @@ public class ImportDataReceiver extends BroadcastReceiver {
 
                             JSONObject jsonObject = new JSONObject(res);
                             JSONArray rgzbn_gm_ceiling_clients = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients");
+                            Log.d(TAG, "rgzbn_gm_ceiling_clients: " + rgzbn_gm_ceiling_clients);
+                            try {
+                                for (int i = 0; i < rgzbn_gm_ceiling_clients.length(); i++) {
 
-                            for (int i = 0; i < rgzbn_gm_ceiling_clients.length(); i++) {
+                                    values = new ContentValues();
+                                    org.json.JSONObject cleint = rgzbn_gm_ceiling_clients.getJSONObject(i);
 
-                                values = new ContentValues();
-                                org.json.JSONObject cleint = rgzbn_gm_ceiling_clients.getJSONObject(i);
+                                    Log.d(TAG, "cleint: " + cleint);
 
-                                String id = cleint.getString("id");
-                                count = 0;
+                                    String id = cleint.getString("id");
+                                    count = 0;
 
-                                String client_name = cleint.getString("client_name");
-                                String client_data_id = cleint.getString("client_data_id");
-                                String type_id = cleint.getString("type_id");
-                                String manager_id = cleint.getString("manager_id");
-                                String dealer_id = cleint.getString("dealer_id");
-                                String created = cleint.getString("created");
-                                String sex = cleint.getString("sex");
-                                String deleted_by_user = cleint.getString("deleted_by_user");
-                                String change_time = cleint.getString("change_time");
+                                    String client_name = cleint.getString("client_name");
+                                    String client_data_id = cleint.getString("client_data_id");
+                                    String type_id = cleint.getString("type_id");
+                                    String manager_id = cleint.getString("manager_id");
+                                    String dealer_id = cleint.getString("dealer_id");
+                                    String created = cleint.getString("created");
+                                    String sex = cleint.getString("sex");
+                                    String deleted_by_user = cleint.getString("deleted_by_user");
+                                    String change_time = cleint.getString("change_time");
 
-                                values.put(DBHelper.KEY_CLIENT_NAME, client_name);
-                                values.put(DBHelper.KEY_CLIENT_DATA_ID, client_data_id);
-                                values.put(DBHelper.KEY_TYPE_ID, type_id);
-                                values.put(DBHelper.KEY_MANAGER_ID, manager_id);
-                                values.put(DBHelper.KEY_DEALER_ID, dealer_id);
-                                values.put(DBHelper.KEY_CREATED, created);
-                                values.put(DBHelper.KEY_SEX, sex);
-                                values.put(DBHelper.KEY_DELETED_BY_USER, deleted_by_user);
+                                    values.put(DBHelper.KEY_CLIENT_NAME, client_name);
+                                    values.put(DBHelper.KEY_CLIENT_DATA_ID, client_data_id);
+                                    values.put(DBHelper.KEY_TYPE_ID, type_id);
+                                    values.put(DBHelper.KEY_MANAGER_ID, manager_id);
+                                    values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                                    values.put(DBHelper.KEY_CREATED, created);
+                                    values.put(DBHelper.KEY_SEX, sex);
+                                    values.put(DBHelper.KEY_DELETED_BY_USER, deleted_by_user);
 
-                                String sqlQuewy = "SELECT * "
-                                        + "FROM rgzbn_gm_ceiling_clients" +
-                                        " WHERE _id = ?";
-                                Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
-                                if (c != null) {
-                                    if (c.moveToFirst()) {
-                                        do {
-                                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id});
-                                            count++;
+                                    String sqlQuewy = "SELECT * "
+                                            + "FROM rgzbn_gm_ceiling_clients" +
+                                            " WHERE _id = ?";
+                                    Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+                                    if (c != null) {
+                                        if (c.moveToFirst()) {
+                                            do {
+                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id});
+                                                count++;
+                                                Date change = ft.parse(change_time);
+                                                if (change_max.getTime() < change.getTime()) {
+                                                    change_max = change;
+                                                }
+                                            } while (c.moveToNext());
+                                        }
+                                    }
+                                    c.close();
+
+                                    if (count == 0) {
+                                        try {
+                                            values.put(DBHelper.KEY_ID, id);
+                                            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
+
                                             Date change = ft.parse(change_time);
                                             if (change_max.getTime() < change.getTime()) {
                                                 change_max = change;
                                             }
-                                        } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-
-                                if (count == 0) {
-                                    try {
-                                        values.put(DBHelper.KEY_ID, id);
-                                        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
-
-                                        Date change = ft.parse(change_time);
-                                        if (change_max.getTime() < change.getTime()) {
-                                            change_max = change;
+                                        } catch (Exception e) {
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                            } catch (Exception e) {
+                                Log.d(TAG, "onResponse: " + e);
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_contacts");
+                            Log.d(TAG, "rgzbn_gm_ceiling_clients_contacts: " + rgzbn_gm_ceiling_clients_contacts);
                             for (int i = 0; i < rgzbn_gm_ceiling_clients_contacts.length(); i++) {
 
                                 values = new ContentValues();
@@ -257,6 +264,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_dop_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_dop_contacts");
+                            Log.d(TAG, "rgzbn_gm_ceiling_clients_dop_contacts: " + rgzbn_gm_ceiling_clients_dop_contacts);
                             for (int i = 0; i < rgzbn_gm_ceiling_clients_dop_contacts.length(); i++) {
 
                                 values = new ContentValues();
@@ -297,6 +305,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_callback = jsonObject.getJSONArray("rgzbn_gm_ceiling_callback");
+                            Log.d(TAG, "rgzbn_gm_ceiling_callback: " + rgzbn_gm_ceiling_callback);
                             for (int i = 0; i < rgzbn_gm_ceiling_callback.length(); i++) {
 
                                 values = new ContentValues();
@@ -352,6 +361,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_client_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_client_history");
+                            Log.d(TAG, "rgzbn_gm_ceiling_client_history: " + rgzbn_gm_ceiling_client_history);
                             for (int i = 0; i < rgzbn_gm_ceiling_client_history.length(); i++) {
 
                                 values = new ContentValues();
@@ -405,6 +415,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_calls_status_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_calls_status_history");
+                            Log.d(TAG, "rgzbn_gm_ceiling_calls_status_history: " + rgzbn_gm_ceiling_calls_status_history);
                             for (int i = 0; i < rgzbn_gm_ceiling_calls_status_history.length(); i++) {
 
                                 values = new ContentValues();
@@ -448,6 +459,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_calls_status = jsonObject.getJSONArray("rgzbn_gm_ceiling_calls_status");
+                            Log.d(TAG, "rgzbn_gm_ceiling_calls_status: " + rgzbn_gm_ceiling_calls_status);
                             for (int i = 0; i < rgzbn_gm_ceiling_calls_status.length(); i++) {
 
                                 values = new ContentValues();
@@ -492,6 +504,8 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_statuses = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_statuses");
+                            Log.d(TAG, "rgzbn_gm_ceiling_clients_statuses: " + rgzbn_gm_ceiling_clients_statuses);
+
                             for (int i = 0; i < rgzbn_gm_ceiling_clients_statuses.length(); i++) {
 
                                 values = new ContentValues();
@@ -538,6 +552,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_statuses_map = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_statuses_map");
+                            Log.d(TAG, "rgzbn_gm_ceiling_clients_statuses_map: " + rgzbn_gm_ceiling_clients_statuses_map);
                             for (int i = 0; i < rgzbn_gm_ceiling_clients_statuses_map.length(); i++) {
 
                                 values = new ContentValues();
@@ -584,6 +599,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_gm_ceiling_api_phones = jsonObject.getJSONArray("rgzbn_gm_ceiling_api_phones");
+                            Log.d(TAG, "rgzbn_gm_ceiling_api_phones: " + rgzbn_gm_ceiling_api_phones);
                             for (int i = 0; i < rgzbn_gm_ceiling_api_phones.length(); i++) {
 
                                 values = new ContentValues();
@@ -636,6 +652,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             }
 
                             JSONArray rgzbn_users = jsonObject.getJSONArray("rgzbn_users");
+                            Log.d(TAG, "rgzbn_users: " + rgzbn_users);
                             for (int i = 0; i < rgzbn_users.length(); i++) {
 
                                 values = new ContentValues();

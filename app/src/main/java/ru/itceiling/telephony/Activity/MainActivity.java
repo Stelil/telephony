@@ -1,14 +1,18 @@
 package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -17,6 +21,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -31,6 +36,7 @@ import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.AnalyticsFragment;
 import ru.itceiling.telephony.Fragments.CallbackListFragment;
 import ru.itceiling.telephony.Fragments.ClientsListFragment;
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -73,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
 
     }
 
@@ -177,6 +184,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
 
+            case R.id.addFromPhoneBook:
+                intent = new Intent(this, PhoneBookActivity.class);
+                startActivity(intent);
+                break;
+
             case R.id.manager:
                 intent = new Intent(this, ManagerActivity.class);
                 startActivity(intent);
@@ -240,7 +252,8 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.CAPTURE_AUDIO_OUTPUT,
                             Manifest.permission.READ_CALL_LOG,
                             Manifest.permission.WRITE_CALL_LOG,
-                            Manifest.permission.INTERNET},
+                            Manifest.permission.INTERNET,
+                            Manifest.permission.READ_CONTACTS},
                     1);
         }
     }

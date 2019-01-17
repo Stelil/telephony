@@ -127,6 +127,8 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         recyclerView.setLayoutManager(llm);
         recyclerView.setHasFixedSize(true);
 
+        getActivity().setTitle("Перезвоны");
+
         return view;
     }
 
@@ -272,12 +274,14 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         c.close();
 
         adapter = new RVAdapterCallback(callbacks, this);
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                recyclerView.setAdapter(adapter);
-            }
-        });
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    recyclerView.setAdapter(adapter);
+                }
+            });
+        }
 
     }
 

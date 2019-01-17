@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activity.PhoneBookActivity">
+
+    <ListView
+        android:id="@+id/list_twoligne_itineraire"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="#FFFFFF"
+        android:cacheColorHint="#FFFFFF"
+        android:layout_marginBottom="35dp">
+    </ListView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+        <Button
+            android:id="@+id/selectAllClients"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:layout_margin="2dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#edeaea"
+            android:text="Выбрать всех"/>
+
+        <Button
+            android:id="@+id/importClients"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:layout_margin="2dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#edeaea"
+            android:text="Импорт"
+            />
+    </LinearLayout>
+</RelativeLayout>

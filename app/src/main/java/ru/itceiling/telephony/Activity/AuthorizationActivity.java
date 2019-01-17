@@ -115,15 +115,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         try {
             SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
             if (SP.getString("", "").equals("1")) {
+                if (this != null) {
+                    pd = new ProgressDialog(this);
+                    pd.setTitle("Загрузка клиентов ... ");
+                    pd.setMessage("Пожалуйста подождите");
+                    pd.setIndeterminate(false);
+                    pd.setCancelable(false);
+                    pd.show();
 
-                pd = new ProgressDialog(this);
-                pd.setTitle("Загрузка клиентов ... ");
-                pd.setMessage("Пожалуйста подождите");
-                pd.setIndeterminate(false);
-                pd.setCancelable(false);
-                pd.show();
-
-                importData();
+                    importData();
+                }
 
             }
         } catch (Exception e) {

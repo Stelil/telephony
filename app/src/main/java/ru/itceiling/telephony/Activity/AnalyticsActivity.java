@@ -77,6 +77,8 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         createTitleTable();
         createTable();
+
+        createTableManagers();
     }
 
     @Override

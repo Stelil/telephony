@@ -168,8 +168,6 @@ public class CallReceiver extends BroadcastReceiver {
             phoneNumber = phoneNumber.substring(1, phoneNumber.length());
         }
 
-        Log.d(TAG, "newClient: " + phoneNumber);
-
         int id = 0;
         String sqlQuewy = "SELECT client_id "
                 + "FROM rgzbn_gm_ceiling_clients_contacts" +

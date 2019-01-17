@@ -109,6 +109,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         recyclerView.setLayoutManager(llm);
         recyclerView.setHasFixedSize(true);
 
+        getActivity().setTitle("Клиенты");
+
         return view;
     }
 
