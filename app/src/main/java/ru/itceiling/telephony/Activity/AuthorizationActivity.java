@@ -842,12 +842,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
 
@@ -855,9 +850,9 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_contacts");
@@ -891,21 +886,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_dop_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_dop_contacts");
@@ -937,17 +927,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, values, "_id = ?", new String[]{id});
                                             count++;
                                         } while (c.moveToNext());
+                                    } else {
+                                        values.put(DBHelper.KEY_ID, id);
+                                        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, null, values);
+                                        Date change = ft.parse(change_time);
+                                        if (change_max.getTime() < change.getTime()) {
+                                            change_max = change;
+                                        }
                                     }
                                 }
                                 c.close();
-
-                                if (count == 0) {
-                                    try {
-                                        values.put(DBHelper.KEY_ID, id);
-                                        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, null, values);
-                                    } catch (Exception e) {
-                                    }
-                                }
                             }
 
                             JSONArray rgzbn_gm_ceiling_callback = jsonObject.getJSONArray("rgzbn_gm_ceiling_callback");
@@ -987,21 +976,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_gm_ceiling_client_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_client_history");
@@ -1037,22 +1021,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-
-
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_gm_ceiling_calls_status_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_calls_status_history");
@@ -1088,16 +1066,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                     "_id = ?", new String[]{id});
                                             count++;
                                         } while (c.moveToNext());
+                                    } else {
+                                        values.put(DBHelper.KEY_ID, id);
+                                        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, null, values);
+                                        Date change = ft.parse(change_time);
+                                        if (change_max.getTime() < change.getTime()) {
+                                            change_max = change;
+                                        }
                                     }
                                 }
                                 c.close();
-                                if (count == 0) {
-                                    try {
-                                        values.put(DBHelper.KEY_ID, id);
-                                        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, null, values);
-                                    } catch (Exception e) {
-                                    }
-                                }
                             }
 
                             JSONArray rgzbn_gm_ceiling_calls_status = jsonObject.getJSONArray("rgzbn_gm_ceiling_calls_status");
@@ -1129,20 +1107,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_statuses = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_statuses");
@@ -1176,20 +1150,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_gm_ceiling_clients_statuses_map = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_statuses_map");
@@ -1223,20 +1193,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_gm_ceiling_api_phones = jsonObject.getJSONArray("rgzbn_gm_ceiling_api_phones");
@@ -1276,20 +1242,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_API_PHONES, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             JSONArray rgzbn_users = jsonObject.getJSONArray("rgzbn_users");
@@ -1326,20 +1288,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 change_max = change;
                                             }
                                         } while (c.moveToNext());
-                                    }
-                                }
-                                c.close();
-                                if (count == 0) {
-                                    try {
+                                    } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_USERS, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;
                                         }
-                                    } catch (Exception e) {
                                     }
                                 }
+                                c.close();
                             }
 
                             SimpleDateFormat out_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

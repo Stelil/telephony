@@ -236,6 +236,8 @@ public class CallReceiver extends BroadcastReceiver {
 
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }
+
+
         }
     }
 
