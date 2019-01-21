@@ -73,6 +73,15 @@
                 android:orientation="vertical"
                 android:id="@+id/linearScrollView">
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Общие звонки"
+                    android:textSize="25dp"
+                    android:layout_marginTop="3dp"
+                    android:paddingLeft="20dp"
+                    style="@style/text_style_spisok"/>
+
                 <TableLayout
                     android:id="@+id/titleTable"
                     android:layout_width="match_parent"
@@ -103,6 +112,14 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/txtForHorizontalLength"
                     android:text=""/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/linearManagerTable"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical"/>
+
             </LinearLayout>
         </HorizontalScrollView>
 

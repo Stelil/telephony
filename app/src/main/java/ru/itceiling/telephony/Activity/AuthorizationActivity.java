@@ -1328,7 +1328,11 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.d(TAG, "onErrorResponse: " + error);
+
+                    pd.dismiss();
+                    finish();
+                    intent = new Intent(AuthorizationActivity.this, MainActivity.class);
+                    startActivity(intent);
                 }
             }) {
 

@@ -37,6 +37,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.echo.holographlibrary.PieGraph;
+import com.echo.holographlibrary.PieSlice;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -75,7 +77,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     Calendar dateAndTime = new GregorianCalendar();
     ArrayList<AdapterList> client_mas = new ArrayList<>();
     String TAG = "logd", domen = "", dataManager;
-    LinearLayout linearScrollView;
+    LinearLayout linearScrollView, linearManagerTable;
     View view;
 
     List<Person> persons;
@@ -121,6 +123,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         user_id = SP.getString("", "");
 
         linearScrollView = view.findViewById(R.id.linearScrollView);
+        linearManagerTable = view.findViewById(R.id.linearManagerTable);
 
         final TextView txtSelectDay = view.findViewById(R.id.txtSelectDay);
         txtSelectDay.setOnClickListener(new View.OnClickListener() {
@@ -145,6 +148,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 txtSelectDay.setText("");
                 txtSelectDayTwo.setText("");
                 createTable();
+                createTableForManager();
             }
         });
 
@@ -372,32 +376,22 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     private void ListClients(Integer id, RecyclerView listView) {
 
         client_mas.clear();
-
         persons = new ArrayList<>();
-
-        String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
-        if (!txtSelectDay.getText().toString().equals("")) {
-            date1 = txtSelectDay.getText().toString();
-        }
-        if (!txtSelectDayTwo.getText().toString().equals("")) {
-            date2 = txtSelectDayTwo.getText().toString();
-        }
 
         String[] ar;
         if (id == null) {
-            ar = arrayId;
+            ar = new String[countStatuses];
+            System.arraycopy(arrayId, 0, ar, 0, countStatuses);
         } else {
             ar = new String[1];
             ar[0] = arrayId[id];
         }
 
-        if (countStatuses < id) {
+        if (id == null || countStatuses < id) {
             for (int i = 0; ar.length > i; i++) {
                 String clientId = ar[i];
                 if (ar[i].contains(",")) {
                     for (String clienId : ar[i].split(",")) {
-                        Log.d(TAG, "ListClients: " + clienId);
                         String sqlQuewy = "SELECT c.created, " +
                                 "c.client_name, " +
                                 "c._id, " +
@@ -558,11 +552,9 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                                 + "          FROM rgzbn_gm_ceiling_clients c " +
                                 "                 inner join rgzbn_gm_ceiling_clients_statuses_map s " +
                                 "                 on c._id = s.client_id " +
-                                "           WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
+                                "           WHERE c._id = ?";
                         Cursor c = db.rawQuery(sqlQuewy,
-                                new String[]{clienId,
-                                        date1 + " 00:00:01",
-                                        date2 + " 23:59:59"});
+                                new String[]{clienId});
                         if (c != null) {
                             if (c.moveToLast()) {
 
@@ -637,13 +629,9 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                             "                 c._id, " +
                             "                 c.manager_id "
                             + "FROM rgzbn_gm_ceiling_clients c " +
-                            "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                            "       on c._id = s.client_id " +
-                            " WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
+                            " WHERE c._id = ?";
                     Cursor c = db.rawQuery(sqlQuewy,
-                            new String[]{clientId,
-                                    date1 + " 00:00:01",
-                                    date2 + " 23:59:59"});
+                            new String[]{clientId});
                     if (c != null) {
                         if (c.moveToLast()) {
                             String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
@@ -771,6 +759,8 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
     void createTableForManager() {
 
+        linearManagerTable.removeAllViews();
+
         SharedPreferences SP = getActivity().getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
 
@@ -791,11 +781,21 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         c.close();
 
         if (HelperClass.isOnline(getActivity())) {
+            listManagerClientsStep = 0;
+            String date1 = "0001-01-01",
+                    date2 = HelperClass.now_date().substring(0, 10);
+            if (!txtSelectDay.getText().toString().equals("")) {
+                date1 = txtSelectDay.getText().toString();
+            }
+            if (!txtSelectDayTwo.getText().toString().equals("")) {
+                date2 = txtSelectDayTwo.getText().toString();
+            }
+
             final JSONObject jsonObj = new JSONObject();
             JSONArray jsonArray = new JSONArray();
             try {
-                jsonObj.put("date1", "2001-01-01 00:00:00");
-                jsonObj.put("date2", "2019-02-02 00:00:00");
+                jsonObj.put("date1", date1);
+                jsonObj.put("date2", date2);
 
                 for (int i = 0; listManager.size() > i; i++) {
                     jsonArray.put(listManager.get(i));
@@ -814,9 +814,22 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     }
 
     void repeatManager() {
+        if (listManager.size() > 0) {
+            TextView titleManager = new TextView(getActivity());
+            TableRow.LayoutParams textParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
+                    TableRow.LayoutParams.WRAP_CONTENT, 0);
+            textParams.setMargins(50, 0, 0, 0);
+            titleManager.setLayoutParams(textParams);
+            titleManager.setText("Менеджеры");
+            titleManager.setTextSize(25);
+            titleManager.setTextColor(Color.parseColor("#414099"));
+            linearManagerTable.addView(titleManager);
+        }
+
         for (int i = 0; listManager.size() > i; i++) {
             createTitleManager((Integer) listManager.get(i));
         }
+
     }
 
     private void createTitleManager(Integer managerId) {
@@ -834,22 +847,23 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         }
         c.close();
 
-        Log.d(TAG, "name Manager: " + name);
         TextView textNameManager = new TextView(getActivity());
         TableRow.LayoutParams textParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT, 0);
-        textParams.setMargins(25, 100, 0, 0);
+        textParams.setMargins(25, 50, 0, 0);
         textNameManager.setLayoutParams(textParams);
         textNameManager.setText(name);
         textNameManager.setTextColor(Color.parseColor("#414099"));
-        linearScrollView.addView(textNameManager);
+        linearManagerTable.addView(textNameManager);
+
+        createPieGraph(managerId);
 
         View view = new View(getActivity());
         view.setBackgroundColor(Color.parseColor("#000000"));
         TableRow.LayoutParams tableParamsView = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
-                6, 4f);
+                5, 0);
         view.setLayoutParams(tableParamsView);
-        linearScrollView.addView(view);
+        linearManagerTable.addView(view);
 
         LinearLayout linearLayout = new LinearLayout(getActivity());
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -861,7 +875,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
         linearLayout.addView(analyticsTableLayout);
 
-        linearScrollView.addView(linearLayout);
+        linearManagerTable.addView(linearLayout);
 
         TableRow tableRow = new TableRow(getActivity());
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(100,
@@ -899,7 +913,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         textTitle.setTextColor(Color.parseColor("#414099"));
         tableRow.addView(textTitle);
 
-        if (listManagerClients.size() != 0) {
+        if (listManagerClients.size() != 0 && HelperClass.isOnline(getActivity())) {
             textTitle = new TextView(getActivity());
             tableParams.setMargins(25, 0, 0, 0);
             textTitle.setLayoutParams(tableParams);
@@ -931,11 +945,118 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         view = new View(getActivity());
         view.setBackgroundColor(Color.parseColor("#000000"));
         tableParamsView = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
-                2, 4f);
+                3, 0);
         view.setLayoutParams(tableParamsView);
-        linearScrollView.addView(view);
+        linearManagerTable.addView(view);
 
         createTableManager(managerId);
+    }
+
+    void createPieGraph(Integer managerId) {
+        String date1 = "0001-01-01",
+                date2 = HelperClass.now_date().substring(0, 10);
+        if (!txtSelectDay.getText().toString().equals("")) {
+            date1 = txtSelectDay.getText().toString();
+        }
+        if (!txtSelectDayTwo.getText().toString().equals("")) {
+            date2 = txtSelectDayTwo.getText().toString();
+        }
+
+        int countAll = 0;
+        int countFirstStatus = 0;
+        int countSecondStatus = 0;
+        int countThirdStatus = 0;
+        String sqlQuewy = "select status, count(status) " +
+                "from rgzbn_gm_ceiling_calls_status_history " +
+                "where manager_id = ? " +
+                "AND change_time >= ? " +
+                "AND change_time <= ? " +
+                "group by status";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(managerId), date1 + "00:00:00", date2 + "23:59:59"});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    if (c.getString(c.getColumnIndex(c.getColumnName(0))).equals("1"))
+                        countFirstStatus += c.getInt(c.getColumnIndex(c.getColumnName(1)));
+
+                    if (c.getString(c.getColumnIndex(c.getColumnName(0))).equals("2"))
+                        countSecondStatus += c.getInt(c.getColumnIndex(c.getColumnName(1)));
+
+                    if (c.getString(c.getColumnIndex(c.getColumnName(0))).equals("3"))
+                        countThirdStatus += c.getInt(c.getColumnIndex(c.getColumnName(1)));
+
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        countAll = countFirstStatus + countSecondStatus + countThirdStatus;
+        if (countAll > 0) {
+            LinearLayout linearLayout = new LinearLayout(getActivity());
+            TableRow.LayoutParams paramsLinearLayout = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
+                    TableRow.LayoutParams.WRAP_CONTENT, 0);
+            linearLayout.setLayoutParams(paramsLinearLayout);
+            linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+            paramsLinearLayout = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
+                    TableRow.LayoutParams.WRAP_CONTENT, 0);
+            LinearLayout linearLayoutNote = new LinearLayout(getActivity());
+            linearLayoutNote.setLayoutParams(paramsLinearLayout);
+            linearLayoutNote.setOrientation(LinearLayout.VERTICAL);
+
+            TableRow.LayoutParams pieGraphParams = new TableRow.LayoutParams(200,
+                    200, 0);
+            pieGraphParams.setMargins(50, 15, 0, 15);
+            PieGraph pg = new PieGraph(getActivity());
+            pg.setLayoutParams(pieGraphParams);
+            PieSlice slice = new PieSlice();
+            slice.setColor(Color.parseColor("#99CC00"));
+            slice.setValue(countFirstStatus);
+            pg.addSlice(slice);
+            slice = new PieSlice();
+            slice.setColor(Color.parseColor("#FFBB33"));
+            slice.setValue(countSecondStatus);
+            pg.addSlice(slice);
+            slice = new PieSlice();
+            slice.setColor(Color.parseColor("#AA66CC"));
+            slice.setValue(countThirdStatus);
+            pg.addSlice(slice);
+            linearLayout.addView(pg);
+
+            TextView textPieColor = new TextView(getActivity());
+            TableRow.LayoutParams tableTextColor = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
+                    TableRow.LayoutParams.WRAP_CONTENT, 4f);
+
+            if (countFirstStatus > 0) {
+                tableTextColor.setMargins(50, 10, 0, 0);
+                textPieColor.setLayoutParams(tableTextColor);
+                textPieColor.setText("Недозвон");
+                textPieColor.setTextSize(15);
+                textPieColor.setTextColor(Color.parseColor("#99CC00"));
+                linearLayoutNote.addView(textPieColor);
+            }
+
+            if (countSecondStatus > 0) {
+                textPieColor = new TextView(getActivity());
+                textPieColor.setLayoutParams(tableTextColor);
+                textPieColor.setText("Входящие");
+                textPieColor.setTextSize(15);
+                textPieColor.setTextColor(Color.parseColor("#FFBB33"));
+                linearLayoutNote.addView(textPieColor);
+            }
+
+            if (countThirdStatus > 0) {
+                textPieColor = new TextView(getActivity());
+                textPieColor.setLayoutParams(tableTextColor);
+                textPieColor.setText("Исходящие");
+                textPieColor.setTextSize(15);
+                textPieColor.setTextColor(Color.parseColor("#AA66CC"));
+                linearLayoutNote.addView(textPieColor);
+            }
+
+            linearLayout.addView(linearLayoutNote);
+            linearManagerTable.addView(linearLayout);
+        }
     }
 
     private void createTableManager(int managerId) {
@@ -989,7 +1110,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
         linearLayout.addView(analyticsTableLayout);
 
-        linearScrollView.addView(linearLayout);
+        linearManagerTable.addView(linearLayout);
 
         TableRow tableRow = new TableRow(getActivity());
         TableRow.LayoutParams tableParams = new TableRow.LayoutParams(100,
@@ -1028,8 +1149,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         textTable.setTextColor(Color.parseColor("#414099"));
         tableRow.addView(textTable);
 
-        if (listManagerClients.size() != 0) {
-
+        if (listManagerClients.size() > 0 && HelperClass.isOnline(getActivity())) {
             UnderlineTextView underlineTextView = new UnderlineTextView(getActivity());
             underlineTextView.setTextSize(17);
             underlineTextView.setLayoutParams(tableParams);
@@ -1072,10 +1192,10 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         View view = new View(getActivity());
         view.setBackgroundColor(Color.parseColor("#000000"));
         TableRow.LayoutParams tableParamsView = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
-                6, 4f);
+                5, 0);
         tableParamsView.setMargins(0, 30, 0, 0);
         view.setLayoutParams(tableParamsView);
-        linearScrollView.addView(view);
+        linearManagerTable.addView(view);
     }
 
     class GetManagersAnalytic extends AsyncTask<Void, Void, Void> {
@@ -1218,6 +1338,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                         txtSelectDay.setText(editTextDateParam);
                         analyticDate = editTextDateParam;
                         createTable();
+                        createTableForManager();
                     }
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
@@ -1266,6 +1387,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                         txtSelectDayTwo.setText(editTextDateParam);
                         analyticDate = editTextDateParam;
                         createTable();
+                        createTableForManager();
                     }
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
