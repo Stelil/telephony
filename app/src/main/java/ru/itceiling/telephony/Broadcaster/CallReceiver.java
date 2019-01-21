@@ -10,11 +10,13 @@ import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -22,9 +24,17 @@ import android.os.Build;
 import android.provider.CallLog;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +51,7 @@ import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 import static android.content.Context.MODE_PRIVATE;
+import static android.content.Context.WINDOW_SERVICE;
 
 public class CallReceiver extends BroadcastReceiver {
     static private String phoneNumber = "";
@@ -182,6 +193,8 @@ public class CallReceiver extends BroadcastReceiver {
 
         long notifyID = (int) System.currentTimeMillis();
         if (id == 0) {
+
+
             Intent resultIntent = new Intent(ctx, ClientsListActivity.class);
             resultIntent.putExtra("phone", phoneNumber);
             resultIntent.putExtra("notifyID", notifyID);
@@ -236,16 +249,10 @@ public class CallReceiver extends BroadcastReceiver {
 
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }
-
-
         }
     }
 
     private void addHistoryClientCall() {
-
-        if (phoneNumber.contains("+")) {
-            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-        }
 
         Log.d(TAG, "addHistoryClientCall: " + phoneNumber);
 
@@ -334,7 +341,7 @@ public class CallReceiver extends BroadcastReceiver {
     }
 
     private void historyClient() {
-
+        //floatButton();
         if (phoneNumber.contains("+")) {
             phoneNumber = phoneNumber.substring(1, phoneNumber.length());
         }
@@ -447,6 +454,82 @@ public class CallReceiver extends BroadcastReceiver {
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }
         }
+    }
+
+    private WindowManager windowManager;
+    private ImageView chatHead;
+    private WindowManager.LayoutParams params;
+
+    private void floatButton() {
+        windowManager = (WindowManager) ctx.getSystemService(WINDOW_SERVICE);
+
+        //создаем нашу кнопку что бы отобразить
+        chatHead = new ImageView(ctx);
+        chatHead.setImageResource(R.raw.cross);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+        builder.setTitle("Важное сообщение!")
+                .setMessage("Покормите кота!")
+                .setCancelable(false)
+                .setNegativeButton("ОК, иду на кухню",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+        //задаем параметры для картинки, что бы была
+        //своего размера, что бы можно было перемещать по экрану
+        //что бы была прозрачной, и устанавливается ее стартовое полодение
+        //на экране при создании
+        params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        params.gravity = Gravity.TOP | Gravity.LEFT;
+        params.x = 0;
+        params.y = 100;
+
+        //кол перемещения тоста по экрану при помощи touch
+        chatHead.setOnTouchListener(new View.OnTouchListener() {
+            private int initialX;
+            private int initialY;
+            private float initialTouchX;
+            private float initialTouchY;
+            private boolean shouldClick;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        shouldClick = true;
+                        initialX = params.x;
+                        initialY = params.y;
+                        initialTouchX = event.getRawX();
+                        initialTouchY = event.getRawY();
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        if (shouldClick)
+                            Toast.makeText(ctx.getApplicationContext(), "Клик по тосту случился!", Toast.LENGTH_LONG).show();
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        shouldClick = false;
+                        params.x = initialX
+                                + (int) (event.getRawX() - initialTouchX);
+                        params.y = initialY
+                                + (int) (event.getRawY() - initialTouchY);
+                        windowManager.updateViewLayout(chatHead, params);
+                        return true;
+                }
+                return false;
+            }
+        });
+        windowManager.addView(chatHead, params);
     }
 
     static private String getCallDetails() {

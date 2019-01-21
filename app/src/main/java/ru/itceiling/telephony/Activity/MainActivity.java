@@ -131,56 +131,48 @@ public class MainActivity extends AppCompatActivity {
         // Операции для выбранного пункта меню
         switch (id) {
             case R.id.exit:
-                if (back_pressed + 2000 > System.currentTimeMillis()) {
 
-                    SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
-                    SharedPreferences.Editor ed = SP.edit();
-                    ed.putString("", "");
-                    ed.commit();
+                SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
+                SharedPreferences.Editor ed = SP.edit();
+                ed.putString("", "");
+                ed.commit();
 
-                    SP = getSharedPreferences("user_id", MODE_PRIVATE);
-                    ed = SP.edit();
-                    ed.putString("", "");
-                    ed.commit();
+                SP = getSharedPreferences("user_id", MODE_PRIVATE);
+                ed = SP.edit();
+                ed.putString("", "");
+                ed.commit();
 
-                    SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-                    ed = SP.edit();
-                    ed.putString("", "");
-                    ed.commit();
+                SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
+                ed = SP.edit();
+                ed.putString("", "");
+                ed.commit();
 
-                    SP = getSharedPreferences("enter", MODE_PRIVATE);
-                    ed = SP.edit();
-                    ed.putString("", "0");
-                    ed.commit();
+                SP = getSharedPreferences("enter", MODE_PRIVATE);
+                ed = SP.edit();
+                ed.putString("", "0");
+                ed.commit();
 
-                    SP = getSharedPreferences("group_id", MODE_PRIVATE);
-                    ed = SP.edit();
-                    ed.putString("", "");
-                    ed.commit();
+                SP = getSharedPreferences("group_id", MODE_PRIVATE);
+                ed = SP.edit();
+                ed.putString("", "");
+                ed.commit();
 
-                    callbackReceiver.CancelAlarm(this);
+                callbackReceiver.CancelAlarm(this);
 
-                    ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
-                    exportDataReceiver.CancelAlarm(this);
+                ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+                exportDataReceiver.CancelAlarm(this);
 
-                    ImportDataReceiver importDataReceiver = new ImportDataReceiver();
-                    importDataReceiver.CancelAlarm(this);
+                ImportDataReceiver importDataReceiver = new ImportDataReceiver();
+                importDataReceiver.CancelAlarm(this);
 
-                    finish();
-                    Intent intent = new Intent(this, AuthorizationActivity.class);
-                    intent.putExtra("exit", "true");
-                    startActivity(intent);
-
-                } else {
-                    Toast.makeText(getBaseContext(), "Нажмите ещё раз, для того чтобы выйти из пользователя",
-                            Toast.LENGTH_SHORT).show();
-                }
-                back_pressed = System.currentTimeMillis();
-
+                finish();
+                Intent intent = new Intent(this, AuthorizationActivity.class);
+                intent.putExtra("exit", "true");
+                startActivity(intent);
                 break;
 
             case R.id.settings:
-                Intent intent = new Intent(this, SettingsActivity.class);
+                intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 break;
 

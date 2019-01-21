@@ -115,7 +115,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         try {
             SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
             if (SP.getString("", "").equals("1")) {
-                if (this != null) {
+                if (this != null ) {
                     pd = new ProgressDialog(this);
                     pd.setTitle("Загрузка клиентов ... ");
                     pd.setMessage("Пожалуйста подождите");
@@ -1299,6 +1299,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
+
+                            Log.d(TAG, "onResponse: " + jsonObject.getJSONArray("rgzbn_user_usergroup_map"));
 
                             SimpleDateFormat out_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
