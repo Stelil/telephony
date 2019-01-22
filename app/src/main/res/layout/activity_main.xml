@@ -23,6 +23,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:background="?android:attr/windowBackground"
-        app:menu="@menu/main_bottom_navigation" />
+        app:menu="@menu/main_bottom_navigation"
+        app:itemIconTint="@color/colorBlack"
+        app:itemTextColor="@color/colorBlack"/>
 
 </android.support.constraint.ConstraintLayout>

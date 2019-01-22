@@ -46,6 +46,7 @@ import java.util.Date;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Activity.ClientsListActivity;
+import ru.itceiling.telephony.Activity.MainActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -175,9 +176,9 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void newClient() {
 
-        if (phoneNumber.indexOf("+") != -1) {
-            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-        }
+        phoneNumber = HelperClass.phone_edit(phoneNumber);
+
+        Log.d(TAG, "newClient: " + phoneNumber);
 
         int id = 0;
         String sqlQuewy = "SELECT client_id "
@@ -194,8 +195,7 @@ public class CallReceiver extends BroadcastReceiver {
         long notifyID = (int) System.currentTimeMillis();
         if (id == 0) {
 
-
-            Intent resultIntent = new Intent(ctx, ClientsListActivity.class);
+            Intent resultIntent = new Intent(ctx, MainActivity.class);
             resultIntent.putExtra("phone", phoneNumber);
             resultIntent.putExtra("notifyID", notifyID);
             resultIntent.setAction(Long.toString(notifyID));
@@ -341,10 +341,8 @@ public class CallReceiver extends BroadcastReceiver {
     }
 
     private void historyClient() {
-        //floatButton();
-        if (phoneNumber.contains("+")) {
-            phoneNumber = phoneNumber.substring(1, phoneNumber.length());
-        }
+
+        phoneNumber = HelperClass.phone_edit(phoneNumber);
 
         Log.d(TAG, "historyClient: " + phoneNumber);
 
@@ -371,11 +369,10 @@ public class CallReceiver extends BroadcastReceiver {
             c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
             if (c != null) {
                 if (c.moveToFirst()) {
-                    message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
-                    message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
-                    c.moveToNext();
-                    message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
-                    message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
+                    do {
+                        message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
+                        message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
+                    } while (c.moveToNext() && c.getPosition() < 2);
                 }
             }
             c.close();
@@ -402,7 +399,7 @@ public class CallReceiver extends BroadcastReceiver {
             intentClient.setAction(String.valueOf(notifyID));
 
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(ctx);
-            stackBuilder.addParentStack(ClientsListActivity.class);
+            stackBuilder.addParentStack(MainActivity.class);
             stackBuilder.addNextIntent(intentClient);
 
             PendingIntent resultPendingIntent =
@@ -454,82 +451,6 @@ public class CallReceiver extends BroadcastReceiver {
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             }
         }
-    }
-
-    private WindowManager windowManager;
-    private ImageView chatHead;
-    private WindowManager.LayoutParams params;
-
-    private void floatButton() {
-        windowManager = (WindowManager) ctx.getSystemService(WINDOW_SERVICE);
-
-        //создаем нашу кнопку что бы отобразить
-        chatHead = new ImageView(ctx);
-        chatHead.setImageResource(R.raw.cross);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-        builder.setTitle("Важное сообщение!")
-                .setMessage("Покормите кота!")
-                .setCancelable(false)
-                .setNegativeButton("ОК, иду на кухню",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
-        AlertDialog alert = builder.create();
-        alert.show();
-
-        //задаем параметры для картинки, что бы была
-        //своего размера, что бы можно было перемещать по экрану
-        //что бы была прозрачной, и устанавливается ее стартовое полодение
-        //на экране при создании
-        params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = 0;
-        params.y = 100;
-
-        //кол перемещения тоста по экрану при помощи touch
-        chatHead.setOnTouchListener(new View.OnTouchListener() {
-            private int initialX;
-            private int initialY;
-            private float initialTouchX;
-            private float initialTouchY;
-            private boolean shouldClick;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        shouldClick = true;
-                        initialX = params.x;
-                        initialY = params.y;
-                        initialTouchX = event.getRawX();
-                        initialTouchY = event.getRawY();
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        if (shouldClick)
-                            Toast.makeText(ctx.getApplicationContext(), "Клик по тосту случился!", Toast.LENGTH_LONG).show();
-                        return true;
-                    case MotionEvent.ACTION_MOVE:
-                        shouldClick = false;
-                        params.x = initialX
-                                + (int) (event.getRawX() - initialTouchX);
-                        params.y = initialY
-                                + (int) (event.getRawY() - initialTouchY);
-                        windowManager.updateViewLayout(chatHead, params);
-                        return true;
-                }
-                return false;
-            }
-        });
-        windowManager.addView(chatHead, params);
     }
 
     static private String getCallDetails() {

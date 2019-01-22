@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
+import ru.itceiling.telephony.Activity.MainActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterClient;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
@@ -760,6 +761,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     void createTableForManager() {
 
         linearManagerTable.removeAllViews();
+        listManagerClients.clear();
 
         SharedPreferences SP = getActivity().getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
@@ -808,14 +810,18 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
             dataManager = String.valueOf(jsonObj);
             new GetManagersAnalytic().execute();
         } else {
-            repeatManager();
+            try {
+                repeatManager();
+            }catch (Exception e){
+                Log.d(TAG, "createTableForManager error: " + e);
+            }
         }
 
     }
 
     void repeatManager() {
         if (listManager.size() > 0) {
-            TextView titleManager = new TextView(getActivity());
+            TextView titleManager = new TextView(getContext());
             TableRow.LayoutParams textParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                     TableRow.LayoutParams.WRAP_CONTENT, 0);
             textParams.setMargins(50, 0, 0, 0);
@@ -1217,7 +1223,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                     Log.d(TAG, res);
 
                     int length = arrayId.length + listManager.size() * 2 + 1;
-                    Log.d(TAG, "onResponse: " + length);
                     String[] array = new String[length];
 
                     for (int i = 0; arrayId.length > i; i++) {
@@ -1229,8 +1234,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                     try {
                         for (int ii = 0; listManager.size() > ii; ii++) {
 
-                            Log.d(TAG, "onResponse: " + listManager.get(ii));
-
                             JSONArray jAr = new JSONArray();
                             JSONArray jAr2 = new JSONArray();
 
@@ -1241,6 +1244,9 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                                 JSONArray projects = jsonObjectMan.getJSONArray("projects");
                                 String measures = jsonObjectMan.getString("measures");
                                 String deals = jsonObjectMan.getString("deals");
+
+                                Log.d(TAG, "onResponse: " + measures);
+                                Log.d(TAG, "onResponse: " + deals);
 
                                 listManagerClients.add(measures);
                                 listManagerClients.add(deals);
@@ -1259,12 +1265,12 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                                         String project_id = project.getString("project_id");
                                         Double sum = project.getDouble("sum");
                                         String status = project.getString("status");
-                                        summa += sum;
 
                                         if (status.equals("1")) {
                                             jAr.put(clientsArray[i]);
                                         } else {
                                             jAr2.put(clientsArray[i]);
+                                            summa += sum;
                                         }
                                     }
                                 }
@@ -1288,10 +1294,15 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                     } catch (Exception e) {
                         Log.d(TAG, "onResponse: " + e);
                     }
+
                     arrayId = new String[array.length];
                     arrayId = array.clone();
 
-                    repeatManager();
+                    try {
+                        repeatManager();
+                    }catch (Exception e){
+                        Log.d(TAG, "onResponse error: " + e );
+                    }
                 }
 
             }, new Response.ErrorListener() {
