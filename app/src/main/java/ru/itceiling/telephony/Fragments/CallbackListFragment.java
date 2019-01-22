@@ -230,7 +230,8 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                         comment = "-";
 
                     String client_name = "";
-                    sqlQuewy = "SELECT client_name "
+                    String manager_id = "";
+                    sqlQuewy = "SELECT client_name, manager_id "
                             + "FROM rgzbn_gm_ceiling_clients" +
                             " WHERE _id = ? ";
                     Cursor cc = db.rawQuery(sqlQuewy, new String[]{client_id});
@@ -238,6 +239,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                         if (cc.moveToFirst()) {
                             do {
                                 client_name = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                manager_id = cc.getString(cc.getColumnIndex(cc.getColumnName(1)));
                             } while (cc.moveToNext());
                         }
                     }
@@ -261,12 +263,26 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     }
                     cc.close();
 
+                    String nameManager = "-";
+                    sqlQuewy = "SELECT name "
+                            + "   FROM rgzbn_users" +
+                            "    WHERE _id = ? " +
+                            "order by _id";
+                    cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
+                    if (cc != null) {
+                        if (cc.moveToLast()) {
+                            nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                        }
+                    }
+                    cc.close();
+
                     callbacks.add(new Callback(client_name,
                             phone,
                             comment,
                             date_time,
                             Integer.valueOf(client_id),
-                            Integer.valueOf(id)));
+                            Integer.valueOf(id),
+                            nameManager));
 
                 } while (c.moveToNext());
             }

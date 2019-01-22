@@ -7,14 +7,24 @@ public class Callback {
     public String date;
     public Integer id;
     public Integer idCallback;
+    public String manager;
 
-    public Callback(String name, String phone, String comment, String date, Integer id, Integer idCallback) {
+    public Callback(String name, String phone, String comment, String date, Integer id, Integer idCallback, String manager) {
         this.name = name;
         this.phone = phone;
         this.comment = comment;
         this.date = date;
         this.id = id;
         this.idCallback = idCallback;
+        this.manager = manager;
+    }
+
+    public String getManager() {
+        return manager;
+    }
+
+    public void setManager(String manager) {
+        this.manager = manager;
     }
 
     public Integer getIdCallback() {

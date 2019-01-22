@@ -24,6 +24,7 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
         TextView callbackPhone;
         TextView callbackDate;
         TextView callbackComment;
+        TextView callbackManager;
 
         CallbackViewHolder(View itemView) {
             super(itemView);
@@ -32,6 +33,7 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
             callbackPhone = (TextView)itemView.findViewById(R.id.callback_phone);
             callbackDate = (TextView)itemView.findViewById(R.id.callback_time);
             callbackComment = (TextView)itemView.findViewById(R.id.callback_comment);
+            callbackManager = (TextView)itemView.findViewById(R.id.callback_manager);
 
             itemView.setOnClickListener(new View.OnClickListener(){
                 @Override
@@ -83,6 +85,7 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
         callbackViewHolder.callbackPhone.setText(callbacks.get(i).phone);
         callbackViewHolder.callbackDate.setText(callbacks.get(i).date);
         callbackViewHolder.callbackComment.setText(callbacks.get(i).comment);
+        callbackViewHolder.callbackManager.setText(callbacks.get(i).manager);
     }
 
     @Override
