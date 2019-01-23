@@ -9,7 +9,7 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "dbTelephony";
 
     private Context mContext;
@@ -155,6 +155,12 @@ public class DBHelper extends SQLiteOpenHelper {
                 "change_time TEXT)");
 
         ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 0);
+        values.put(DBHelper.KEY_TITLE, "Пропущенный звонок");
+        values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+
+        values = new ContentValues();
         values.put(DBHelper.KEY_ID, 1);
         values.put(DBHelper.KEY_TITLE, "Исходящий недозвон");
         values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
@@ -212,6 +218,14 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+        if (oldVersion < 2) { // 23.01
+            ContentValues values = new ContentValues();
+            values.put(DBHelper.KEY_ID, 0);
+            values.put(DBHelper.KEY_TITLE, "Пропущенный звонок");
+            values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
+            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+
+        }
 
     }
 }
