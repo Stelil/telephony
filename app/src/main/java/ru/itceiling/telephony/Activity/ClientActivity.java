@@ -24,7 +24,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -77,6 +76,7 @@ public class ClientActivity extends AppCompatActivity {
     private String dealer_id, check = "false", user_id;
     private List<TextView> txtPhoneList = new ArrayList<TextView>();
     private List<TextView> txtEmailList = new ArrayList<TextView>();
+    private FunDapter adapter;
     String TAG = "logd";
 
     Calendar dateAndTime = new GregorianCalendar();
@@ -98,6 +98,8 @@ public class ClientActivity extends AppCompatActivity {
 
         id_client = getIntent().getStringExtra("id_client");
 
+        Log.d(TAG, "onCreate: " + id_client);
+
         nameClient = findViewById(R.id.nameClient);
         nameClient.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -111,58 +113,32 @@ public class ClientActivity extends AppCompatActivity {
 
         phoneClient = findViewById(R.id.phoneClient);
         txtStatusOfClient = findViewById(R.id.txtStatusOfClient);
-        //txtApiPhone = findViewById(R.id.txtApiPhone);
         txtCallback = findViewById(R.id.txtCallback);
         txtEditCallback = findViewById(R.id.txtEditCallback);
 
         btnAddVoiceComment = findViewById(R.id.btnAddVoiceComment);
 
         listHistoryClient = findViewById(R.id.listHistoryClient);
-        listHistoryClient.setOnTouchListener(new ListView.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int action = event.getAction();
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                        // Disallow ScrollView to intercept touch events.
-                        v.getParent().requestDisallowInterceptTouchEvent(true);
-                        break;
-
-                    case MotionEvent.ACTION_UP:
-                        // Allow ScrollView to intercept touch events.
-                        v.getParent().requestDisallowInterceptTouchEvent(false);
-                        break;
-                }
-
-                // Handle ListView touch events.
-                v.onTouchEvent(event);
-                return true;
-            }
-        });
+        listHistoryClient.setNestedScrollingEnabled(true);
 
         editCommentClient = findViewById(R.id.editCommentClient);
         editCommentClient.setMovementMethod(new ScrollingMovementMethod());
-        editCommentClient.setOnTouchListener(new EditText.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int action = event.getAction();
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                        // Disallow ScrollView to intercept touch events.
-                        v.getParent().requestDisallowInterceptTouchEvent(true);
-                        break;
-
-                    case MotionEvent.ACTION_UP:
-                        // Allow ScrollView to intercept touch events.
-                        v.getParent().requestDisallowInterceptTouchEvent(false);
-                        break;
-                }
-
-                // Handle ListView touch events.
-                v.onTouchEvent(event);
-                return true;
-            }
-        });
+        //editCommentClient.setOnTouchListener(new EditText.OnTouchListener() {
+        //    @Override
+        //    public boolean onTouch(View v, MotionEvent event) {
+        //        int action = event.getAction();
+        //        switch (action) {
+        //            case MotionEvent.ACTION_DOWN:
+        //                v.getParent().requestDisallowInterceptTouchEvent(true);
+        //                break;
+        //            case MotionEvent.ACTION_UP:
+        //                v.getParent().requestDisallowInterceptTouchEvent(false);
+        //                break;
+        //        }
+        //        v.onTouchEvent(event);
+        //        return true;
+        //    }
+        //});
 
 
         check = getIntent().getStringExtra("check");
@@ -348,39 +324,6 @@ public class ClientActivity extends AppCompatActivity {
             }
         }
         c.close();
-
-        sqlQuewy = "SELECT client_id, status_id "
-                + "FROM rgzbn_gm_ceiling_clients_statuses_map " +
-                "order by _id";
-        c = db.rawQuery(sqlQuewy, new String[]{});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    Log.d(TAG, "client_id: " + c.getString(c.getColumnIndex(c.getColumnName(0))));
-                    Log.d(TAG, "status_id: " + c.getString(c.getColumnIndex(c.getColumnName(1))));
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
-        /*
-        try {
-            sqlQuewy = "SELECT name "
-                    + "FROM rgzbn_gm_ceiling_api_phones" +
-                    " WHERE _id = ? ";
-            c = db.rawQuery(sqlQuewy, new String[]{api_phone_id});
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    txtApiPhone.setText(title);
-                }
-            }
-            c.close();
-        } catch (Exception e) {
-            txtApiPhone.setText("");
-        }
-        */
-
     }
 
     private void historyClient() {
@@ -421,7 +364,7 @@ public class ClientActivity extends AppCompatActivity {
             }
         });
 
-        FunDapter adapter = new FunDapter(this, client_mas, R.layout.layout_client_history_list, dict);
+        adapter = new FunDapter(this, client_mas, R.layout.layout_client_history_list, dict);
         listHistoryClient.setAdapter(adapter);
     }
 

@@ -16,6 +16,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -185,7 +186,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
                     @Override
                     public void onClick(View view) {
-                        // TODO Do something
 
                         String name = nameClient.getText().toString();
                         String phone = phoneClient.getText().toString();
@@ -203,6 +203,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             values.put(DBHelper.KEY_CREATED, nowDate);
                             values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
                             values.put(DBHelper.KEY_API_PHONE_ID, "null");
+                            values.put(DBHelper.KEY_DELETED_BY_USER, 0);
                             db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
 
                             HelperClass.addExportData(
@@ -258,10 +259,38 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             }
                             cc.close();
 
+                            int idOldClient = 0;
+                            sqlQuewy = "SELECT h._id " +
+                                    "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
+                                    "INNER JOIN rgzbn_gm_ceiling_calls_status_history AS h " +
+                                    "ON c.client_id = h.client_id " +
+                                    "WHERE c.phone = ?";
+                            cc = db.rawQuery(sqlQuewy, new String[]{phone});
+                            if (cc != null) {
+                                if (cc.moveToLast()) {
+                                    idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+
+                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY,
+                                            "client_id = ?",
+                                            new String[]{String.valueOf(idOldClient)});
+
+                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
+                                            "_id = ?",
+                                            new String[]{String.valueOf(idOldClient)});
+
+                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
+                                            "client_id = ?",
+                                            new String[]{String.valueOf(idOldClient)});
+                                }
+                            }
+                            cc.close();
+
                             persons.add(0, new Person(name, phone, nameManager, "#000000",
                                     "Холодный", "Необработанный", Integer.valueOf(maxIdClient)));
                             adapter.notifyItemInserted(0);
                             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(0, 0);
+
+                            getActivity().getIntent().removeExtra("phone");
 
                             dialog.dismiss();
                             Toast.makeText(getActivity().getApplicationContext(), "Клиент добавлен", Toast.LENGTH_LONG).show();
@@ -291,8 +320,9 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                 "          _id," +
                 "          manager_id " +
                 "     FROM rgzbn_gm_ceiling_clients" +
-                "    WHERE dealer_id = ? and " +
-                "         _id <> ? " +
+                "    WHERE dealer_id = ? " +
+                "          and deleted_by_user <> 1" +
+                "          and _id <> ? " +
                 " order by created desc";
         c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
         if (c != null) {
@@ -363,12 +393,16 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         c.close();
 
         adapter = new RVAdapterClient(persons, this);
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                recyclerView.setAdapter(adapter);
-            }
-        });
+        try {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    recyclerView.setAdapter(adapter);
+                }
+            });
+        } catch (Exception e) {
+            Log.d(TAG, "ListClients error: " + e);
+        }
 
     }
 

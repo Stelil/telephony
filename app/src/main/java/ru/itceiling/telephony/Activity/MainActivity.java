@@ -49,6 +49,7 @@ import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.AnalyticsFragment;
+import ru.itceiling.telephony.Fragments.CallLogFragment;
 import ru.itceiling.telephony.Fragments.CallbackListFragment;
 import ru.itceiling.telephony.Fragments.ClientsListFragment;
 import ru.itceiling.telephony.HelperClass;
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static long back_pressed;
 
-    String getPhone = "", textSearch="";
+    String getPhone = "", textSearch = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (getIntent().getStringExtra("phone") == null) {
         } else {
-            loadFragment(ClientsListFragment.newInstance());
+            navigation.setSelectedItemId(R.id.clients);
         }
     }
 
@@ -115,6 +116,10 @@ public class MainActivity extends AppCompatActivity {
 
                 case R.id.clients:
                     loadFragment(ClientsListFragment.newInstance());
+                    return true;
+
+                case R.id.call_log:
+                    loadFragment(CallLogFragment.newInstance());
                     return true;
 
                 case R.id.analytics:
@@ -266,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.WRITE_CALL_LOG,
                             Manifest.permission.INTERNET,
                             Manifest.permission.READ_CONTACTS,
-                    Manifest.permission.SYSTEM_ALERT_WINDOW},
+                            Manifest.permission.SYSTEM_ALERT_WINDOW},
                     1);
         }
     }

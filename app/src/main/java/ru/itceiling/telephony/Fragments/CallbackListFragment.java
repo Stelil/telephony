@@ -15,37 +15,24 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.amigold.fundapter.BindDictionary;
-import com.amigold.fundapter.FunDapter;
-import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import ru.itceiling.telephony.Activity.CallbackListActivity;
 import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterCallback;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
-import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Callback;
-import ru.itceiling.telephony.Comparators.ComparatorComment;
-import ru.itceiling.telephony.Comparators.ComparatorDate;
-import ru.itceiling.telephony.Comparators.ComparatorFio;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
@@ -60,7 +47,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     DBHelper dbHelper;
     SQLiteDatabase db;
     String dealer_id, callbackDate, user_id;
-    ArrayList<AdapterList> client_mas = new ArrayList<>();
     TextView txtSelectDay;
 
     String TAG = "logd";
@@ -88,6 +74,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                              Bundle savedInstanceState) {
 
         view = inflater.inflate(R.layout.fragment_callback_list, container, false);
+        getActivity().setTitle("Перезвоны");
 
         dbHelper = new DBHelper(getActivity());
         db = dbHelper.getWritableDatabase();
@@ -121,13 +108,10 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
             }
         });
 
-
         recyclerView = view.findViewById(R.id.recyclerViewCallback);
         LinearLayoutManager llm = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(llm);
         recyclerView.setHasFixedSize(true);
-
-        getActivity().setTitle("Перезвоны");
 
         return view;
     }
@@ -200,9 +184,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     }
 
     private void listClients(String date) {
-
-        client_mas.clear();
-
         callbacks = new ArrayList<>();
 
         String sqlQuewy;
@@ -289,14 +270,18 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         }
         c.close();
 
-        adapter = new RVAdapterCallback(callbacks, this);
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    recyclerView.setAdapter(adapter);
-                }
-            });
+        try {
+            adapter = new RVAdapterCallback(callbacks, this);
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        recyclerView.setAdapter(adapter);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "listClients error: " + e);
         }
 
     }
@@ -339,98 +324,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         ad.setCancelable(true);
         ad.show();
     }
-
-    /*
-
-    void createList(){
-
-        final ListView listView = view.findViewById(R.id.list_client);
-
-        BindDictionary<AdapterList> dict = new BindDictionary<>();
-
-        dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getOne();
-            }
-        });
-        dict.addStringField(R.id.secondColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getTwo();
-            }
-        });
-        dict.addStringField(R.id.thirdColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getThree();
-            }
-        });
-
-        final FunDapter adapter = new FunDapter(getActivity(), client_mas, R.layout.layout_dialog_list, dict);
-
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                listView.setAdapter(adapter);
-            }
-        });
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-
-                AdapterList selectedid = client_mas.get(position);
-                String id_client = selectedid.getId();
-
-                Intent intent = new Intent(getActivity(), ClientActivity.class);
-                intent.putExtra("id_client", id_client);
-                intent.putExtra("check", "true");
-                startActivity(intent);
-            }
-        });
-
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-                                           int pos, long id) {
-                // TODO Auto-generated method stub
-
-                AdapterList selectedid = client_mas.get(pos);
-                final int cId = Integer.parseInt(selectedid.getFour());
-
-                AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
-                ad.setMessage("Удалить звонок ?"); // сообщение
-                ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int arg1) {
-
-                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK,
-                                "_id = ?",
-                                new String[]{String.valueOf(cId)});
-
-                        HelperClass.addExportData(
-                                getActivity(),
-                                cId,
-                                "rgzbn_gm_ceiling_callback",
-                                "delete");
-
-                        listClients(txtSelectDay.getText().toString());
-
-                    }
-                });
-                ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int arg1) {
-
-                    }
-                });
-                ad.setCancelable(true);
-                ad.show();
-                return true;
-            }
-        });
-    }
-
-    */
 
     public void setDate(View v) {
         final Calendar cal = Calendar.getInstance();

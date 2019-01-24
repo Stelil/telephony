@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_client"
         android:title="Клиенты" />
     <item
+        android:id="@+id/call_log"
+        android:icon="@drawable/ic_contacts"
+        android:title="Журнал" />
+    <item
         android:id="@+id/analytics"
         android:icon="@drawable/ic_analytics"
         android:title="Аналитика" />

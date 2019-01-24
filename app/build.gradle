@@ -9,7 +9,7 @@ android {
             storePassword 'b0lx9fqg'
         }
     }
-    compileSdkVersion 26
+    compileSdkVersion 27
     defaultConfig {
         applicationId "ru.itceiling.telephony"
         minSdkVersion 19

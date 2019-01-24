@@ -113,6 +113,35 @@ public class HelperClass {
 
     }
 
+    public static void addHistory(String text, Context context, String id_client, boolean bool) {
+
+        DBHelper dbHelper = new DBHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        SharedPreferences SPI = context.getSharedPreferences("user_id", MODE_PRIVATE);
+        String user_id = SPI.getString("", "");
+
+        int max_id = lastIdTable("rgzbn_gm_ceiling_client_history", context, user_id);
+
+        String date = HelperClass.now_date();
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID, max_id);
+        values.put(DBHelper.KEY_CLIENT_ID, id_client);
+        values.put(DBHelper.KEY_DATE_TIME, date);
+        values.put(DBHelper.KEY_TEXT, text);
+        values.put(DBHelper.KEY_CHANGE_TIME, now_date());
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
+
+        if (bool) {
+            HelperClass.addExportData(
+                    context,
+                    max_id,
+                    "rgzbn_gm_ceiling_client_history",
+                    "send");
+        }
+
+    }
+
     public static void addCallback(String comment, Context context, String id_client, String callDate, String user_id) {
 
         DBHelper dbHelper = new DBHelper(context);
@@ -201,7 +230,7 @@ public class HelperClass {
         db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
     }
 
-    public static void addCallsStatusHistory(Context context, int clientId, int status, int callLength){
+    public static void addCallsStatusHistory(Context context, int clientId, int status, int callLength) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -217,6 +246,7 @@ public class HelperClass {
         values.put(DBHelper.KEY_MANAGER_ID, user_id);
         values.put(DBHelper.KEY_CLIENT_ID, clientId);
         values.put(DBHelper.KEY_STATUS, status);
+        values.put(DBHelper.KEY_DATE_TIME, date);
         values.put(DBHelper.KEY_CALL_LENGTH, callLength);
         values.put(DBHelper.KEY_CHANGE_TIME, date);
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, null, values);
@@ -226,6 +256,37 @@ public class HelperClass {
                 max_id,
                 "rgzbn_gm_ceiling_calls_status_history",
                 "send");
+
+    }
+
+    public static void addCallsStatusHistory(Context context, int clientId, int status, int callLength, boolean bool) {
+
+        DBHelper dbHelper = new DBHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        SharedPreferences SPI = context.getSharedPreferences("user_id", MODE_PRIVATE);
+        String user_id = SPI.getString("", "");
+
+        int max_id = lastIdTable("rgzbn_gm_ceiling_calls_status_history", context, user_id);
+
+        String date = HelperClass.now_date();
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID, max_id);
+        values.put(DBHelper.KEY_MANAGER_ID, user_id);
+        values.put(DBHelper.KEY_CLIENT_ID, clientId);
+        values.put(DBHelper.KEY_STATUS, status);
+        values.put(DBHelper.KEY_DATE_TIME, date);
+        values.put(DBHelper.KEY_CALL_LENGTH, callLength);
+        values.put(DBHelper.KEY_CHANGE_TIME, date);
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, null, values);
+
+        if (bool) {
+            HelperClass.addExportData(
+                    context,
+                    max_id,
+                    "rgzbn_gm_ceiling_calls_status_history",
+                    "send");
+        }
 
     }
 
