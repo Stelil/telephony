@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
         if (SP.getString("", "").equals("13")) {
-            MenuItem item = menu.getItem(1);
+            MenuItem item = menu.getItem(0);
             item.setVisible(false);
         }
 

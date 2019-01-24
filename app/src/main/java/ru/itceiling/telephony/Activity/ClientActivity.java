@@ -122,24 +122,6 @@ public class ClientActivity extends AppCompatActivity {
         listHistoryClient.setNestedScrollingEnabled(true);
 
         editCommentClient = findViewById(R.id.editCommentClient);
-        editCommentClient.setMovementMethod(new ScrollingMovementMethod());
-        //editCommentClient.setOnTouchListener(new EditText.OnTouchListener() {
-        //    @Override
-        //    public boolean onTouch(View v, MotionEvent event) {
-        //        int action = event.getAction();
-        //        switch (action) {
-        //            case MotionEvent.ACTION_DOWN:
-        //                v.getParent().requestDisallowInterceptTouchEvent(true);
-        //                break;
-        //            case MotionEvent.ACTION_UP:
-        //                v.getParent().requestDisallowInterceptTouchEvent(false);
-        //                break;
-        //        }
-        //        v.onTouchEvent(event);
-        //        return true;
-        //    }
-        //});
-
 
         check = getIntent().getStringExtra("check");
         if (check.equals("true")) {
