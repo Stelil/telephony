@@ -454,6 +454,7 @@
                         android:background="@drawable/without_corners_text"
                         android:hint="Добавить комментарий"
                         android:paddingLeft="6dp"
+                        android:minHeight="50dp"
                         android:scrollbars="vertical" />
                 </android.support.v4.widget.NestedScrollView>
 

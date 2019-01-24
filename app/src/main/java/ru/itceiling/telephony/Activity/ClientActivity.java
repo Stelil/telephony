@@ -408,159 +408,231 @@ public class ClientActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             int editId = v.getId();
-
             final TextView txt = txtPhoneList.get(editId);
 
-            Log.d("logd", txt.getText().toString());
+            SharedPreferences SP = getSharedPreferences("group_id", MODE_PRIVATE);
+            if (SP.getString("", "").equals("13")) {
+                final Context context = ClientActivity.this;
+                View promptsView;
+                LayoutInflater li = LayoutInflater.from(context);
+                promptsView = li.inflate(R.layout.dialog_add_client, null);
+                AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+                mDialogBuilder.setView(promptsView);
 
-            String[] array = new String[]{"Изменить", "Позвонить", "Удалить"};
+                final TextView textNameClient = (TextView) promptsView.findViewById(R.id.textNameClient);
+                textNameClient.setVisibility(View.GONE);
+                final EditText nameClient = (EditText) promptsView.findViewById(R.id.nameClient);
+                nameClient.setVisibility(View.GONE);
+                final EditText phoneClient = (EditText) promptsView.findViewById(R.id.phoneClient);
 
-            AlertDialog.Builder builder;
-            builder = new AlertDialog.Builder(ClientActivity.this);
-            builder.setTitle("Выберите действие")
-                    .setNegativeButton("Отмена",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
+                phoneClient.setText(txt.getText().toString());
+                final String old_number = txt.getText().toString();
+                String number_id = "";
 
-            builder.setItems(array, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int item) {
-                    // TODO Auto-generated method stub
-
-                    switch (item) {
-                        case 0:
-
-                            final Context context = ClientActivity.this;
-                            View promptsView;
-                            LayoutInflater li = LayoutInflater.from(context);
-                            promptsView = li.inflate(R.layout.dialog_add_client, null);
-                            AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
-                            mDialogBuilder.setView(promptsView);
-
-                            final TextView textNameClient = (TextView) promptsView.findViewById(R.id.textNameClient);
-                            textNameClient.setVisibility(View.GONE);
-                            final EditText nameClient = (EditText) promptsView.findViewById(R.id.nameClient);
-                            nameClient.setVisibility(View.GONE);
-                            final EditText phoneClient = (EditText) promptsView.findViewById(R.id.phoneClient);
-
-                            phoneClient.setText(txt.getText().toString());
-                            final String old_number = txt.getText().toString();
-                            String number_id = "";
-
-                            SQLiteDatabase db = dbHelper.getReadableDatabase();
-                            String sqlQuewy = "select _id "
-                                    + "FROM rgzbn_gm_ceiling_clients_contacts " +
-                                    "where phone = ?";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
-                            if (cc != null) {
-                                if (cc.moveToFirst()) {
-                                    do {
-                                        number_id = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    } while (cc.moveToNext());
-                                }
-                            }
-                            cc.close();
-
-                            final String finalNumber_id = number_id;
-                            mDialogBuilder
-                                    .setCancelable(false)
-                                    .setTitle("Изменение номера")
-                                    .setPositiveButton("OK",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-
-                                                    if (phoneClient.getText().toString().length() == 11) {
-                                                        if (old_number.equals(phoneClient.getText().toString())) {
-                                                        } else {
-                                                            DBHelper dbHelper = new DBHelper(context);
-                                                            SQLiteDatabase db = dbHelper.getWritableDatabase();
-                                                            ContentValues values = new ContentValues();
-                                                            values.put(DBHelper.KEY_PHONE, phoneClient.getText().toString());
-                                                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, values, "_id = ?",
-                                                                    new String[]{finalNumber_id});
-
-                                                            phonesClient();
-                                                            Toast toast = Toast.makeText(context.getApplicationContext(),
-                                                                    "Номер изменён ", Toast.LENGTH_SHORT);
-                                                            toast.show();
-                                                        }
-                                                    } else {
-                                                        Toast toast = Toast.makeText(context.getApplicationContext(),
-                                                                "Проверьте правильность телефона ", Toast.LENGTH_SHORT);
-                                                        toast.show();
-                                                    }
-                                                }
-                                            })
-                                    .setNegativeButton("Отмена",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    dialog.cancel();
-                                                }
-                                            });
-
-                            AlertDialog alertDialog = mDialogBuilder.create();
-                            alertDialog.getWindow().setBackgroundDrawableResource(R.color.colorWhite);
-                            alertDialog.show();
-
-                            break;
-                        case 1:
-                            Intent intent = new Intent(Intent.ACTION_DIAL);
-                            intent.setData(Uri.parse("tel:+" + txt.getText().toString()));
-                            startActivity(intent);
-                            break;
-                        case 2:
-                            AlertDialog.Builder builder = new AlertDialog.Builder(ClientActivity.this);
-                            builder.setTitle("Удалить номер " + txt.getText().toString() + " ?")
-                                    .setMessage(null)
-                                    .setIcon(null)
-                                    .setCancelable(false)
-                                    .setPositiveButton("Да",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-
-                                                    dbHelper = new DBHelper(ClientActivity.this);
-                                                    SQLiteDatabase db = dbHelper.getReadableDatabase();
-                                                    String id_phone = "";
-                                                    String sqlQuewy = "SELECT _id "
-                                                            + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                                                            " WHERE phone = ? ";
-                                                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
-                                                    if (cc != null) {
-                                                        if (cc.moveToFirst()) {
-                                                            id_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-
-                                                        }
-                                                    }
-                                                    cc.close();
-
-                                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, "_id = ?", new String[]{id_phone});
-
-                                                    phonesClient();
-
-                                                    Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
-                                                            "Номер удалён ", Toast.LENGTH_SHORT);
-                                                    toast.show();
-                                                }
-                                            })
-                                    .setNegativeButton("Отмена",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    dialog.cancel();
-                                                }
-                                            });
-                            AlertDialog alert = builder.create();
-                            alert.show();
-                            break;
+                SQLiteDatabase db = dbHelper.getReadableDatabase();
+                String sqlQuewy = "select _id "
+                        + "FROM rgzbn_gm_ceiling_clients_contacts " +
+                        "where phone = ?";
+                Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
+                if (cc != null) {
+                    if (cc.moveToFirst()) {
+                        do {
+                            number_id = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                        } while (cc.moveToNext());
                     }
                 }
-            });
+                cc.close();
 
-            builder.setCancelable(false);
-            builder.create();
-            builder.show();
+                final String finalNumber_id = number_id;
+                mDialogBuilder
+                        .setCancelable(false)
+                        .setTitle("Изменение номера")
+                        .setPositiveButton("OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+
+                                        if (phoneClient.getText().toString().length() == 11) {
+                                            if (old_number.equals(phoneClient.getText().toString())) {
+                                            } else {
+                                                DBHelper dbHelper = new DBHelper(context);
+                                                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                                                ContentValues values = new ContentValues();
+                                                values.put(DBHelper.KEY_PHONE, phoneClient.getText().toString());
+                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, values, "_id = ?",
+                                                        new String[]{finalNumber_id});
+
+                                                phonesClient();
+                                                Toast toast = Toast.makeText(context.getApplicationContext(),
+                                                        "Номер изменён ", Toast.LENGTH_SHORT);
+                                                toast.show();
+                                            }
+                                        } else {
+                                            Toast toast = Toast.makeText(context.getApplicationContext(),
+                                                    "Проверьте правильность телефона ", Toast.LENGTH_SHORT);
+                                            toast.show();
+                                        }
+                                    }
+                                })
+                        .setNegativeButton("Отмена",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                AlertDialog alertDialog = mDialogBuilder.create();
+                alertDialog.getWindow().setBackgroundDrawableResource(R.color.colorWhite);
+                alertDialog.show();
+            } else {
+
+                String[] array = new String[]{"Изменить", "Позвонить", "Удалить"};
+
+                AlertDialog.Builder builder;
+                builder = new AlertDialog.Builder(ClientActivity.this);
+                builder.setTitle("Выберите действие")
+                        .setNegativeButton("Отмена",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                builder.setItems(array, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int item) {
+                        switch (item) {
+                            case 0:
+
+                                final Context context = ClientActivity.this;
+                                View promptsView;
+                                LayoutInflater li = LayoutInflater.from(context);
+                                promptsView = li.inflate(R.layout.dialog_add_client, null);
+                                AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+                                mDialogBuilder.setView(promptsView);
+
+                                final TextView textNameClient = (TextView) promptsView.findViewById(R.id.textNameClient);
+                                textNameClient.setVisibility(View.GONE);
+                                final EditText nameClient = (EditText) promptsView.findViewById(R.id.nameClient);
+                                nameClient.setVisibility(View.GONE);
+                                final EditText phoneClient = (EditText) promptsView.findViewById(R.id.phoneClient);
+
+                                phoneClient.setText(txt.getText().toString());
+                                final String old_number = txt.getText().toString();
+                                String number_id = "";
+
+                                SQLiteDatabase db = dbHelper.getReadableDatabase();
+                                String sqlQuewy = "select _id "
+                                        + "FROM rgzbn_gm_ceiling_clients_contacts " +
+                                        "where phone = ?";
+                                Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
+                                if (cc != null) {
+                                    if (cc.moveToFirst()) {
+                                        do {
+                                            number_id = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                        } while (cc.moveToNext());
+                                    }
+                                }
+                                cc.close();
+
+                                final String finalNumber_id = number_id;
+                                mDialogBuilder
+                                        .setCancelable(false)
+                                        .setTitle("Изменение номера")
+                                        .setPositiveButton("OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+
+                                                        if (phoneClient.getText().toString().length() == 11) {
+                                                            if (old_number.equals(phoneClient.getText().toString())) {
+                                                            } else {
+                                                                DBHelper dbHelper = new DBHelper(context);
+                                                                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                                                                ContentValues values = new ContentValues();
+                                                                values.put(DBHelper.KEY_PHONE, phoneClient.getText().toString());
+                                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, values, "_id = ?",
+                                                                        new String[]{finalNumber_id});
+
+                                                                phonesClient();
+                                                                Toast toast = Toast.makeText(context.getApplicationContext(),
+                                                                        "Номер изменён ", Toast.LENGTH_SHORT);
+                                                                toast.show();
+                                                            }
+                                                        } else {
+                                                            Toast toast = Toast.makeText(context.getApplicationContext(),
+                                                                    "Проверьте правильность телефона ", Toast.LENGTH_SHORT);
+                                                            toast.show();
+                                                        }
+                                                    }
+                                                })
+                                        .setNegativeButton("Отмена",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        dialog.cancel();
+                                                    }
+                                                });
+
+                                AlertDialog alertDialog = mDialogBuilder.create();
+                                alertDialog.getWindow().setBackgroundDrawableResource(R.color.colorWhite);
+                                alertDialog.show();
+
+                                break;
+                            case 1:
+                                Intent intent = new Intent(Intent.ACTION_DIAL);
+                                intent.setData(Uri.parse("tel:+" + txt.getText().toString()));
+                                startActivity(intent);
+                                break;
+                            case 2:
+                                AlertDialog.Builder builder = new AlertDialog.Builder(ClientActivity.this);
+                                builder.setTitle("Удалить номер " + txt.getText().toString() + " ?")
+                                        .setMessage(null)
+                                        .setIcon(null)
+                                        .setCancelable(false)
+                                        .setPositiveButton("Да",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+
+                                                        dbHelper = new DBHelper(ClientActivity.this);
+                                                        SQLiteDatabase db = dbHelper.getReadableDatabase();
+                                                        String id_phone = "";
+                                                        String sqlQuewy = "SELECT _id "
+                                                                + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                                                                " WHERE phone = ? ";
+                                                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
+                                                        if (cc != null) {
+                                                            if (cc.moveToFirst()) {
+                                                                id_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+
+                                                            }
+                                                        }
+                                                        cc.close();
+
+                                                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, "_id = ?", new String[]{id_phone});
+
+                                                        phonesClient();
+
+                                                        Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                                                                "Номер удалён ", Toast.LENGTH_SHORT);
+                                                        toast.show();
+                                                    }
+                                                })
+                                        .setNegativeButton("Отмена",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        dialog.cancel();
+                                                    }
+                                                });
+                                AlertDialog alert = builder.create();
+                                alert.show();
+                                break;
+                        }
+                    }
+                });
+
+                builder.setCancelable(false);
+                builder.create();
+                builder.show();
+
+            }
 
         }
     };

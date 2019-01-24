@@ -66,7 +66,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    String domen = "calc",
+    String domen = "test1",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -479,18 +479,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
             SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
             SharedPreferences.Editor ed = SP.edit();
-            ed.putString("", "calc");
+            ed.putString("", "test1");
             ed.commit();
 
-            domen = "calc";
+            domen = "test1";
 
             new SendAuthorization().execute();
         }
-
         //Intent intent = new Intent(AuthorizationActivity.this, VerifyPhoneActivity.class);
         //intent.putExtra("mobile", "+"+login.getText().toString());
         //startActivity(intent);
-
     }
 
     @Override
@@ -1299,8 +1297,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
-
-                            Log.d(TAG, "onResponse: " + jsonObject.getJSONArray("rgzbn_user_usergroup_map"));
 
                             SimpleDateFormat out_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 

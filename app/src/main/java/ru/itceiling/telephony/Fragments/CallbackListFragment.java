@@ -296,33 +296,37 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
     @Override
     public void recyclerViewListLongClicked(View v, final int idCall, final int pos) {
-        AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
-        ad.setMessage("Удалить звонок ?"); // сообщение
-        ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
+        SharedPreferences SP = getActivity().getSharedPreferences("group_id", MODE_PRIVATE);
+        if (SP.getString("", "").equals("13")) {
+        } else {
+            AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
+            ad.setMessage("Удалить звонок ?"); // сообщение
+            ad.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int arg1) {
 
-                callbacks.remove(pos);
-                adapter.notifyItemRemoved(pos);
+                    callbacks.remove(pos);
+                    adapter.notifyItemRemoved(pos);
 
-                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK,
-                        "_id = ?",
-                        new String[]{String.valueOf(idCall)});
+                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK,
+                            "_id = ?",
+                            new String[]{String.valueOf(idCall)});
 
-                HelperClass.addExportData(
-                        getActivity(),
-                        idCall,
-                        "rgzbn_gm_ceiling_callback",
-                        "delete");
+                    HelperClass.addExportData(
+                            getActivity(),
+                            idCall,
+                            "rgzbn_gm_ceiling_callback",
+                            "delete");
 
-            }
-        });
-        ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
+                }
+            });
+            ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int arg1) {
 
-            }
-        });
-        ad.setCancelable(true);
-        ad.show();
+                }
+            });
+            ad.setCancelable(true);
+            ad.show();
+        }
     }
 
     public void setDate(View v) {
