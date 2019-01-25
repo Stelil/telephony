@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -43,6 +44,7 @@ public class PhoneBookActivity extends AppCompatActivity {
     PhoneBookAdapter adapter;
     ListView listView;
     Button selectAllClients;
+    String TAG = "logd";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +52,37 @@ public class PhoneBookActivity extends AppCompatActivity {
         setContentView(R.layout.activity_phone_book);
         setTitle("Выберите контакты");
 
+        int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
+        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
+            readContacts();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS},
+                    1);
+        }
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+    }
+
+    private final int MY_PERMISSIONS_REQUEST_CAMERA = 1;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_CAMERA: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    readContacts();
+                } else {
+                    finish();
+                }
+
+                return;
+            }
+        }
+    }
+
+    void readContacts() {
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
 
@@ -88,13 +121,8 @@ public class PhoneBookActivity extends AppCompatActivity {
             }
         });
 
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
         MyTask mt = new MyTask();
         mt.execute();
-
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {

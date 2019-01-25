@@ -75,6 +75,7 @@ dependencies {
     implementation 'com.vk:androidsdk:+'
     implementation 'com.nhaarman.supertooltips:library:3.0.+'
     implementation 'com.github.Androguide:HoloGraphLibrary:5562473'
+    implementation 'org.solovyev.android:checkout:1.2.1@aar'
 }
 
 apply plugin: 'com.google.gms.google-services'
