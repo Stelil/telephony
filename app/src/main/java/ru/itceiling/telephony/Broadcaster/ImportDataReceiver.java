@@ -394,7 +394,6 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                 String manager_id = status_history.getString("manager_id");
                                 String client_id = status_history.getString("client_id");
                                 String status = status_history.getString("status");
-                                String date_time = status_history.getString("date_time");
                                 String call_length = status_history.getString("call_length");
                                 String change_time = status_history.getString("change_time");
 
@@ -402,7 +401,6 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_STATUS, status);
                                 values.put(DBHelper.KEY_CALL_LENGTH, call_length);
-                                values.put(DBHelper.KEY_DATE_TIME, date_time);
                                 values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "

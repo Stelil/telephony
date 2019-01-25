@@ -66,7 +66,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    String domen = "test1",
+    String domen = "calc",
             TAG = "ImportLog",
             user_id = "",
             change_time_global = "",
@@ -479,16 +479,18 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
             SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
             SharedPreferences.Editor ed = SP.edit();
-            ed.putString("", "test1");
+            ed.putString("", "calc");
             ed.commit();
 
-            domen = "test1";
+            domen = "calc";
 
             new SendAuthorization().execute();
         }
+
         //Intent intent = new Intent(AuthorizationActivity.this, VerifyPhoneActivity.class);
         //intent.putExtra("mobile", "+"+login.getText().toString());
         //startActivity(intent);
+
     }
 
     @Override
@@ -1042,7 +1044,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 String manager_id = status_history.getString("manager_id");
                                 String client_id = status_history.getString("client_id");
                                 String status = status_history.getString("status");
-                                String date_time = status_history.getString("date_time");
                                 String call_length = status_history.getString("call_length");
                                 String change_time = status_history.getString("change_time");
 
@@ -1050,7 +1051,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_STATUS, status);
                                 values.put(DBHelper.KEY_CALL_LENGTH, call_length);
-                                values.put(DBHelper.KEY_DATE_TIME, date_time);
                                 values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "

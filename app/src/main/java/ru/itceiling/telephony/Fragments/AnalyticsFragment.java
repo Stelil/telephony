@@ -812,7 +812,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         } else {
             try {
                 repeatManager();
-            }catch (Exception e){
+            } catch (Exception e) {
                 Log.d(TAG, "createTableForManager error: " + e);
             }
         }
@@ -1028,11 +1028,9 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
             slice.setValue(countThirdStatus);
             pg.addSlice(slice);
             linearLayout.addView(pg);
-
             TextView textPieColor = new TextView(getActivity());
             TableRow.LayoutParams tableTextColor = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
                     TableRow.LayoutParams.WRAP_CONTENT, 4f);
-
             if (countFirstStatus > 0) {
                 tableTextColor.setMargins(50, 10, 0, 0);
                 textPieColor.setLayoutParams(tableTextColor);
@@ -1041,7 +1039,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 textPieColor.setTextColor(Color.parseColor("#99CC00"));
                 linearLayoutNote.addView(textPieColor);
             }
-
             if (countSecondStatus > 0) {
                 textPieColor = new TextView(getActivity());
                 textPieColor.setLayoutParams(tableTextColor);
@@ -1050,7 +1047,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 textPieColor.setTextColor(Color.parseColor("#FFBB33"));
                 linearLayoutNote.addView(textPieColor);
             }
-
             if (countThirdStatus > 0) {
                 textPieColor = new TextView(getActivity());
                 textPieColor.setLayoutParams(tableTextColor);
@@ -1059,7 +1055,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 textPieColor.setTextColor(Color.parseColor("#AA66CC"));
                 linearLayoutNote.addView(textPieColor);
             }
-
             linearLayout.addView(linearLayoutNote);
             linearManagerTable.addView(linearLayout);
         }
@@ -1076,6 +1071,10 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
             date2 = txtSelectDayTwo.getText().toString();
         }
 
+        Log.d(TAG, "date1: " + date1);
+
+        Log.d(TAG, "date2: " + date2);
+
         int countAll = 0;
         int countFirstStatus = 0;
         int countSecondStatus = 0;
@@ -1083,10 +1082,10 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         String sqlQuewy = "select status, count(status) " +
                 "from rgzbn_gm_ceiling_calls_status_history " +
                 "where manager_id = ? " +
-                "AND change_time >= ? " +
-                "AND change_time <= ? " +
+                "AND substr(change_time, 0, 11) >= ? " +
+                "AND substr(change_time, 0, 11) <= ? " +
                 "group by status";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(managerId), date1 + "00:00:00", date2 + "23:59:59"});
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(managerId), date1, date2});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
@@ -1142,7 +1141,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         textTable = new TextView(getActivity());
         textTable.setTextSize(17);
         textTable.setLayoutParams(tableParams);
-        textTable.setText("" + countSecondStatus);
+        textTable.setText("" + countThirdStatus);
         textTable.setGravity(Gravity.CENTER);
         textTable.setTextColor(Color.parseColor("#414099"));
         tableRow.addView(textTable);
@@ -1150,7 +1149,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         textTable = new TextView(getActivity());
         textTable.setTextSize(17);
         textTable.setLayoutParams(tableParams);
-        textTable.setText("" + countThirdStatus);
+        textTable.setText("" + countSecondStatus);
         textTable.setGravity(Gravity.CENTER);
         textTable.setTextColor(Color.parseColor("#414099"));
         tableRow.addView(textTable);
@@ -1300,8 +1299,8 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
                     try {
                         repeatManager();
-                    }catch (Exception e){
-                        Log.d(TAG, "onResponse error: " + e );
+                    } catch (Exception e) {
+                        Log.d(TAG, "onResponse error: " + e);
                     }
                 }
 

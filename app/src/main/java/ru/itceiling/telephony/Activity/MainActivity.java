@@ -118,9 +118,9 @@ public class MainActivity extends AppCompatActivity {
                     loadFragment(ClientsListFragment.newInstance());
                     return true;
 
-                case R.id.call_log:
-                    loadFragment(CallLogFragment.newInstance());
-                    return true;
+                //case R.id.call_log:
+                //    loadFragment(CallLogFragment.newInstance());
+                //    return true;
 
                 case R.id.analytics:
                     loadFragment(AnalyticsFragment.newInstance());

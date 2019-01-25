@@ -82,7 +82,7 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
     private void listCallLog() {
         callLogs = new ArrayList<>();
 
-        String sqlQuewy = "SELECT _id, client_id, status, date_time, call_length "
+        String sqlQuewy = "SELECT _id, client_id, status, change_time, call_length "
                 + "FROM rgzbn_gm_ceiling_calls_status_history " +
                 "where manager_id = ? " +
                 "order by date_time desc";
