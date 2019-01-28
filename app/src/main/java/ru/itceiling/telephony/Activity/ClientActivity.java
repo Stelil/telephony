@@ -394,77 +394,10 @@ public class ClientActivity extends AppCompatActivity {
 
             SharedPreferences SP = getSharedPreferences("group_id", MODE_PRIVATE);
             if (SP.getString("", "").equals("13")) {
-                final Context context = ClientActivity.this;
-                View promptsView;
-                LayoutInflater li = LayoutInflater.from(context);
-                promptsView = li.inflate(R.layout.dialog_add_client, null);
-                AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
-                mDialogBuilder.setView(promptsView);
 
-                final TextView textNameClient = (TextView) promptsView.findViewById(R.id.textNameClient);
-                textNameClient.setVisibility(View.GONE);
-                final EditText nameClient = (EditText) promptsView.findViewById(R.id.nameClient);
-                nameClient.setVisibility(View.GONE);
-                final EditText phoneClient = (EditText) promptsView.findViewById(R.id.phoneClient);
-
-                phoneClient.setText(txt.getText().toString());
-                final String old_number = txt.getText().toString();
-                String number_id = "";
-
-                SQLiteDatabase db = dbHelper.getReadableDatabase();
-                String sqlQuewy = "select _id "
-                        + "FROM rgzbn_gm_ceiling_clients_contacts " +
-                        "where phone = ?";
-                Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
-                if (cc != null) {
-                    if (cc.moveToFirst()) {
-                        do {
-                            number_id = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        } while (cc.moveToNext());
-                    }
-                }
-                cc.close();
-
-                final String finalNumber_id = number_id;
-                mDialogBuilder
-                        .setCancelable(false)
-                        .setTitle("Изменение номера")
-                        .setPositiveButton("OK",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-
-                                        if (phoneClient.getText().toString().length() == 11) {
-                                            if (old_number.equals(phoneClient.getText().toString())) {
-                                            } else {
-                                                DBHelper dbHelper = new DBHelper(context);
-                                                SQLiteDatabase db = dbHelper.getWritableDatabase();
-                                                ContentValues values = new ContentValues();
-                                                values.put(DBHelper.KEY_PHONE, phoneClient.getText().toString());
-                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, values, "_id = ?",
-                                                        new String[]{finalNumber_id});
-
-                                                phonesClient();
-                                                Toast toast = Toast.makeText(context.getApplicationContext(),
-                                                        "Номер изменён ", Toast.LENGTH_SHORT);
-                                                toast.show();
-                                            }
-                                        } else {
-                                            Toast toast = Toast.makeText(context.getApplicationContext(),
-                                                    "Проверьте правильность телефона ", Toast.LENGTH_SHORT);
-                                            toast.show();
-                                        }
-                                    }
-                                })
-                        .setNegativeButton("Отмена",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        dialog.cancel();
-                                    }
-                                });
-
-                AlertDialog alertDialog = mDialogBuilder.create();
-                alertDialog.getWindow().setBackgroundDrawableResource(R.color.colorWhite);
-                alertDialog.show();
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:+" + txt.getText().toString()));
+                startActivity(intent);
             } else {
 
                 String[] array = new String[]{"Изменить", "Позвонить", "Удалить"};

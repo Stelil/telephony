@@ -337,7 +337,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         @Override
         public void onClick(View v) {
             int id = v.getId();
-            Log.d(TAG, "onClick: " + id);
             final TextView textView = txtList.get(id);
             int text = Integer.parseInt(textView.getText().toString());
 
