@@ -53,7 +53,7 @@ public class CallbackReceiver extends BroadcastReceiver {
                     String comment = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(3)));
 
-                    String now_date = HelperClass.now_date();
+                    String now_date = HelperClass.nowDate();
                     now_date = now_date.substring(0, now_date.length());
 
                     Date one = null;

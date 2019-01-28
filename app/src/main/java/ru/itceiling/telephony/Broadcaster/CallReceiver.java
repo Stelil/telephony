@@ -1,7 +1,6 @@
 package ru.itceiling.telephony.Broadcaster;
 
 import android.Manifest;
-import android.app.FragmentManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,31 +9,20 @@ import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Build;
 import android.provider.CallLog;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
-import android.support.v7.app.AlertDialog;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,14 +33,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
-import ru.itceiling.telephony.Activity.ClientsListActivity;
 import ru.itceiling.telephony.Activity.MainActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 import static android.content.Context.MODE_PRIVATE;
-import static android.content.Context.WINDOW_SERVICE;
 
 public class CallReceiver extends BroadcastReceiver {
     static private String phoneNumber = "";
@@ -108,11 +94,11 @@ public class CallReceiver extends BroadcastReceiver {
                     historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
-                    date1 = HelperClass.now_date();
+                    date1 = HelperClass.nowDate();
                     //recordCall();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                     //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
-                    date2 = HelperClass.now_date();
+                    date2 = HelperClass.nowDate();
                     if (date2.equals("")) {
                     } else {
                         //timeDifference();
@@ -140,7 +126,7 @@ public class CallReceiver extends BroadcastReceiver {
 
         releaseRecorder();
 
-        String formatDateTime = HelperClass.now_date();
+        String formatDateTime = HelperClass.nowDate();
 
         Log.d(TAG, "recordCall: " + formatDateTime);
         if (audiofile == null) {
@@ -178,7 +164,7 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void newClient() {
 
-        phoneNumber = HelperClass.phone_edit(phoneNumber);
+        phoneNumber = HelperClass.phoneEdit(phoneNumber);
 
         Log.d(TAG, "newClient: " + phoneNumber);
 
@@ -207,7 +193,7 @@ public class CallReceiver extends BroadcastReceiver {
 
             String message = "Данный клиент не найден. Хотите добавить его?" +
                     "\nНомер клиента: " + phoneNumber +
-                    "\nВремя звонка: " + HelperClass.now_date().substring(0, 16);
+                    "\nВремя звонка: " + HelperClass.nowDate().substring(0, 16);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String CHANNEL_ID = "my_channel_01";
                 CharSequence name = "1";
@@ -269,7 +255,7 @@ public class CallReceiver extends BroadcastReceiver {
 
         int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
                 ctx, user_id);
-        String nowDate = HelperClass.now_date();
+        String nowDate = HelperClass.nowDate();
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, maxIdClient);
         values.put(DBHelper.KEY_CLIENT_NAME, "Неизвестный");
@@ -325,10 +311,10 @@ public class CallReceiver extends BroadcastReceiver {
                         String text = "";
                         switch (callStatus) {
                             case 2:
-                                text = "Исходящий дозвон. \nДлина разговора = " + duration + " секунд(a)";
+                                text = "Исходящий дозвон. \nДлина разговора = " +  HelperClass.editTimeCall(String.valueOf(duration));
                                 break;
                             case 3:
-                                text = "Входящий звонок. \nДлина разговора = " + duration + " секунд(a)";
+                                text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(duration));
                                 break;
                         }
 
@@ -381,7 +367,7 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void historyClient() {
 
-        phoneNumber = HelperClass.phone_edit(phoneNumber);
+        phoneNumber = HelperClass.phoneEdit(phoneNumber);
 
         Log.d(TAG, "historyClient: " + phoneNumber);
 

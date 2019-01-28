@@ -16,7 +16,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,7 +32,6 @@ import com.amigold.fundapter.FunDapter;
 import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 import ru.itceiling.telephony.AdapterList;
@@ -211,7 +209,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                         if (name.length() > 0) {
                             int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
                                     ClientsListActivity.this, user_id);
-                            String nowDate = HelperClass.now_date();
+                            String nowDate = HelperClass.nowDate();
                             ContentValues values = new ContentValues();
                             values.put(DBHelper.KEY_ID, maxIdClient);
                             values.put(DBHelper.KEY_CLIENT_NAME, name);
@@ -252,7 +250,7 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
                                 values = new ContentValues();
                                 values.put(DBHelper.KEY_ID, maxIdContacts);
                                 values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
-                                values.put(DBHelper.KEY_PHONE, HelperClass.phone_edit(phone));
+                                values.put(DBHelper.KEY_PHONE, HelperClass.phoneEdit(phone));
                                 values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
                                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
 

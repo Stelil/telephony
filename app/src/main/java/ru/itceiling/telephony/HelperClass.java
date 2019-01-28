@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.IntegerRes;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -54,7 +55,7 @@ public class HelperClass {
         return max_id;
     }
 
-    public static String now_date() {
+    public static String nowDate() {
         Calendar date_cr = new GregorianCalendar();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = df.format(date_cr.getTime());
@@ -69,7 +70,7 @@ public class HelperClass {
         return matcher.find();
     }
 
-    public static String phone_edit(String phone) {
+    public static String phoneEdit(String phone) {
 
         String str1 = phone.substring(0, 2);
         String str2 = phone;
@@ -96,13 +97,13 @@ public class HelperClass {
 
         int max_id = lastIdTable("rgzbn_gm_ceiling_client_history", context, user_id);
 
-        String date = HelperClass.now_date();
+        String date = HelperClass.nowDate();
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, max_id);
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
         values.put(DBHelper.KEY_DATE_TIME, date);
         values.put(DBHelper.KEY_TEXT, text);
-        values.put(DBHelper.KEY_CHANGE_TIME, now_date());
+        values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
 
         HelperClass.addExportData(
@@ -123,13 +124,13 @@ public class HelperClass {
 
         int max_id = lastIdTable("rgzbn_gm_ceiling_client_history", context, user_id);
 
-        String date = HelperClass.now_date();
+        String date = HelperClass.nowDate();
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, max_id);
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
         values.put(DBHelper.KEY_DATE_TIME, date);
         values.put(DBHelper.KEY_TEXT, text);
-        values.put(DBHelper.KEY_CHANGE_TIME, now_date());
+        values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
 
         if (bool) {
@@ -159,7 +160,7 @@ public class HelperClass {
         values.put(DBHelper.KEY_COMMENT, comment);
         values.put(DBHelper.KEY_MANAGER_ID, user_id);
         values.put(DBHelper.KEY_NOTIFY, "");
-        values.put(DBHelper.KEY_CHANGE_TIME, now_date());
+        values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, null, values);
 
         HelperClass.addExportData(
@@ -240,7 +241,7 @@ public class HelperClass {
 
         int max_id = lastIdTable("rgzbn_gm_ceiling_calls_status_history", context, user_id);
 
-        String date = HelperClass.now_date();
+        String date = HelperClass.nowDate();
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, max_id);
         values.put(DBHelper.KEY_MANAGER_ID, user_id);
@@ -268,7 +269,7 @@ public class HelperClass {
 
         int max_id = lastIdTable("rgzbn_gm_ceiling_calls_status_history", context, user_id);
 
-        String date = HelperClass.now_date();
+        String date = HelperClass.nowDate();
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, max_id);
         values.put(DBHelper.KEY_MANAGER_ID, user_id);
@@ -310,5 +311,26 @@ public class HelperClass {
         Log.d("logd", "associated_client: " + associated_client);
 
         return associated_client;
+    }
+
+    public static String editTimeCall(String time) {
+        String newTime = "";
+
+        int min = Integer.valueOf(time) / 60;
+        int sec = Integer.valueOf(time) % 60;
+
+        if (min == 0) {
+            newTime = "0";
+        } else {
+            newTime = String.valueOf(min);
+        }
+
+        if (sec == 0) {
+            newTime += ":00";
+        } else {
+            newTime += ":" + String.valueOf(sec);
+        }
+
+        return newTime;
     }
 }

@@ -42,8 +42,7 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
                     int pos = getAdapterPosition();
                     if (pos != RecyclerView.NO_POSITION) {
                         int clickedDataItem = callLogList.get(pos).getId();
-                        //Toast.makeText(v.getContext(), "You clicked " + clickedDataItem, Toast.LENGTH_SHORT).show();
-                        itemListener.recyclerViewListClicked(v, clickedDataItem);
+                        itemListener.recyclerViewListClicked(v, pos);
                     }
                 }
             });

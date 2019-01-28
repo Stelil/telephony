@@ -193,7 +193,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                         if (name.length() > 0) {
                             int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
                                     getActivity(), user_id);
-                            String nowDate = HelperClass.now_date();
+                            String nowDate = HelperClass.nowDate();
                             ContentValues values = new ContentValues();
                             values.put(DBHelper.KEY_ID, maxIdClient);
                             values.put(DBHelper.KEY_CLIENT_NAME, name);
@@ -235,7 +235,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                                 values = new ContentValues();
                                 values.put(DBHelper.KEY_ID, maxIdContacts);
                                 values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
-                                values.put(DBHelper.KEY_PHONE, HelperClass.phone_edit(phone));
+                                values.put(DBHelper.KEY_PHONE, HelperClass.phoneEdit(phone));
                                 values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
                                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
 
@@ -259,8 +259,10 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             }
                             cc.close();
 
+                            Log.d(TAG, "phone: " + phone);
+
                             int idOldClient = 0;
-                            sqlQuewy = "SELECT h._id " +
+                            sqlQuewy = "SELECT h.client_id " +
                                     "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
                                     "INNER JOIN rgzbn_gm_ceiling_calls_status_history AS h " +
                                     "ON c.client_id = h.client_id " +
@@ -409,7 +411,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     @Override
     public void recyclerViewListClicked(View v, int id) {
         Intent intent = new Intent(getActivity(), ClientActivity.class);
-        intent.putExtra("id_client", " " + id);
+        intent.putExtra("id_client", String.valueOf(id));
         intent.putExtra("check", "false");
         startActivity(intent);
     }

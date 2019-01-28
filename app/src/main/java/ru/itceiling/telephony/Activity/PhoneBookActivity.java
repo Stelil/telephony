@@ -19,12 +19,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +108,7 @@ public class PhoneBookActivity extends AppCompatActivity {
                 for (int i = 0; mListe.size() > i; i++) {
                     if (mListe.get(i).getCb1()) {
                         String name = mListe.get(i).getTexte1();
-                        String phone = HelperClass.phone_edit(mListe.get(i).getTexte2());
+                        String phone = HelperClass.phoneEdit(mListe.get(i).getTexte2());
                         addContact(name, phone);
                     }
                 }
@@ -175,7 +171,7 @@ public class PhoneBookActivity extends AppCompatActivity {
             } else {
                 int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
                         this, user_id);
-                String nowDate = HelperClass.now_date();
+                String nowDate = HelperClass.nowDate();
                 ContentValues values = new ContentValues();
                 values.put(DBHelper.KEY_ID, maxIdClient);
                 values.put(DBHelper.KEY_CLIENT_NAME, name);

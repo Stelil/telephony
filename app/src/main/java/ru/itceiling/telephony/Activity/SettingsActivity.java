@@ -2,30 +2,63 @@ package ru.itceiling.telephony.Activity;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.solovyev.android.checkout.ActivityCheckout;
+import org.solovyev.android.checkout.BillingRequests;
+import org.solovyev.android.checkout.Checkout;
+import org.solovyev.android.checkout.EmptyRequestListener;
+import org.solovyev.android.checkout.Inventory;
+import org.solovyev.android.checkout.ProductTypes;
+import org.solovyev.android.checkout.Purchase;
 
+import ru.itceiling.telephony.App;
 import ru.itceiling.telephony.R;
 
-public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
+public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, View.OnClickListener {
 
     TextView textMinValue;
     SeekBar seekBarValue;
     String time;
     String stringToParse;
     String TAG = "logd";
+
+    private class PurchaseListener extends EmptyRequestListener<Purchase> {
+        @Override
+        public void onSuccess(Purchase purchase) {
+            Log.d(TAG, "onSuccess: " + purchase.toString());
+        }
+
+        @Override
+        public void onError(int response, Exception e) {
+            Log.d(TAG, "onError: " + e);
+        }
+    }
+
+    private class InventoryCallback implements Inventory.Callback {
+        @Override
+        public void onLoaded(Inventory.Products products) {
+            // your code here
+        }
+    }
+
+    private final ActivityCheckout mCheckout = Checkout.forActivity(this, App.get().getBilling());
+    private Inventory mInventory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +71,18 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
         SharedPreferences SP = this.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
         stringToParse = SP.getString("", "");
+
+        mCheckout.start();
+
+        mCheckout.createPurchaseFlow(new PurchaseListener());
+
+        mInventory = mCheckout.makeInventory();
+        mInventory.load(Inventory.Request.create()
+                .loadAllPurchases()
+                .loadSkus(ProductTypes.IN_APP, "telephony.subscription.1month"), new InventoryCallback());
+
+        Button billing = findViewById(R.id.billing);
+        billing.setOnClickListener(this);
     }
 
     @Override
@@ -149,6 +194,31 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
+    }
+
+
+
+    @Override
+    protected void onDestroy() {
+        mCheckout.stop();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mCheckout.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onClick(View v) {
+        mCheckout.whenReady(new Checkout.EmptyListener() {
+            @Override
+            public void onReady(BillingRequests requests) {
+                requests.purchase(ProductTypes.IN_APP, "telephony.subscription.1month",
+                        null, mCheckout.getPurchaseFlow());
+            }
+        });
     }
 
 }

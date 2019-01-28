@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
@@ -22,7 +21,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TableLayout;
@@ -195,7 +193,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         int index = 0;
 
         String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
+                date2 = HelperClass.nowDate().substring(0, 10);
         if (!txtSelectDay.getText().toString().equals("")) {
             date1 = txtSelectDay.getText().toString();
         }
@@ -308,7 +306,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         client_mas.clear();
 
         String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
+                date2 = HelperClass.nowDate().substring(0, 10);
         if (!txtSelectDay.getText().toString().equals("")) {
             date1 = txtSelectDay.getText().toString();
         }
@@ -490,7 +488,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         int index = 0;
 
         String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
+                date2 = HelperClass.nowDate().substring(0, 10);
         if (!txtSelectDay.getText().toString().equals("")) {
             date1 = txtSelectDay.getText().toString();
         }

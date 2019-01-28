@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
-import ru.itceiling.telephony.Activity.MainActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterClient;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
@@ -259,7 +258,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         int index = 0;
 
         String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
+                date2 = HelperClass.nowDate().substring(0, 10);
         if (!txtSelectDay.getText().toString().equals("")) {
             date1 = txtSelectDay.getText().toString();
         }
@@ -784,7 +783,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         if (HelperClass.isOnline(getActivity())) {
             listManagerClientsStep = 0;
             String date1 = "0001-01-01",
-                    date2 = HelperClass.now_date().substring(0, 10);
+                    date2 = HelperClass.nowDate().substring(0, 10);
             if (!txtSelectDay.getText().toString().equals("")) {
                 date1 = txtSelectDay.getText().toString();
             }
@@ -959,7 +958,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
     void createPieGraph(Integer managerId) {
         String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
+                date2 = HelperClass.nowDate().substring(0, 10);
         if (!txtSelectDay.getText().toString().equals("")) {
             date1 = txtSelectDay.getText().toString();
         }
@@ -1062,7 +1061,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     private void createTableManager(int managerId) {
 
         String date1 = "0001-01-01",
-                date2 = HelperClass.now_date().substring(0, 10);
+                date2 = HelperClass.nowDate().substring(0, 10);
         if (!txtSelectDay.getText().toString().equals("")) {
             date1 = txtSelectDay.getText().toString();
         }

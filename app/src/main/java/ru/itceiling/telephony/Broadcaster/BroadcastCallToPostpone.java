@@ -66,7 +66,7 @@ public class BroadcastCallToPostpone extends BroadcastReceiver {
 
                 ContentValues values = new ContentValues();
                 values.put(DBHelper.KEY_DATE_TIME, dateEnd.substring(0, 16));
-                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                 db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
 
                 HelperClass.addExportData(

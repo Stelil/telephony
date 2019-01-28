@@ -19,7 +19,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -184,7 +183,7 @@ public class ClientActivity extends AppCompatActivity {
                                 values.put(DBHelper.KEY_COMMENT, txtEditCallbackComment.getText().toString());
                             }
                             values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
-                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
 
                             HelperClass.addExportData(
@@ -796,7 +795,7 @@ public class ClientActivity extends AppCompatActivity {
                     values.put(DBHelper.KEY_ID, maxId);
                     values.put(DBHelper.KEY_TITLE, editText.getText().toString());
                     values.put(DBHelper.KEY_DEALER_ID, dealer_id);
-                    values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                    values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                     db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
 
                     HelperClass.addExportData(
@@ -882,7 +881,7 @@ public class ClientActivity extends AppCompatActivity {
                 values.put(DBHelper.KEY_ID, maxId);
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
                 values.put(DBHelper.KEY_STATUS_ID, idStatus);
-                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
 
                 HelperClass.addExportData(
@@ -1058,7 +1057,7 @@ public class ClientActivity extends AppCompatActivity {
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
                 values.put(DBHelper.KEY_TYPE_ID, "1");
                 values.put(DBHelper.KEY_CONTACT, email);
-                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, null, values);
 
                 HelperClass.addExportData(
@@ -1091,7 +1090,7 @@ public class ClientActivity extends AppCompatActivity {
                 values.put(DBHelper.KEY_ID, maxId);
                 values.put(DBHelper.KEY_CLIENT_ID, id_client);
                 values.put(DBHelper.KEY_PHONE, phone);
-                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                 db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
 
                 HelperClass.addExportData(
@@ -1176,7 +1175,7 @@ public class ClientActivity extends AppCompatActivity {
                                     values.put(DBHelper.KEY_COMMENT, txtCallbackComment.getText().toString());
                                 }
                                 values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
-                                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                                 db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
 
                                 HelperClass.addExportData(

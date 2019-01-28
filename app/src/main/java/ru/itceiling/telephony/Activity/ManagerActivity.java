@@ -3,7 +3,6 @@ package ru.itceiling.telephony.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,15 +10,12 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -117,7 +113,7 @@ public class ManagerActivity extends AppCompatActivity {
                             values.put(DBHelper.KEY_DEALER_ID, dealer_id);
                             values.put(DBHelper.KEY_USERNAME, phone);
                             values.put(DBHelper.KEY_EMAIL, emailClient.getText().toString());
-                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.now_date());
+                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
                             db.insert(DBHelper.TABLE_USERS, null, values);
 
                             org.json.simple.JSONObject jsonObjectClient = new org.json.simple.JSONObject();

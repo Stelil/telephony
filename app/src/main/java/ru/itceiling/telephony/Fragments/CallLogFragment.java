@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -26,6 +27,7 @@ import ru.itceiling.telephony.Adapter.RVAdapterCallLog;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.CallLog;
 import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -85,7 +87,7 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
         String sqlQuewy = "SELECT _id, client_id, status, change_time, call_length "
                 + "FROM rgzbn_gm_ceiling_calls_status_history " +
                 "where manager_id = ? " +
-                "order by date_time desc";
+                "order by change_time desc";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -132,7 +134,8 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
                             if (status.equals("1") || status.equals("0")) {
                                 type = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
                             } else {
-                                type = cc.getString(cc.getColumnIndex(cc.getColumnName(0))) + "\n(Длина:" + call_length + ")";
+                                type = cc.getString(cc.getColumnIndex(cc.getColumnName(0))) +
+                                        "\n(Длина: " + HelperClass.editTimeCall(call_length) + ")";
                             }
                         }
                     }
@@ -162,7 +165,9 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
     }
 
     @Override
-    public void recyclerViewListClicked(View v, int id) {
+    public void recyclerViewListClicked(View v, final int pos) {
+
+        final int id = callLogs.get(pos).getId();
 
         int deleted_by_user = 0;
         String sqlQuewy = "SELECT deleted_by_user "
@@ -179,7 +184,7 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
         String phone = "";
         sqlQuewy = "SELECT phone "
                 + "FROM rgzbn_gm_ceiling_clients_contacts " +
-                "WHERE _id = ?";
+                "WHERE client_id = ?";
         c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
         if (c != null) {
             if (c.moveToLast()) {
@@ -189,12 +194,46 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
         c.close();
 
         if (deleted_by_user == 0) {
-            Intent intent = new Intent(getActivity(), ClientActivity.class);
-            intent.putExtra("id_client", " " + id);
-            intent.putExtra("check", "false");
-            startActivity(intent);
+            String[] array = new String[]{"Открыть", "Позвонить"};
+            AlertDialog.Builder builder;
+            builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Выберите действие")
+                    .setNegativeButton("Отмена",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+            final String finalPhone = phone;
+            builder.setItems(array, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int item) {
+                    // TODO Auto-generated method stub
+                    switch (item) {
+                        case 0:
+                            Intent intent = new Intent(getActivity(), ClientActivity.class);
+                            intent.putExtra("id_client", " " + id);
+                            intent.putExtra("check", "true");
+                            startActivity(intent);
+
+                            break;
+                        case 1:
+                            intent = new Intent(Intent.ACTION_DIAL);
+                            intent.setData(Uri.parse("tel:+" + finalPhone));
+                            startActivity(intent);
+                            break;
+                    }
+                }
+            });
+
+            builder.setCancelable(false);
+            builder.create();
+            builder.show();
+
+
         } else {
-            String[] array = new String[]{"Добавить", "Убрать"};
+            String[] array = new String[]{"Добавить", "Удалить"};
             AlertDialog.Builder builder;
             builder = new AlertDialog.Builder(getActivity());
             builder.setTitle("Выберите действие")
@@ -218,6 +257,20 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
                             getActivity().finish();
                             break;
                         case 1:
+                            db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY,
+                                    "client_id = ?",
+                                    new String[]{String.valueOf(id)});
+
+                            db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
+                                    "_id = ?",
+                                    new String[]{String.valueOf(id)});
+
+                            db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
+                                    "client_id = ?",
+                                    new String[]{String.valueOf(id)});
+
+                            callLogs.remove(pos);
+                            adapter.notifyItemRemoved(pos);
 
                             break;
                     }

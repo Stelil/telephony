@@ -86,7 +86,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         user_id = SP.getString("", "");
 
         txtSelectDay = view.findViewById(R.id.txtSelectDay);
-        txtSelectDay.setText(HelperClass.now_date().substring(0, 10));
+        txtSelectDay.setText(HelperClass.nowDate().substring(0, 10));
 
         MyTask mt = new MyTask();
         mt.execute();
@@ -146,7 +146,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
         @Override
         protected Void doInBackground(Void... params) {
-            listClients(HelperClass.now_date().substring(0, 10));
+            listClients(HelperClass.nowDate().substring(0, 10));
             return null;
         }
 
@@ -289,7 +289,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     @Override
     public void recyclerViewListClicked(View v, int id) {
         Intent intent = new Intent(getActivity(), ClientActivity.class);
-        intent.putExtra("id_client", " " + id);
+        intent.putExtra("id_client", String.valueOf(id));
         intent.putExtra("check", "true");
         startActivity(intent);
     }

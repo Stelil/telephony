@@ -2,7 +2,6 @@ package ru.itceiling.telephony.Activity;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,7 +13,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -76,7 +74,7 @@ public class CallbackListActivity extends AppCompatActivity {
         setTitle("Перезвоны");
 
         txtSelectDay = findViewById(R.id.txtSelectDay);
-        txtSelectDay.setText(HelperClass.now_date().substring(0, 10));
+        txtSelectDay.setText(HelperClass.nowDate().substring(0, 10));
 
         MyTask mt = new MyTask();
         mt.execute();
@@ -125,7 +123,7 @@ public class CallbackListActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            listClients(HelperClass.now_date().substring(0, 10));
+            listClients(HelperClass.nowDate().substring(0, 10));
             return null;
         }
 
