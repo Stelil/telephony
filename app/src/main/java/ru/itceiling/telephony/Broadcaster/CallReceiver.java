@@ -311,7 +311,7 @@ public class CallReceiver extends BroadcastReceiver {
                         String text = "";
                         switch (callStatus) {
                             case 2:
-                                text = "Исходящий дозвон. \nДлина разговора = " +  HelperClass.editTimeCall(String.valueOf(duration));
+                                text = "Исходящий дозвон. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(duration));
                                 break;
                             case 3:
                                 text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(duration));
@@ -405,7 +405,7 @@ public class CallReceiver extends BroadcastReceiver {
             String client_name = "";
             sqlQuewy = "SELECT client_name "
                     + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE _id = ?";
+                    " WHERE _id = ? and deleted_by_user <> 1";
             c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
             if (c != null) {
                 if (c.moveToFirst()) {
@@ -430,50 +430,53 @@ public class CallReceiver extends BroadcastReceiver {
             PendingIntent resultPendingIntent =
                     stackBuilder.getPendingIntent(0, PendingIntent.FLAG_ONE_SHOT);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                String CHANNEL_ID = "my_channel_01";
-                CharSequence name = "1";
-                int importance = NotificationManager.IMPORTANCE_HIGH;
-                NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
-                Notification notification = new Notification.Builder(ctx)
-                        .setAutoCancel(true)
-                        .setTicker("Звонок")
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        .setSmallIcon(R.raw.icon_notif)
-                        .setStyle(new Notification.BigTextStyle().bigText(message))
-                        .setContentTitle(client_name)
-                        .setContentText(message)
-                        .setChannelId(CHANNEL_ID)
-                        .setAutoCancel(true)
-                        .setContentIntent(resultPendingIntent)
-                        .build();
+            if (client_name.equals("")) { // что бы не выводилась история по неизвестному клиенту
 
-                NotificationManager mNotificationManager =
-                        (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.createNotificationChannel(mChannel);
-                mNotificationManager.notify((int) notifyID, notification);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    String CHANNEL_ID = "my_channel_01";
+                    CharSequence name = "1";
+                    int importance = NotificationManager.IMPORTANCE_HIGH;
+                    NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+                    Notification notification = new Notification.Builder(ctx)
+                            .setAutoCancel(true)
+                            .setTicker("Звонок")
+                            .setDefaults(Notification.DEFAULT_ALL)
+                            .setSmallIcon(R.raw.icon_notif)
+                            .setStyle(new Notification.BigTextStyle().bigText(message))
+                            .setContentTitle(client_name)
+                            .setContentText(message)
+                            .setChannelId(CHANNEL_ID)
+                            .setAutoCancel(true)
+                            .setContentIntent(resultPendingIntent)
+                            .build();
 
-                notification.flags |= Notification.FLAG_AUTO_CANCEL;
+                    NotificationManager mNotificationManager =
+                            (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+                    mNotificationManager.createNotificationChannel(mChannel);
+                    mNotificationManager.notify((int) notifyID, notification);
 
-            } else {
+                    notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-                NotificationCompat.Builder builder =
-                        new NotificationCompat.Builder(ctx)
-                                .setAutoCancel(true)
-                                .setTicker("Звонок")
-                                .setDefaults(Notification.DEFAULT_ALL)
-                                .setSmallIcon(R.raw.icon_notif)
-                                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                                .setContentTitle(client_name)
-                                .setAutoCancel(true)
-                                .setContentIntent(resultPendingIntent)
-                                .setContentText(message);
-                Notification notification = builder.build();
-                NotificationManager notificationManager = (NotificationManager) ctx
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify((int) notifyID, notification);
+                } else {
 
-                notification.flags |= Notification.FLAG_AUTO_CANCEL;
+                    NotificationCompat.Builder builder =
+                            new NotificationCompat.Builder(ctx)
+                                    .setAutoCancel(true)
+                                    .setTicker("Звонок")
+                                    .setDefaults(Notification.DEFAULT_ALL)
+                                    .setSmallIcon(R.raw.icon_notif)
+                                    .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                                    .setContentTitle(client_name)
+                                    .setAutoCancel(true)
+                                    .setContentIntent(resultPendingIntent)
+                                    .setContentText(message);
+                    Notification notification = builder.build();
+                    NotificationManager notificationManager = (NotificationManager) ctx
+                            .getSystemService(Context.NOTIFICATION_SERVICE);
+                    notificationManager.notify((int) notifyID, notification);
+
+                    notification.flags |= Notification.FLAG_AUTO_CANCEL;
+                }
             }
         }
     }

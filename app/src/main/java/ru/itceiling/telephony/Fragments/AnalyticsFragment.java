@@ -702,45 +702,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         adapter = new RVAdapterClient(persons, this);
         recyclerView.setAdapter(adapter);
 
-        /*
-        BindDictionary<AdapterList> dict = new BindDictionary<>();
-        dict.addStringField(R.id.firstColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getThree();
-            }
-        });
-        dict.addStringField(R.id.secondColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getOne();
-            }
-        });
-        dict.addStringField(R.id.thirdColumn, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getTwo();
-            }
-        });
-
-        FunDapter adapter = new FunDapter(getActivity(), client_mas, R.layout.layout_dialog_list, dict);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-
-                AdapterList selectedid = client_mas.get(position);
-                String id_client = selectedid.getId();
-
-                Intent intent = new Intent(getActivity(), ClientActivity.class);
-                intent.putExtra("id_client", id_client);
-                intent.putExtra("check", "false");
-                startActivity(intent);
-            }
-        });
-
-        */
-
     }
 
     @Override

@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="10dp"
+    android:id="@+id/layoutSet">
 
     <TextView
         android:layout_width="match_parent"
@@ -35,13 +36,5 @@
         android:layout_width="wrap_content"
         android:layout_height="1dp"
         android:background="#848484" />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Покупка"
-        android:textColor="@color/colorWhite"
-        android:background="@drawable/rounded_button"
-        android:id="@+id/billing"/>
 
 </LinearLayout>

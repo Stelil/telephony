@@ -112,15 +112,15 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
         getActivity().setTitle("Клиенты");
 
+        MyTask mt = new MyTask();
+        mt.execute();
+
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        MyTask mt = new MyTask();
-        mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
@@ -136,7 +136,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         protected void onPreExecute() {
             super.onPreExecute();
             mProgressDialog = new ProgressDialog(getActivity());
-            mProgressDialog.setMessage("Загрузка...");
+            mProgressDialog.setMessage("Отображаем...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(false);
             mProgressDialog.show();
@@ -316,7 +316,12 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         String sqlQuewy;
         Cursor c;
 
-        String associated_client = HelperClass.associated_client(getActivity(), dealer_id);
+        String associated_client = HelperClass.associated_client(getActivity(), user_id);
+
+        if (associated_client == null) {
+            associated_client = "";
+        }
+
         sqlQuewy = "SELECT created, " +
                 "          client_name, " +
                 "          _id," +

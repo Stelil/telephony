@@ -12,43 +12,35 @@ public class UnderlineTextView extends TextView
 {
     private boolean m_modifyingText = false;
 
-    public UnderlineTextView(Context context)
-    {
+    public UnderlineTextView(Context context) {
         super(context);
         init();
     }
 
-    public UnderlineTextView(Context context, AttributeSet attrs)
-    {
+    public UnderlineTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public UnderlineTextView(Context context, AttributeSet attrs, int defStyle)
-    {
+    public UnderlineTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
     }
 
-    private void init()
-    {
-        addTextChangedListener(new TextWatcher()
-        {
+    private void init() {
+        addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after)
-            {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 //Do nothing here... we don't care
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count)
-            {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 //Do nothing here... we don't care
             }
 
             @Override
-            public void afterTextChanged(Editable s)
-            {
+            public void afterTextChanged(Editable s) {
                 if (m_modifyingText)
                     return;
 
@@ -59,8 +51,7 @@ public class UnderlineTextView extends TextView
         underlineText();
     }
 
-    private void underlineText()
-    {
+    private void underlineText() {
         if (m_modifyingText)
             return;
 

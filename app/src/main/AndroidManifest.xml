@@ -15,7 +15,7 @@
         android:protectionLevel="signature|privileged" />
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name=".App"
@@ -38,7 +38,7 @@
         </activity>
         <activity
             android:name=".Activity.MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Activity.ClientActivity"
             android:screenOrientation="portrait"
@@ -52,19 +52,25 @@
         <activity
             android:name=".Activity.SettingsActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".Activity.AnalyticsActivity" />
-        <activity android:name=".Activity.VerifyPhoneActivity" />
+        <activity
+            android:name=".Activity.AnalyticsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activity.VerifyPhoneActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activity.ManagerActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activity.ClientBrowserActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activity.PhoneBookActivity"
+            android:screenOrientation="portrait" />
 
-        <!--
-            <receiver
-                android:name=".Broadcaster.CallReceiver"
-                android:enabled="true">
-                <intent-filter>
-                    <action android:name="android.intent.action.PHONE_STATE" />
-                    <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-                </intent-filter>
-            </receiver>
-        -->
+        <activity
+            android:name=".SubscriptionsActivity"
+            android:screenOrientation="portrait" />
 
         <receiver
             android:name=".Broadcaster.CallbackReceiver"
@@ -73,9 +79,5 @@
         <receiver android:name=".Broadcaster.ExportDataReceiver" />
         <receiver android:name=".Broadcaster.BroadcastCallToPostpone" />
 
-        <activity android:name=".Activity.ManagerActivity" />
-        <activity android:name=".Activity.ClientBrowserActivity" />
-        <activity android:name=".Activity.PhoneBookActivity"></activity>
     </application>
-
 </manifest>

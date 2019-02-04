@@ -184,12 +184,23 @@ public class ClientActivity extends AppCompatActivity {
                             }
                             values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
                             values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+                            values.put(DBHelper.KEY_MANAGER_ID, user_id);
                             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
+
+                            values = new ContentValues();
+                            values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
 
                             HelperClass.addExportData(
                                     ClientActivity.this,
                                     Integer.parseInt(id),
                                     "rgzbn_gm_ceiling_callback",
+                                    "send");
+
+                            HelperClass.addExportData(
+                                    ClientActivity.this,
+                                    Integer.parseInt(id_client),
+                                    "rgzbn_gm_ceiling_clients",
                                     "send");
 
                             HelperClass.addHistory("Звонок перенесён на " + callbackDate,
@@ -1176,12 +1187,23 @@ public class ClientActivity extends AppCompatActivity {
                                 }
                                 values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
                                 values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+                                values.put(DBHelper.KEY_MANAGER_ID, user_id);
                                 db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
+
+                                values = new ContentValues();
+                                values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
 
                                 HelperClass.addExportData(
                                         ClientActivity.this,
                                         Integer.parseInt(id),
                                         "rgzbn_gm_ceiling_callback",
+                                        "send");
+
+                                HelperClass.addExportData(
+                                        ClientActivity.this,
+                                        Integer.parseInt(id_client),
+                                        "rgzbn_gm_ceiling_clients",
                                         "send");
 
                                 Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),

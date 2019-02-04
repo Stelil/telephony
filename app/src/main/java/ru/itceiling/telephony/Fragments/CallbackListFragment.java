@@ -119,12 +119,9 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     @Override
     public void onResume() {
         super.onResume();
-        if (ii > 0) {
-        }
-        ii++;
 
-        MyTaskResume mt = new MyTaskResume();
-        mt.execute();
+        //MyTaskResume mt = new MyTaskResume();
+        //mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
@@ -138,7 +135,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         protected void onPreExecute() {
             super.onPreExecute();
             mProgressDialog = new ProgressDialog(getActivity());
-            mProgressDialog.setMessage("Загрузка...");
+            mProgressDialog.setMessage("Отображаем...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(false);
             mProgressDialog.show();
@@ -189,12 +186,12 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         String sqlQuewy;
         Cursor c;
         if (date.equals("")) {
-            sqlQuewy = "SELECT client_id, date_time, comment, _id "
+            sqlQuewy = "SELECT client_id, date_time, comment, _id, manager_id "
                     + "FROM rgzbn_gm_ceiling_callback " +
                     " order by date_time desc";
             c = db.rawQuery(sqlQuewy, new String[]{});
         } else {
-            sqlQuewy = "SELECT client_id, date_time, comment, _id "
+            sqlQuewy = "SELECT client_id, date_time, comment, _id, manager_id "
                     + "FROM rgzbn_gm_ceiling_callback " +
                     "where substr(date_time,1,10) <= ? " +
                     " order by date_time desc";
@@ -211,8 +208,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                         comment = "-";
 
                     String client_name = "";
-                    String manager_id = "";
-                    sqlQuewy = "SELECT client_name, manager_id "
+                    sqlQuewy = "SELECT client_name "
                             + "FROM rgzbn_gm_ceiling_clients" +
                             " WHERE _id = ? ";
                     Cursor cc = db.rawQuery(sqlQuewy, new String[]{client_id});
@@ -220,7 +216,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                         if (cc.moveToFirst()) {
                             do {
                                 client_name = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                manager_id = cc.getString(cc.getColumnIndex(cc.getColumnName(1)));
                             } while (cc.moveToNext());
                         }
                     }
@@ -244,6 +239,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     }
                     cc.close();
 
+                    String manager_id = c.getString(c.getColumnIndex(c.getColumnName(4)));;
                     String nameManager = "-";
                     sqlQuewy = "SELECT name "
                             + "   FROM rgzbn_users" +

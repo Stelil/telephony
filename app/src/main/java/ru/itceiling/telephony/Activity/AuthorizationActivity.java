@@ -41,14 +41,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.VKCallback;
-import com.vk.sdk.VKScope;
-import com.vk.sdk.VKSdk;
-import com.vk.sdk.api.VKApi;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -89,9 +81,9 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     final public static String ONE_TIME = "onetime";
 
-    private String[] scope = new String[]{
-            VKScope.EMAIL
-    };
+    //private String[] scope = new String[]{
+    //        VKScope.EMAIL
+    //};
 
     private static final int RC_SIGN_IN = 9001;
 
@@ -100,6 +92,87 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     private TextView mStatusTextView;
     private TextView mDetailTextView;
     private ProgressBar progressBar;
+
+    /*
+    private class PurchaseListener extends EmptyRequestListener<Purchase> {
+        @Override
+        public void onSuccess(Purchase purchase) {
+            Log.d(TAG, "onSuccess: " + purchase.toString());
+        }
+
+        @Override
+        public void onError(int response, Exception e) {
+            Log.d(TAG, "onError: " + e);
+        }
+    }
+
+    private final List<Inventory.Callback> mInventoryCallbacks = new ArrayList<>();
+
+    private class InventoryCallback implements Inventory.Callback {
+        @Override
+        public void onLoaded(Inventory.Products products) {
+            for (Inventory.Callback callback : mInventoryCallbacks) {
+                callback.onLoaded(products);
+            }
+        }
+    }
+
+    private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month");
+
+    private void reloadInventory() {
+        Log.d(TAG, "reloadInventory: ");
+        final Inventory.Request request = Inventory.Request.create();
+        request.loadPurchases(SUBSCRIPTION);
+        request.loadSkus(SUBSCRIPTION, SKUS);
+        mCheckout.loadInventory(request, new Inventory.Callback() {
+            @Override
+            public void onLoaded(@Nonnull Inventory.Products products) {
+                for (Inventory.Callback callback : mInventoryCallbacks) {
+                    callback.onLoaded(products);
+                    Log.d(TAG, "onLoaded: " + products.toString());
+                    Log.d(TAG, "onLoaded: " + callback.toString());
+                }
+            }
+        });
+    }
+
+    private static class TargetSkusAdapter extends ArrayAdapter<SkuItem> implements Inventory.Callback {
+
+        public TargetSkusAdapter(Context context) {
+            super(context, R.layout.support_simple_spinner_dropdown_item);
+        }
+
+        @Override
+        public void onLoaded(@Nonnull Inventory.Products products) {
+            final Inventory.Product product = products.get(SUBSCRIPTION);
+
+            setNotifyOnChange(false);
+            clear();
+            for (Sku sku : product.getSkus()) {
+                if (!product.isPurchased(sku)) {
+                    add(new SkuItem(sku));
+                }
+            }
+            notifyDataSetChanged();
+        }
+    }
+
+    private static class SkuItem {
+        private final Sku mSku;
+
+        private SkuItem(Sku sku) {
+            mSku = sku;
+        }
+
+        @Override
+        public String toString() {
+            return mSku.getDisplayTitle();
+        }
+    }
+
+    private final ActivityCheckout mCheckout = Checkout.forActivity(this, App.get().getBilling());
+    private Inventory mInventory;
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +188,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         try {
             SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
             if (SP.getString("", "").equals("1")) {
-                if (this != null ) {
+                if (this != null) {
                     pd = new ProgressDialog(this);
                     pd.setTitle("Загрузка клиентов ... ");
                     pd.setMessage("Пожалуйста подождите");
@@ -143,7 +216,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         //Button listeners
         findViewById(R.id.buttonVK).setOnClickListener(this);
 
-
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com")
                 .requestEmail()
@@ -158,12 +230,34 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
 
+        /*
+        mCheckout.start();
+        mCheckout.createPurchaseFlow(new PurchaseListener());
+        mInventory = mCheckout.makeInventory();
+        mInventory.load(Inventory.Request.create()
+                .loadAllPurchases()
+                .loadSkus(ProductTypes.IN_APP, "telephony.subscription.1month"), new InventoryCallback());
+
+        reloadInventory();
+
+        TargetSkusAdapter targetSkusAdapter = new TargetSkusAdapter(this);
+        Log.d(TAG, "getCount: " + targetSkusAdapter.getCount());
+        if (targetSkusAdapter.getCount() > 0) {
+            Log.d(TAG, "getCount: " + targetSkusAdapter.getItem(0).toString());
+        }
+        */
     }
 
     @Override
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
+    }
+
+    @Override
+    public void onDestroy() {
+        //mCheckout.stop();
+        super.onDestroy();
     }
 
     @Override
@@ -180,6 +274,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }
         }
 
+        /*
         //VK
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
@@ -227,6 +322,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         })) {
             super.onActivityResult(requestCode, resultCode, data);
         }
+
+        */
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
@@ -275,9 +372,46 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             signIn();
         }
         if (i == R.id.buttonVK) {
-            VKSdk.login(this, scope);
+            //VKSdk.login(this, scope);
         }
     }
+
+    /*
+    void alertSubs() {
+        LayoutInflater li = LayoutInflater.from(this);
+        View promptsView = li.inflate(R.layout.fragment_welcome, null);
+        AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(this);
+        mDialogBuilder.setView(promptsView);
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(promptsView)
+                .create();
+
+        Button btnIAgree = promptsView.findViewById(R.id.btnIAgree);
+        btnIAgree.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCheckout.whenReady(new Checkout.EmptyListener() {
+                    @Override
+                    public void onReady(BillingRequests requests) {
+                        requests.purchase(ProductTypes.IN_APP, "telephony.subscription.1month",
+                                null, mCheckout.getPurchaseFlow());
+                    }
+                });
+            }
+        });
+
+        Button btnINotAgree = promptsView.findViewById(R.id.btnINotAgree);
+        btnINotAgree.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+    */
 
     @Override
     protected void onStop() {

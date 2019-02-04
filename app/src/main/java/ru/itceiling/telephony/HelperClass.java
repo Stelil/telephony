@@ -27,7 +27,7 @@ public class HelperClass {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    public static int lastIdTable(String table, Context context, String dealer_id) {
+    public static int lastIdTable(String table, Context context, String user_id) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db;
@@ -38,8 +38,8 @@ public class HelperClass {
             String sqlQuewy = "select MAX(_id) "
                     + "FROM " + table + " " +
                     "where _id>? and _id<?";
-            Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(Integer.parseInt(dealer_id) * 100000),
-                    String.valueOf(Integer.parseInt(dealer_id) * 100000 + 999999)});
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(Integer.parseInt(user_id) * 100000),
+                    String.valueOf(Integer.parseInt(user_id) * 100000 + 999999)});
             if (c != null) {
                 if (c.moveToFirst()) {
                     do {
@@ -49,7 +49,7 @@ public class HelperClass {
                 }
             }
         } catch (Exception e) {
-            max_id = Integer.parseInt(dealer_id) * 100000 + 1;
+            max_id = Integer.parseInt(user_id) * 100000 + 1;
         }
 
         return max_id;
@@ -148,10 +148,11 @@ public class HelperClass {
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        SharedPreferences SPI = context.getSharedPreferences("dealer_id", MODE_PRIVATE);
-        String dealer_id = SPI.getString("", "");
+        Log.d("logd", "user_id: " + user_id);
 
-        int max_id = lastIdTable("rgzbn_gm_ceiling_callback", context, dealer_id);
+        int max_id = lastIdTable("rgzbn_gm_ceiling_callback", context, user_id);
+
+        Log.d("logd", "max_id: " + max_id);
 
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, max_id);
@@ -163,10 +164,20 @@ public class HelperClass {
         values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, null, values);
 
+        values = new ContentValues();
+        values.put(DBHelper.KEY_MANAGER_ID, user_id);
+        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
+
         HelperClass.addExportData(
                 context,
                 max_id,
                 "rgzbn_gm_ceiling_callback",
+                "send");
+
+        HelperClass.addExportData(
+                context,
+                Integer.parseInt(id_client),
+                "rgzbn_gm_ceiling_clients",
                 "send");
 
     }
