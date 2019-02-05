@@ -1,5 +1,6 @@
 package ru.itceiling.telephony.Activity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
@@ -10,13 +11,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,24 +53,47 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.solovyev.android.checkout.ActivityCheckout;
+import org.solovyev.android.checkout.Billing;
+import org.solovyev.android.checkout.BillingRequests;
+import org.solovyev.android.checkout.Checkout;
+import org.solovyev.android.checkout.EmptyRequestListener;
+import org.solovyev.android.checkout.Inventory;
+import org.solovyev.android.checkout.ProductTypes;
+import org.solovyev.android.checkout.Purchase;
+import org.solovyev.android.checkout.Sku;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.annotation.Nonnull;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import ru.itceiling.telephony.App;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
-public class AuthorizationActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
+import static org.solovyev.android.checkout.ProductTypes.SUBSCRIPTION;
+
+public class AuthorizationActivity extends AppCompatActivity implements View.OnClickListener,
+        GoogleApiClient.OnConnectionFailedListener {
 
     static DBHelper dbHelper;
     static SQLiteDatabase db;
-    String domen = "calc",
-            TAG = "ImportLog",
-            user_id = "",
-            change_time_global = "",
-            sync_import = "";
+    String domen = "calc";
+    static String TAG = "ImportLog";
+    String user_id = "";
+    String change_time_global = "";
+    String sync_import = "";
     static RequestQueue requestQueue;
     static org.json.simple.JSONObject jsonSync_Import = new org.json.simple.JSONObject();
 
@@ -85,7 +116,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     //        VKScope.EMAIL
     //};
 
+    AlertDialog dialogSubs;
+
     private static final int RC_SIGN_IN = 9001;
+    private static final int G_SIGN_IN = 51966;
 
     private FirebaseAuth mAuth;
     private GoogleApiClient mGoogleApiClient;
@@ -93,7 +127,14 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     private TextView mDetailTextView;
     private ProgressBar progressBar;
 
-    /*
+    private ActivityCheckout mCheckout;
+
+    private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month", "telephony.subscription.6month");
+
+    private boolean subs = false;
+
+    private Inventory mInventory;
+
     private class PurchaseListener extends EmptyRequestListener<Purchase> {
         @Override
         public void onSuccess(Purchase purchase) {
@@ -117,35 +158,14 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         }
     }
 
-    private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month");
-
-    private void reloadInventory() {
-        Log.d(TAG, "reloadInventory: ");
-        final Inventory.Request request = Inventory.Request.create();
-        request.loadPurchases(SUBSCRIPTION);
-        request.loadSkus(SUBSCRIPTION, SKUS);
-        mCheckout.loadInventory(request, new Inventory.Callback() {
-            @Override
-            public void onLoaded(@Nonnull Inventory.Products products) {
-                for (Inventory.Callback callback : mInventoryCallbacks) {
-                    callback.onLoaded(products);
-                    Log.d(TAG, "onLoaded: " + products.toString());
-                    Log.d(TAG, "onLoaded: " + callback.toString());
-                }
-            }
-        });
-    }
-
+    /*
     private static class TargetSkusAdapter extends ArrayAdapter<SkuItem> implements Inventory.Callback {
-
         public TargetSkusAdapter(Context context) {
             super(context, R.layout.support_simple_spinner_dropdown_item);
         }
-
         @Override
         public void onLoaded(@Nonnull Inventory.Products products) {
             final Inventory.Product product = products.get(SUBSCRIPTION);
-
             setNotifyOnChange(false);
             clear();
             for (Sku sku : product.getSkus()) {
@@ -156,6 +176,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             notifyDataSetChanged();
         }
     }
+    */
 
     private static class SkuItem {
         private final Sku mSku;
@@ -170,14 +191,40 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         }
     }
 
-    private final ActivityCheckout mCheckout = Checkout.forActivity(this, App.get().getBilling());
-    private Inventory mInventory;
-    */
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authorization);
+
+        final Billing billing = App.get().getBilling();
+        mCheckout = Checkout.forActivity(this, billing);
+        mCheckout.start();
+
+        final Inventory.Request request = Inventory.Request.create();
+        request.loadPurchases(SUBSCRIPTION);
+        request.loadSkus(SUBSCRIPTION, SKUS);
+        mCheckout.loadInventory(request, new Inventory.Callback() {
+            @Override
+            public void onLoaded(@Nonnull Inventory.Products products) {
+                for (Inventory.Product product : products) {
+                    for (Purchase purchase : product.getPurchases()) {
+                        if (purchase.state != Purchase.State.PURCHASED) {
+                            continue;
+                        }
+                        final Sku sku = product.getSku(purchase.sku);
+                        if (sku != null && purchase.autoRenewing) {
+                            subs = true;
+                            Log.d(TAG, "onLoaded: " + sku.title);
+                        }
+                    }
+                }
+                if (subs) {
+                    prBar();
+                }
+            }
+        });
+
+        mCheckout.createPurchaseFlow(new PurchaseListener());
 
         login = findViewById(R.id.login);
         password = findViewById(R.id.password);
@@ -185,25 +232,9 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
 
-        try {
-            SharedPreferences SP = this.getSharedPreferences("enter", MODE_PRIVATE);
-            if (SP.getString("", "").equals("1")) {
-                if (this != null) {
-                    pd = new ProgressDialog(this);
-                    pd.setTitle("Загрузка клиентов ... ");
-                    pd.setMessage("Пожалуйста подождите");
-                    pd.setIndeterminate(false);
-                    pd.setCancelable(false);
-                    pd.show();
-
-                    importData();
-                }
-
-            }
-        } catch (Exception e) {
-        }
-
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+        prBar();
 
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
@@ -214,7 +245,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         findViewById(R.id.sign_in_button).setOnClickListener(this);
 
         //Button listeners
-        findViewById(R.id.buttonVK).setOnClickListener(this);
+        //findViewById(R.id.buttonVK).setOnClickListener(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com")
@@ -229,23 +260,27 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
+    }
 
-        /*
-        mCheckout.start();
-        mCheckout.createPurchaseFlow(new PurchaseListener());
-        mInventory = mCheckout.makeInventory();
-        mInventory.load(Inventory.Request.create()
-                .loadAllPurchases()
-                .loadSkus(ProductTypes.IN_APP, "telephony.subscription.1month"), new InventoryCallback());
+    void prBar() {
+        try {
+            SharedPreferences SP = getSharedPreferences("enter", MODE_PRIVATE);
+            if (SP.getString("", "").equals("1") && subs) {
+                if (this != null) {
+                    pd = new ProgressDialog(AuthorizationActivity.this);
+                    pd.setTitle("Загрузка клиентов ... ");
+                    pd.setMessage("Пожалуйста подождите");
+                    pd.setIndeterminate(false);
+                    pd.setCancelable(false);
+                    pd.show();
 
-        reloadInventory();
-
-        TargetSkusAdapter targetSkusAdapter = new TargetSkusAdapter(this);
-        Log.d(TAG, "getCount: " + targetSkusAdapter.getCount());
-        if (targetSkusAdapter.getCount() > 0) {
-            Log.d(TAG, "getCount: " + targetSkusAdapter.getItem(0).toString());
+                    importData();
+                }
+            } else if (subs) {
+                //оповестить что окончена подписка скорее всего или не оплачена
+            }
+        } catch (Exception e) {
         }
-        */
     }
 
     @Override
@@ -264,6 +299,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        Log.d(TAG, "onActivityResult: " + requestCode);
+
         // Google
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -272,6 +309,12 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             }
+        }
+
+        //GP
+        if (requestCode == G_SIGN_IN) {
+            dialogSubs.dismiss();
+            signIn();
         }
 
         /*
@@ -354,6 +397,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     }
 
     private void signIn() {
+        Log.d(TAG, "signIn: ");
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -369,21 +413,27 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.sign_in_button) {
-            signIn();
+            Log.d(TAG, "onClick: " + subs);
+            if (subs) {
+                Log.d(TAG, "onClick: sign");
+                signIn();
+            } else {
+                Log.d(TAG, "onClick: subs");
+                alertSubs();
+            }
         }
-        if (i == R.id.buttonVK) {
-            //VKSdk.login(this, scope);
-        }
+        //if (i == R.id.buttonVK) {
+        //    //VKSdk.login(this, scope);
+        //}
     }
 
-    /*
     void alertSubs() {
         LayoutInflater li = LayoutInflater.from(this);
         View promptsView = li.inflate(R.layout.fragment_welcome, null);
         AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(this);
         mDialogBuilder.setView(promptsView);
 
-        final AlertDialog dialog = new AlertDialog.Builder(this)
+        dialogSubs = new AlertDialog.Builder(this)
                 .setView(promptsView)
                 .create();
 
@@ -405,13 +455,12 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         btnINotAgree.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dialog.dismiss();
+                dialogSubs.dismiss();
             }
         });
 
-        dialog.show();
+        dialogSubs.show();
     }
-    */
 
     @Override
     protected void onStop() {

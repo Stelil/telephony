@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/back_welcome">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
+        android:gravity="center"
+        android:text="@string/Subscr"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:paddingBottom="18dp"
+        android:id="@+id/sub"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/Subscr2"
+        android:textColor="#000000"
+        android:textSize="15sp"
+        android:layout_alignBottom="@+id/sub"/>
+
+    <Button
+        android:id="@+id/btnIAgree"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="103dp"
+        android:layout_toStartOf="@+id/btn"
+        android:background="@drawable/rounded_button"
+        android:gravity="center"
+        android:text="Я согласен"
+        android:textColor="#fff" />
+
+    <Button
+        android:id="@+id/btn"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="35dp"
+        android:layout_marginBottom="103dp"
+        android:textColor="#fff" />
+
+    <Button
+        android:id="@+id/btnINotAgree"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="103dp"
+        android:layout_toRightOf="@+id/btn"
+        android:background="@drawable/rounded_button"
+        android:gravity="center"
+        android:text="Я откажусь"
+        android:textColor="#fff" />
+
+</RelativeLayout>
