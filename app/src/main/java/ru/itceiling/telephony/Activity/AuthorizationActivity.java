@@ -1,6 +1,5 @@
 package ru.itceiling.telephony.Activity;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
@@ -11,20 +10,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,16 +61,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import ru.itceiling.telephony.App;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
@@ -132,6 +120,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month", "telephony.subscription.6month");
 
     private boolean subs = false;
+    private int typeEnter = 0;
 
     private Inventory mInventory;
 
@@ -214,7 +203,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         final Sku sku = product.getSku(purchase.sku);
                         if (sku != null && purchase.autoRenewing) {
                             subs = true;
-                            Log.d(TAG, "onLoaded: " + sku.title);
                         }
                     }
                 }
@@ -299,8 +287,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Log.d(TAG, "onActivityResult: " + requestCode);
-
         // Google
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -312,9 +298,13 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         }
 
         //GP
-        if (requestCode == G_SIGN_IN) {
+        if (requestCode == G_SIGN_IN && resultCode != 0) {
             dialogSubs.dismiss();
-            signIn();
+            if (typeEnter == 1) {
+                signIn();
+            } else if (typeEnter == 2) {
+                registrationButton();
+            }
         }
 
         /*
@@ -413,12 +403,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.sign_in_button) {
-            Log.d(TAG, "onClick: " + subs);
+            typeEnter = 1;
             if (subs) {
-                Log.d(TAG, "onClick: sign");
                 signIn();
             } else {
-                Log.d(TAG, "onClick: subs");
                 alertSubs();
             }
         }
@@ -649,31 +637,36 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                     "Введите данные", Toast.LENGTH_SHORT);
             toast.show();
         } else {
-            org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
-            jsonObjectAuth.put("username", login.getText().toString());
-            jsonObjectAuth.put("password", password.getText().toString());
-            jsonAuth = String.valueOf(jsonObjectAuth);
-
-            mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
-            mProgressDialog.setMessage("Проверяем...");
-            mProgressDialog.setIndeterminate(false);
-            mProgressDialog.setCancelable(false);
-            mProgressDialog.show();
-
-            SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
-            SharedPreferences.Editor ed = SP.edit();
-            ed.putString("", "calc");
-            ed.commit();
-
-            domen = "calc";
-
-            new SendAuthorization().execute();
+            typeEnter = 2;
+            if (subs) {
+                registrationButton();
+            } else {
+                alertSubs();
+            }
         }
+    }
 
-        //Intent intent = new Intent(AuthorizationActivity.this, VerifyPhoneActivity.class);
-        //intent.putExtra("mobile", "+"+login.getText().toString());
-        //startActivity(intent);
+    void registrationButton() {
 
+        org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
+        jsonObjectAuth.put("username", login.getText().toString());
+        jsonObjectAuth.put("password", password.getText().toString());
+        jsonAuth = String.valueOf(jsonObjectAuth);
+
+        mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
+        mProgressDialog.setMessage("Проверяем...");
+        mProgressDialog.setIndeterminate(false);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.show();
+
+        SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
+        SharedPreferences.Editor ed = SP.edit();
+        ed.putString("", "calc");
+        ed.commit();
+
+        domen = "calc";
+
+        new SendAuthorization().execute();
     }
 
     @Override
@@ -939,7 +932,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             jsonSync_Import.put("change_time", change_time_global);
             jsonSync_Import.put("dealer_id", user_id);
             sync_import = String.valueOf(jsonSync_Import);
-            new ImportDate().execute();
+            new ImportData().execute();
 
         } else {
             finish();
@@ -948,7 +941,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         }
     }
 
-    class ImportDate extends AsyncTask<Void, Void, Void> {
+    class ImportData extends AsyncTask<Void, Void, Void> {
 
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.sendInfoToAndroidCallGlider";
         Map<String, String> parameters = new HashMap<String, String>();
@@ -966,7 +959,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 @Override
                 public void onResponse(String res) {
 
-                    Log.d(TAG, res);
+                    Log.d(TAG, "ImportData = " + res);
 
                     SQLiteDatabase db;
                     db = dbHelper.getReadableDatabase();

@@ -468,6 +468,7 @@
                     android:onClick="onButtonAddVoiceComment"
                     android:padding="6dp"
                     android:scaleType="fitCenter"
+                    android:visibility="gone"
                     app:srcCompat="@drawable/ic_settings_voice_black_24dp" />
 
                 <ImageButton

@@ -213,7 +213,7 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
                     switch (item) {
                         case 0:
                             Intent intent = new Intent(getActivity(), ClientActivity.class);
-                            intent.putExtra("id_client", " " + id);
+                            intent.putExtra("id_client", String.valueOf(id));
                             intent.putExtra("check", "true");
                             startActivity(intent);
 

@@ -145,12 +145,16 @@ public class ClientActivity extends AppCompatActivity {
         sr = SpeechRecognizer.createSpeechRecognizer(this);
         sr.setRecognitionListener(new listener());
 
+        linearNewCall = findViewById(R.id.linearNewCall);
+        layoutCallback = findViewById(R.id.layoutCallback);
     }
 
     public void onButtonEditCallback(View view) {
-        layoutCallback = findViewById(R.id.layoutCallback);
         if (layoutCallback.getVisibility() == View.GONE) {
             layoutCallback.setVisibility(View.VISIBLE);
+            if (linearNewCall.getVisibility() == View.VISIBLE){
+                linearNewCall.setVisibility(View.GONE);
+            }
         } else {
             layoutCallback.setVisibility(View.GONE);
         }
@@ -1233,9 +1237,11 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public void onButtonNewCallback(View view) {
-        linearNewCall = findViewById(R.id.linearNewCall);
         if (linearNewCall.getVisibility() == View.GONE) {
             linearNewCall.setVisibility(View.VISIBLE);
+            if (layoutCallback.getVisibility() == View.VISIBLE) {
+                layoutCallback.setVisibility(View.GONE);
+            }
         } else {
             linearNewCall.setVisibility(View.GONE);
         }

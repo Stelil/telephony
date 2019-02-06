@@ -104,7 +104,9 @@ public class CallbackReceiver extends BroadcastReceiver {
                             cc.close();
 
                             long notifyID = System.currentTimeMillis();
-                            String message = "ФИО клиента: " + client_name + "\nКомментарий: " + comment;
+                            String message = "ФИО клиента: " + client_name +
+                                    "\nКомментарий: " + comment +
+                                    "\nВремя перезвона: " + date_time.substring(11, date_time.length() - 3);
 
                             //позвонить клиенту
                             Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + phone));
