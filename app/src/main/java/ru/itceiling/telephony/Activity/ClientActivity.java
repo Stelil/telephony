@@ -482,6 +482,13 @@ public class ClientActivity extends AppCompatActivity {
                                                                         new String[]{finalNumber_id});
 
                                                                 phonesClient();
+
+                                                                HelperClass.addExportData(
+                                                                        ClientActivity.this,
+                                                                        Integer.valueOf(finalNumber_id),
+                                                                        "rgzbn_gm_ceiling_clients_contacts",
+                                                                        "send");
+
                                                                 Toast toast = Toast.makeText(context.getApplicationContext(),
                                                                         "Номер изменён ", Toast.LENGTH_SHORT);
                                                                 toast.show();
@@ -535,7 +542,9 @@ public class ClientActivity extends AppCompatActivity {
                                                         }
                                                         cc.close();
 
-                                                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, "_id = ?", new String[]{id_phone});
+                                                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
+                                                                "_id = ?",
+                                                                new String[]{id_phone});
 
                                                         phonesClient();
 

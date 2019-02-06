@@ -100,10 +100,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     final public static String ONE_TIME = "onetime";
 
-    //private String[] scope = new String[]{
-    //        VKScope.EMAIL
-    //};
-
     AlertDialog dialogSubs;
 
     private static final int RC_SIGN_IN = 9001;

@@ -91,6 +91,7 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                    Log.d(TAG, "onReceive: телефон звонит, получаем входящий номер");
                     historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
@@ -367,10 +368,9 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void historyClient() {
 
-        phoneNumber = HelperClass.phoneEdit(phoneNumber);
-
         Log.d(TAG, "historyClient: " + phoneNumber);
 
+        phoneNumber = HelperClass.phoneEdit(phoneNumber);
         dbHelper = new DBHelper(ctx);
         db = dbHelper.getWritableDatabase();
         int id = 0;
@@ -403,10 +403,11 @@ public class CallReceiver extends BroadcastReceiver {
             c.close();
 
             String client_name = "";
+
             sqlQuewy = "SELECT client_name "
                     + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE _id = ? and deleted_by_user <> 1";
-            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
+                    " WHERE _id = ? and deleted_by_user = ?";
+            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id), "0"});
             if (c != null) {
                 if (c.moveToFirst()) {
                     do {

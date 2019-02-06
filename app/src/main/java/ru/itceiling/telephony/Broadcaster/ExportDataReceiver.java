@@ -2155,6 +2155,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 public void onResponse(String res) {
 
+                    Log.d(TAG, "onResponse: SendCallStatusHistory " + res);
                     if (res.equals("")) {
 
                     } else {
@@ -2234,7 +2235,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
                     parameters.put("rgzbn_gm_ceiling_calls_status_history", sendCallStatusHistory);
-                    Log.d(TAG, "SEND rgzbn_gm_ceiling_calls_status_history " + sendCallStatusHistory);
+                    Log.d(TAG, "SEND rgzbn_gm_ceiling_calls_status_history " + domen + " " + sendCallStatusHistory);
                     return parameters;
                 }
             };
