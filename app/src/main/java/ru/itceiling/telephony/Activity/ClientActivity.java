@@ -691,6 +691,13 @@ public class ClientActivity extends AppCompatActivity {
                                                                     new String[]{finalNumber_id});
 
                                                             emailClient();
+
+                                                            HelperClass.addExportData(
+                                                                    ClientActivity.this,
+                                                                    Integer.valueOf(finalNumber_id),
+                                                                    "rgzbn_gm_ceiling_clients_dop_contacts",
+                                                                    "send");
+
                                                             Toast toast = Toast.makeText(context.getApplicationContext(),
                                                                     "Почта изменёна ", Toast.LENGTH_SHORT);
                                                             toast.show();
