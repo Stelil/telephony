@@ -54,7 +54,6 @@
                     android:id="@+id/callback_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="right"
                     android:text="DATE" />
 
                 <TextView
@@ -63,6 +62,7 @@
                     android:layout_height="wrap_content"
                     android:maxWidth="200dp"
                     android:maxLines="2"
+                    android:gravity="right"
                     android:text="comment" />
 
                 <TextView
