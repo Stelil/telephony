@@ -427,7 +427,12 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                 @Override
                 public void run() {
                     recyclerView.setAdapter(adapter);
-                    recyclerView.scrollToPosition(itemSelected);
+
+                    if (itemSelected == 0) {
+                        recyclerView.scrollToPosition(itemSelected);
+                    } else {
+                        recyclerView.scrollToPosition(itemSelected - 1);
+                    }
                 }
             });
         } catch (Exception e) {

@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -18,7 +19,7 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
     public static List<CallLog> callLogList;
     private static RecyclerViewClickListener itemListener;
 
-    static RelativeLayout relCard;
+    static LinearLayout relCard;
 
     public static class CallLogViewHolder extends RecyclerView.ViewHolder {
         CardView cv;
@@ -29,7 +30,7 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
 
         CallLogViewHolder(View itemView) {
             super(itemView);
-            relCard = (RelativeLayout) itemView.findViewById(R.id.relCard);
+            relCard = (LinearLayout) itemView.findViewById(R.id.relCard);
             cv = (CardView) itemView.findViewById(R.id.cv);
             callbackName = (TextView) itemView.findViewById(R.id.call_log_name);
             callbackPhone = (TextView) itemView.findViewById(R.id.call_log_phone);

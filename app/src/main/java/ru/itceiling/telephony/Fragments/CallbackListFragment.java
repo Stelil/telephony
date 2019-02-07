@@ -288,7 +288,11 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     public void run() {
                         recyclerView.setAdapter(adapter);
 
-                        recyclerView.scrollToPosition(itemSelected);
+                        if (itemSelected == 0) {
+                            recyclerView.scrollToPosition(itemSelected);
+                        }else {
+                            recyclerView.scrollToPosition(itemSelected-1);
+                        }
                     }
                 });
             }

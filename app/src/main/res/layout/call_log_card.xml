@@ -1,58 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    >
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginBottom="3dp"
-        android:paddingRight="5dp"
-        android:id="@+id/cv"
-        >
+    android:layout_height="wrap_content">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="7dp"
+    <android.support.v7.widget.CardView
+        android:id="@+id/cv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="3dp">
+
+        <LinearLayout
             android:id="@+id/relCard"
-            >
-            <TextView
-                android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingLeft="3dp"
+            android:paddingTop="3dp"
+            android:paddingRight="3dp"
+            android:paddingBottom="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/call_log_name"
-                android:layout_alignParentTop="true"
-                android:text="NAME"
-                android:maxWidth="210dp"
-                android:textSize="20dp"
-                />
-            <TextView
-                android:layout_width="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/call_log_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxWidth="210dp"
+                    android:maxLines="2"
+                    android:text="NAME"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/call_log_phone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="89999999999" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/call_log_phone"
-                android:layout_below="@+id/call_log_name"
-                android:text="89999999999"
-                />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/call_log_time"
-                android:layout_alignParentRight="true"
+                android:layout_gravity="center"
+                android:layout_weight="1"
                 android:gravity="right"
-                android:text="DATE"
-                />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/call_log_type"
-                android:layout_below="@+id/call_log_time"
-                android:layout_alignParentRight="true"
-                android:maxWidth="200dp"
-                android:text="TYPE"
-                />
-        </RelativeLayout>
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/call_log_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="right"
+                    android:text="DATE" />
+
+                <TextView
+                    android:id="@+id/call_log_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxWidth="200dp"
+                    android:text="TYPE" />
+            </LinearLayout>
+        </LinearLayout>
     </android.support.v7.widget.CardView>
 </LinearLayout>
