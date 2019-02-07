@@ -24,7 +24,9 @@
             android:layout_margin="10dp"
             android:layout_marginTop="50dp"
             android:hint="Логин"
-            android:imeOptions="actionNext"
+            android:imeOptions="actionGo"
+            android:singleLine="true"
+            android:maxLength="20"
             android:textColor="#43358c"
             android:textColorHint="#43358c" />
 

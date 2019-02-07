@@ -295,6 +295,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
         //GP
         if (requestCode == G_SIGN_IN && resultCode != 0) {
+            subs = true;
             dialogSubs.dismiss();
             if (typeEnter == 1) {
                 signIn();

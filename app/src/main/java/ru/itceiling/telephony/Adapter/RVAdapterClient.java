@@ -39,9 +39,7 @@ public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.Person
                 public void onClick(View v) {
                     int pos = getAdapterPosition();
                     if(pos != RecyclerView.NO_POSITION){
-                        int clickedDataItem = persons.get(pos).getId();
-                        //Toast.makeText(v.getContext(), "You clicked " + clickedDataItem, Toast.LENGTH_SHORT).show();
-                        itemListener.recyclerViewListClicked(v, clickedDataItem);
+                        itemListener.recyclerViewListClicked(v, pos);
                     }
                 }
             });

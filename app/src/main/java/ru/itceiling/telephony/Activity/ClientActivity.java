@@ -51,6 +51,7 @@ import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.Fragments.CallbackListFragment;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.UnderlineTextView;
@@ -152,7 +153,7 @@ public class ClientActivity extends AppCompatActivity {
     public void onButtonEditCallback(View view) {
         if (layoutCallback.getVisibility() == View.GONE) {
             layoutCallback.setVisibility(View.VISIBLE);
-            if (linearNewCall.getVisibility() == View.VISIBLE){
+            if (linearNewCall.getVisibility() == View.VISIBLE) {
                 linearNewCall.setVisibility(View.GONE);
             }
         } else {
@@ -614,161 +615,174 @@ public class ClientActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             int editId = v.getId();
-
             final TextView txt = txtEmailList.get(editId);
 
-            Log.d("logd", txt.getText().toString());
+            SharedPreferences SP = getSharedPreferences("group_id", MODE_PRIVATE);
+            if (SP.getString("", "").equals("13")) {
 
-            String[] array = new String[]{"Изменить", "Удалить"};
+                Intent email = new Intent(Intent.ACTION_SEND);
+                email.putExtra(Intent.EXTRA_EMAIL, new String[]{txt.getText().toString()});
+                email.setType("message/rfc822");
+                startActivity(Intent.createChooser(email, "Выберите приложение для отправки"));
+            } else {
+                String[] array = new String[]{"Изменить", "Отправить", "Удалить"};
 
-            AlertDialog.Builder builder;
-            builder = new AlertDialog.Builder(ClientActivity.this);
-            builder.setTitle("Выберите действие")
-                    .setNegativeButton("Отмена",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
+                AlertDialog.Builder builder;
+                builder = new AlertDialog.Builder(ClientActivity.this);
+                builder.setTitle("Выберите действие")
+                        .setNegativeButton("Отмена",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                builder.setItems(array, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int item) {
+                        // TODO Auto-generated method stub
+
+                        switch (item) {
+                            case 0:
+
+                                final Context context = ClientActivity.this;
+                                View promptsView;
+                                LayoutInflater li = LayoutInflater.from(context);
+                                promptsView = li.inflate(R.layout.dialog_add_client, null);
+                                AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+                                mDialogBuilder.setView(promptsView);
+
+                                final TextView textNameClient = (TextView) promptsView.findViewById(R.id.textNameClient);
+                                textNameClient.setVisibility(View.GONE);
+                                final EditText nameClient = (EditText) promptsView.findViewById(R.id.nameClient);
+                                nameClient.setVisibility(View.GONE);
+                                final TextView textPhoneClient = (TextView) promptsView.findViewById(R.id.textPhoneClient);
+                                textPhoneClient.setText("Почта");
+                                final EditText emailClient = (EditText) promptsView.findViewById(R.id.phoneClient);
+
+                                emailClient.setText(txt.getText().toString());
+                                final String oldEmail = txt.getText().toString();
+                                String contact_id = "";
+
+                                SQLiteDatabase db = dbHelper.getReadableDatabase();
+                                String sqlQuewy = "select _id "
+                                        + "FROM rgzbn_gm_ceiling_clients_dop_contacts " +
+                                        "where contact = ?";
+                                Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
+                                if (cc != null) {
+                                    if (cc.moveToFirst()) {
+                                        do {
+                                            contact_id = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                        } while (cc.moveToNext());
+                                    }
                                 }
-                            });
+                                cc.close();
 
-            builder.setItems(array, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int item) {
-                    // TODO Auto-generated method stub
+                                final String finalNumber_id = contact_id;
+                                mDialogBuilder
+                                        .setCancelable(false)
+                                        .setTitle("Изменение почты")
+                                        .setPositiveButton("OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
 
-                    switch (item) {
-                        case 0:
+                                                        if (HelperClass.validateMail(emailClient.getText().toString())) {
+                                                            if (oldEmail.equals(emailClient.getText().toString())) {
+                                                            } else {
+                                                                DBHelper dbHelper = new DBHelper(context);
+                                                                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                                                                ContentValues values = new ContentValues();
+                                                                values.put(DBHelper.KEY_CONTACT, emailClient.getText().toString());
+                                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, values, "_id = ?",
+                                                                        new String[]{finalNumber_id});
 
-                            final Context context = ClientActivity.this;
-                            View promptsView;
-                            LayoutInflater li = LayoutInflater.from(context);
-                            promptsView = li.inflate(R.layout.dialog_add_client, null);
-                            AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
-                            mDialogBuilder.setView(promptsView);
+                                                                emailClient();
 
-                            final TextView textNameClient = (TextView) promptsView.findViewById(R.id.textNameClient);
-                            textNameClient.setVisibility(View.GONE);
-                            final EditText nameClient = (EditText) promptsView.findViewById(R.id.nameClient);
-                            nameClient.setVisibility(View.GONE);
-                            final TextView textPhoneClient = (TextView) promptsView.findViewById(R.id.textPhoneClient);
-                            textPhoneClient.setText("Почта");
-                            final EditText emailClient = (EditText) promptsView.findViewById(R.id.phoneClient);
+                                                                HelperClass.addExportData(
+                                                                        ClientActivity.this,
+                                                                        Integer.valueOf(finalNumber_id),
+                                                                        "rgzbn_gm_ceiling_clients_dop_contacts",
+                                                                        "send");
 
-                            emailClient.setText(txt.getText().toString());
-                            final String oldEmail = txt.getText().toString();
-                            String contact_id = "";
-
-                            SQLiteDatabase db = dbHelper.getReadableDatabase();
-                            String sqlQuewy = "select _id "
-                                    + "FROM rgzbn_gm_ceiling_clients_dop_contacts " +
-                                    "where contact = ?";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
-                            if (cc != null) {
-                                if (cc.moveToFirst()) {
-                                    do {
-                                        contact_id = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    } while (cc.moveToNext());
-                                }
-                            }
-                            cc.close();
-
-                            final String finalNumber_id = contact_id;
-                            mDialogBuilder
-                                    .setCancelable(false)
-                                    .setTitle("Изменение почты")
-                                    .setPositiveButton("OK",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-
-                                                    if (HelperClass.validateMail(emailClient.getText().toString())) {
-                                                        if (oldEmail.equals(emailClient.getText().toString())) {
+                                                                Toast toast = Toast.makeText(context.getApplicationContext(),
+                                                                        "Почта изменёна ", Toast.LENGTH_SHORT);
+                                                                toast.show();
+                                                            }
                                                         } else {
-                                                            DBHelper dbHelper = new DBHelper(context);
-                                                            SQLiteDatabase db = dbHelper.getWritableDatabase();
-                                                            ContentValues values = new ContentValues();
-                                                            values.put(DBHelper.KEY_CONTACT, emailClient.getText().toString());
-                                                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, values, "_id = ?",
-                                                                    new String[]{finalNumber_id});
-
-                                                            emailClient();
-
-                                                            HelperClass.addExportData(
-                                                                    ClientActivity.this,
-                                                                    Integer.valueOf(finalNumber_id),
-                                                                    "rgzbn_gm_ceiling_clients_dop_contacts",
-                                                                    "send");
-
                                                             Toast toast = Toast.makeText(context.getApplicationContext(),
-                                                                    "Почта изменёна ", Toast.LENGTH_SHORT);
+                                                                    "Проверьте правильность почты ", Toast.LENGTH_SHORT);
                                                             toast.show();
                                                         }
-                                                    } else {
-                                                        Toast toast = Toast.makeText(context.getApplicationContext(),
-                                                                "Проверьте правильность почты ", Toast.LENGTH_SHORT);
+                                                    }
+                                                })
+                                        .setNegativeButton("Отмена",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        dialog.cancel();
+                                                    }
+                                                });
+
+                                AlertDialog alertDialog = mDialogBuilder.create();
+                                alertDialog.getWindow().setBackgroundDrawableResource(R.color.colorWhite);
+                                alertDialog.show();
+
+                                break;
+                            case 1:
+                                Intent email = new Intent(Intent.ACTION_SEND);
+                                email.putExtra(Intent.EXTRA_EMAIL, new String[]{txt.getText().toString()});
+                                email.setType("message/rfc822");
+                                startActivity(Intent.createChooser(email, "Выберите приложение для отправки"));
+                                break;
+                            case 2:
+                                AlertDialog.Builder builder = new AlertDialog.Builder(ClientActivity.this);
+                                builder.setTitle("Удалить почту " + txt.getText().toString() + " ?")
+                                        .setMessage(null)
+                                        .setIcon(null)
+                                        .setCancelable(false)
+                                        .setPositiveButton("Да",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+
+                                                        dbHelper = new DBHelper(ClientActivity.this);
+                                                        SQLiteDatabase db = dbHelper.getReadableDatabase();
+                                                        String id_phone = "";
+                                                        String sqlQuewy = "SELECT _id "
+                                                                + "FROM rgzbn_gm_ceiling_clients_dop_contacts" +
+                                                                " WHERE contact = ? ";
+                                                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
+                                                        if (cc != null) {
+                                                            if (cc.moveToFirst()) {
+                                                                id_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                                            }
+                                                        }
+                                                        cc.close();
+
+                                                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS,
+                                                                "_id = ?", new String[]{id_phone});
+                                                        emailClient();
+                                                        Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                                                                "Почта удаленa ", Toast.LENGTH_SHORT);
                                                         toast.show();
                                                     }
-                                                }
-                                            })
-                                    .setNegativeButton("Отмена",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    dialog.cancel();
-                                                }
-                                            });
-
-                            AlertDialog alertDialog = mDialogBuilder.create();
-                            alertDialog.getWindow().setBackgroundDrawableResource(R.color.colorWhite);
-                            alertDialog.show();
-
-                            break;
-                        case 1:
-                            AlertDialog.Builder builder = new AlertDialog.Builder(ClientActivity.this);
-                            builder.setTitle("Удалить почту " + txt.getText().toString() + " ?")
-                                    .setMessage(null)
-                                    .setIcon(null)
-                                    .setCancelable(false)
-                                    .setPositiveButton("Да",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-
-                                                    dbHelper = new DBHelper(ClientActivity.this);
-                                                    SQLiteDatabase db = dbHelper.getReadableDatabase();
-                                                    String id_phone = "";
-                                                    String sqlQuewy = "SELECT _id "
-                                                            + "FROM rgzbn_gm_ceiling_clients_dop_contacts" +
-                                                            " WHERE contact = ? ";
-                                                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
-                                                    if (cc != null) {
-                                                        if (cc.moveToFirst()) {
-                                                            id_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                                        }
+                                                })
+                                        .setNegativeButton("Отмена",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        dialog.cancel();
                                                     }
-                                                    cc.close();
+                                                });
+                                AlertDialog alert = builder.create();
+                                alert.show();
+                                break;
 
-                                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS,
-                                                            "_id = ?", new String[]{id_phone});
-                                                    emailClient();
-                                                    Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
-                                                            "Почта удаленa ", Toast.LENGTH_SHORT);
-                                                    toast.show();
-                                                }
-                                            })
-                                    .setNegativeButton("Отмена",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    dialog.cancel();
-                                                }
-                                            });
-                            AlertDialog alert = builder.create();
-                            alert.show();
-                            break;
+                        }
                     }
-                }
-            });
+                });
 
-            builder.setCancelable(false);
-            builder.create();
-            builder.show();
+                builder.setCancelable(false);
+                builder.create();
+                builder.show();
+            }
 
         }
     };
@@ -1186,6 +1200,7 @@ public class ClientActivity extends AppCompatActivity {
                         Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
                                 "Звонок добавлен ", Toast.LENGTH_SHORT);
                         toast.show();
+
                     } else {
 
                         Log.d(TAG, "onClick: history callback upd");

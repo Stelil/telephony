@@ -11,12 +11,19 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
@@ -42,7 +49,7 @@ import static android.content.Context.MODE_PRIVATE;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class CallbackListFragment extends Fragment implements RecyclerViewClickListener {
+public class CallbackListFragment extends Fragment implements RecyclerViewClickListener, SearchView.OnQueryTextListener {
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -60,6 +67,8 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     RVAdapterCallback adapter;
 
     View view;
+
+    int itemSelected = 0;
 
     public CallbackListFragment() {
         // Required empty public constructor
@@ -103,7 +112,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         btnClearDay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                listClients("");
+                listClients("", "");
                 txtSelectDay.setText("");
             }
         });
@@ -113,15 +122,74 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         recyclerView.setLayoutManager(llm);
         recyclerView.setHasFixedSize(true);
 
+        setHasOptionsMenu(true);
+
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.menu_search, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(this);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        //if (query.equals("")) {
+        //    MyTask mt = new MyTask();
+        //    mt.execute();
+        //}
+
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+
+        //List<Callback> callbacksClone = new ArrayList<Callback>(callbacks.size());
+        //for (Callback item : callbacks) {
+        //    callbacksClone.add(item);
+        //}
+
+        //Log.d(TAG, "onQueryTextChange: " + callbacksClone.size());
+
+        //for (int i = 0; callbacksClone.size() > i; i++) {
+        //    if (callbacksClone.get(i).getName().toLowerCase().contains(newText.toLowerCase()) ||
+        //            callbacksClone.get(i).getComment().toLowerCase().contains(newText.toLowerCase()) ||
+        //            callbacksClone.get(i).getPhone().toLowerCase().contains(newText.toLowerCase()) ||
+        //            callbacksClone.get(i).getManager().toLowerCase().contains(newText.toLowerCase())) {
+        //    } else {
+        //        callbacksClone.remove(i);
+        //        i--;
+        //    }
+        //}
+
+        //Log.d(TAG, "onQueryTextChange: " + callbacksClone.size());
+
+        //adapter = new RVAdapterCallback(callbacksClone, this);
+        //adapter.notifyDataSetChanged();
+
+        //if (newText.equals("")) {
+        //    MyTask mt = new MyTask();
+        //    mt.execute();
+        //}
+
+        listClients(HelperClass.nowDate().substring(0, 10), newText);
+
+        return false;
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        //MyTaskResume mt = new MyTaskResume();
-        //mt.execute();
+        MyTaskResume mt = new MyTaskResume();
+        mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
@@ -143,7 +211,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
         @Override
         protected Void doInBackground(Void... params) {
-            listClients(HelperClass.nowDate().substring(0, 10));
+            listClients(HelperClass.nowDate().substring(0, 10), "");
             return null;
         }
 
@@ -169,7 +237,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
         @Override
         protected Void doInBackground(Void... params) {
-            listClients(txtSelectDay.getText().toString());
+            listClients(txtSelectDay.getText().toString(), "");
             return null;
         }
 
@@ -180,11 +248,13 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         }
     }
 
-    private void listClients(String date) {
+    private void listClients(String date, String query) {
         callbacks = new ArrayList<>();
 
         String sqlQuewy;
         Cursor c;
+
+        /*
         if (date.equals("")) {
             sqlQuewy = "SELECT client_id, date_time, comment, _id, manager_id "
                     + "FROM rgzbn_gm_ceiling_callback " +
@@ -239,7 +309,8 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     }
                     cc.close();
 
-                    String manager_id = c.getString(c.getColumnIndex(c.getColumnName(4)));;
+                    String manager_id = c.getString(c.getColumnIndex(c.getColumnName(4)));
+                    ;
                     String nameManager = "-";
                     sqlQuewy = "SELECT name "
                             + "   FROM rgzbn_users" +
@@ -265,6 +336,47 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
             }
         }
         c.close();
+        */
+
+
+        sqlQuewy = "SELECT callback.client_id, callback.date_time, " +
+                "callback.comment, clients.client_name, " +
+                "users.name, clients_c.phone, " +
+                "callback._id " +
+                "FROM rgzbn_gm_ceiling_callback AS callback " +
+                "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
+                "ON clients._id = callback.client_id " +
+                "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
+                "ON clients_c.client_id = callback.client_id " +
+                "INNER JOIN rgzbn_users AS users " +
+                "ON users._id = callback.manager_id " +
+                "where substr(date_time,1,10) <= ? " +
+                "group by callback.date_time " +
+                "order by callback.date_time desc";
+        c = db.rawQuery(sqlQuewy, new String[]{date});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    String client_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    String date_time = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    String comment = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                    String client_name = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                    String nameManager = c.getString(c.getColumnIndex(c.getColumnName(4)));
+                    String phone = c.getString(c.getColumnIndex(c.getColumnName(5)));
+                    String id = c.getString(c.getColumnIndex(c.getColumnName(6)));
+
+                    callbacks.add(new Callback(client_name,
+                            phone,
+                            comment,
+                            date_time,
+                            Integer.valueOf(client_id),
+                            Integer.valueOf(id),
+                            nameManager));
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
 
         try {
             adapter = new RVAdapterCallback(callbacks, this);
@@ -273,6 +385,8 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     @Override
                     public void run() {
                         recyclerView.setAdapter(adapter);
+
+                        recyclerView.scrollToPosition(itemSelected);
                     }
                 });
             }
@@ -283,9 +397,11 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     }
 
     @Override
-    public void recyclerViewListClicked(View v, int id) {
+    public void recyclerViewListClicked(View v, int pos) {
+        itemSelected = pos;
         Intent intent = new Intent(getActivity(), ClientActivity.class);
-        intent.putExtra("id_client", String.valueOf(id));
+        int clickedDataItem = callbacks.get(pos).getId();
+        intent.putExtra("id_client", String.valueOf(clickedDataItem));
         intent.putExtra("check", "true");
         startActivity(intent);
     }
@@ -348,7 +464,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                         }
                         txtSelectDay.setText(editTextDateParam);
                         callbackDate = editTextDateParam;
-                        listClients(editTextDateParam);
+                        listClients(editTextDateParam, "");
                     }
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();

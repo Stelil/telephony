@@ -58,6 +58,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     RecyclerView recyclerView;
     RVAdapterClient adapter;
 
+    int itemSelected = 0;
+
     public ClientsListFragment() {
         // Required empty public constructor
     }
@@ -121,6 +123,9 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     @Override
     public void onResume() {
         super.onResume();
+
+        MyTask mt = new MyTask();
+        mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
@@ -322,78 +327,45 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             associated_client = "";
         }
 
-        sqlQuewy = "SELECT created, " +
-                "          client_name, " +
-                "          _id," +
-                "          manager_id " +
-                "     FROM rgzbn_gm_ceiling_clients" +
-                "    WHERE dealer_id = ? " +
-                "          and deleted_by_user <> 1" +
-                "          and _id <> ? " +
-                " order by created desc";
+        sqlQuewy = "SELECT cl._id, cl.client_name, " +
+                "s.title, u.name, c.phone " +
+                "FROM rgzbn_gm_ceiling_clients AS cl " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
+                "ON cl._id = sm.client_id " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses AS s " +
+                "ON s._id = sm.status_id " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients_contacts AS c " +
+                "ON cl._id = c.client_id " +
+                "INNER JOIN rgzbn_users AS u " +
+                "ON cl.manager_id = u._id " +
+                "WHERE cl.dealer_id = ? " +
+                "AND cl._id <> ? " +
+                "AND cl.deleted_by_user <> 1 " +
+                "GROUP BY cl._id " +
+                "ORDER BY cl.created DESC";
         c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
+                    String id_client = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                    String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
                     String title = "-";
-
-                    String client_status = null;
-                    sqlQuewy = "SELECT status_id, change_time "
-                            + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                            "    WHERE client_id = ? " +
-                            "order by _id";
-                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
+                    if (c.getString(c.getColumnIndex(c.getColumnName(2))) != null) {
+                        title = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     }
-                    cc.close();
-
-                    try {
-                        sqlQuewy = "SELECT title "
-                                + "FROM rgzbn_gm_ceiling_clients_statuses" +
-                                " WHERE _id = ? ";
-                        cc = db.rawQuery(sqlQuewy, new String[]{client_status});
-                        if (cc != null) {
-                            if (cc.moveToFirst()) {
-                                title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                            }
-                        }
-                        cc.close();
-                    } catch (Exception e) {
-                    }
-
-                    String phone = "-";
-                    sqlQuewy = "SELECT phone "
-                            + "   FROM rgzbn_gm_ceiling_clients_contacts" +
-                            "    WHERE client_id = ?";
-                    cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
-                    }
-                    cc.close();
 
                     String nameManager = "-";
-                    sqlQuewy = "SELECT name "
-                            + "   FROM rgzbn_users" +
-                            "    WHERE _id = ? " +
-                            "order by _id";
-                    cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
+                    if (c.getString(c.getColumnIndex(c.getColumnName(3))) != null) {
+                        nameManager = c.getString(c.getColumnIndex(c.getColumnName(3)));
                     }
-                    cc.close();
+
+                    String phone = "";
+                    if (c.getString(c.getColumnIndex(c.getColumnName(4))) != null) {
+                        phone = c.getString(c.getColumnIndex(c.getColumnName(4)));
+                    }
 
                     persons.add(new Person(client_name, phone, nameManager, "#000000",
-                            "Холодный", title, Integer.valueOf(id_client)));
+                            "", title, Integer.valueOf(id_client)));
                 } while (c.moveToNext());
             }
         }
@@ -405,6 +377,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                 @Override
                 public void run() {
                     recyclerView.setAdapter(adapter);
+                    recyclerView.scrollToPosition(itemSelected);
                 }
             });
         } catch (Exception e) {
@@ -414,9 +387,11 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     }
 
     @Override
-    public void recyclerViewListClicked(View v, int id) {
+    public void recyclerViewListClicked(View v, int pos) {
+        int clickedDataItem = persons.get(pos).getId();
+        itemSelected = pos;
         Intent intent = new Intent(getActivity(), ClientActivity.class);
-        intent.putExtra("id_client", String.valueOf(id));
+        intent.putExtra("id_client", String.valueOf(clickedDataItem));
         intent.putExtra("check", "false");
         startActivity(intent);
     }

@@ -144,7 +144,6 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         return super.onOptionsItemSelected(item);
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_search, menu);

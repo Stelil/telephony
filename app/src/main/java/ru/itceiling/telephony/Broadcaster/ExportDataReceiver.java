@@ -1418,6 +1418,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                 @Override
                 public void onResponse(String res) {
 
+                    Log.d(TAG, "onResponse: " + res);
                     if (res.equals("") || res.equals("\u041e\u0448\u0438\u0431\u043a\u0430!")) {
                         Log.d("sync_app", "SendClientsContactsData пусто ");
                     } else {
@@ -1444,7 +1445,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
                                             values = new ContentValues();
                                             values.put(DBHelper.KEY_ID, new_id);
-                                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, values,
+                                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, values,
                                                     "_id = ?", new String[]{old_id});
 
                                             values = new ContentValues();
