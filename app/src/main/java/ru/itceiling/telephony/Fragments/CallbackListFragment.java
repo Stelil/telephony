@@ -140,47 +140,15 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        //if (query.equals("")) {
-        //    MyTask mt = new MyTask();
-        //    mt.execute();
-        //}
 
+        listClients(HelperClass.nowDate().substring(0, 10), query);
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
 
-        //List<Callback> callbacksClone = new ArrayList<Callback>(callbacks.size());
-        //for (Callback item : callbacks) {
-        //    callbacksClone.add(item);
-        //}
-
-        //Log.d(TAG, "onQueryTextChange: " + callbacksClone.size());
-
-        //for (int i = 0; callbacksClone.size() > i; i++) {
-        //    if (callbacksClone.get(i).getName().toLowerCase().contains(newText.toLowerCase()) ||
-        //            callbacksClone.get(i).getComment().toLowerCase().contains(newText.toLowerCase()) ||
-        //            callbacksClone.get(i).getPhone().toLowerCase().contains(newText.toLowerCase()) ||
-        //            callbacksClone.get(i).getManager().toLowerCase().contains(newText.toLowerCase())) {
-        //    } else {
-        //        callbacksClone.remove(i);
-        //        i--;
-        //    }
-        //}
-
-        //Log.d(TAG, "onQueryTextChange: " + callbacksClone.size());
-
-        //adapter = new RVAdapterCallback(callbacksClone, this);
-        //adapter.notifyDataSetChanged();
-
-        //if (newText.equals("")) {
-        //    MyTask mt = new MyTask();
-        //    mt.execute();
-        //}
-
         listClients(HelperClass.nowDate().substring(0, 10), newText);
-
         return false;
     }
 
@@ -253,106 +221,40 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
         String sqlQuewy;
         Cursor c;
-
-        /*
-        if (date.equals("")) {
-            sqlQuewy = "SELECT client_id, date_time, comment, _id, manager_id "
-                    + "FROM rgzbn_gm_ceiling_callback " +
-                    " order by date_time desc";
-            c = db.rawQuery(sqlQuewy, new String[]{});
-        } else {
-            sqlQuewy = "SELECT client_id, date_time, comment, _id, manager_id "
-                    + "FROM rgzbn_gm_ceiling_callback " +
+        if (query.equals("")) {
+            sqlQuewy = "SELECT callback.client_id, callback.date_time, " +
+                    "callback.comment, clients.client_name, " +
+                    "users.name, clients_c.phone, " +
+                    "callback._id " +
+                    "FROM rgzbn_gm_ceiling_callback AS callback " +
+                    "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
+                    "ON clients._id = callback.client_id " +
+                    "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
+                    "ON clients_c.client_id = callback.client_id " +
+                    "INNER JOIN rgzbn_users AS users " +
+                    "ON users._id = callback.manager_id " +
                     "where substr(date_time,1,10) <= ? " +
-                    " order by date_time desc";
-            c = db.rawQuery(sqlQuewy, new String[]{date});
+                    "group by callback.date_time " +
+                    "order by callback.date_time desc";
+        } else {
+            sqlQuewy = "SELECT callback.client_id, callback.date_time, " +
+                    "callback.comment, clients.client_name, " +
+                    "users.name, clients_c.phone, " +
+                    "callback._id " +
+                    "FROM rgzbn_gm_ceiling_callback AS callback " +
+                    "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
+                    "ON clients._id = callback.client_id " +
+                    "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
+                    "ON clients_c.client_id = callback.client_id " +
+                    "INNER JOIN rgzbn_users AS users " +
+                    "ON users._id = callback.manager_id " +
+                    "where substr(date_time,1,10) <= ? " +
+                    "and clients.client_name like '%" + query + "%' " +
+                    "or clients_c.phone like '%" + query + "%' " +
+                    "or callback.comment like '%" + query + "%' " +
+                    "group by callback.date_time " +
+                    "order by callback.date_time desc";
         }
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    String client_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    String date_time = c.getString(c.getColumnIndex(c.getColumnName(1)));
-
-                    String comment = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    if (comment.isEmpty())
-                        comment = "-";
-
-                    String client_name = "";
-                    sqlQuewy = "SELECT client_name "
-                            + "FROM rgzbn_gm_ceiling_clients" +
-                            " WHERE _id = ? ";
-                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{client_id});
-                    if (cc != null) {
-                        if (cc.moveToFirst()) {
-                            do {
-                                client_name = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                            } while (cc.moveToNext());
-                        }
-                    }
-                    cc.close();
-
-                    String id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-
-                    if (date_time.length() == 19) {
-                        date_time = date_time.substring(0, 16);
-                    }
-
-                    String phone = "-";
-                    sqlQuewy = "SELECT phone "
-                            + "   FROM rgzbn_gm_ceiling_clients_contacts" +
-                            "    WHERE client_id = ?";
-                    cc = db.rawQuery(sqlQuewy, new String[]{client_id});
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
-                    }
-                    cc.close();
-
-                    String manager_id = c.getString(c.getColumnIndex(c.getColumnName(4)));
-                    ;
-                    String nameManager = "-";
-                    sqlQuewy = "SELECT name "
-                            + "   FROM rgzbn_users" +
-                            "    WHERE _id = ? " +
-                            "order by _id";
-                    cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
-                    }
-                    cc.close();
-
-                    callbacks.add(new Callback(client_name,
-                            phone,
-                            comment,
-                            date_time,
-                            Integer.valueOf(client_id),
-                            Integer.valueOf(id),
-                            nameManager));
-
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-        */
-
-
-        sqlQuewy = "SELECT callback.client_id, callback.date_time, " +
-                "callback.comment, clients.client_name, " +
-                "users.name, clients_c.phone, " +
-                "callback._id " +
-                "FROM rgzbn_gm_ceiling_callback AS callback " +
-                "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
-                "ON clients._id = callback.client_id " +
-                "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
-                "ON clients_c.client_id = callback.client_id " +
-                "INNER JOIN rgzbn_users AS users " +
-                "ON users._id = callback.manager_id " +
-                "where substr(date_time,1,10) <= ? " +
-                "group by callback.date_time " +
-                "order by callback.date_time desc";
         c = db.rawQuery(sqlQuewy, new String[]{date});
         if (c != null) {
             if (c.moveToFirst()) {

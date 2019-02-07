@@ -13,11 +13,16 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -42,7 +47,7 @@ import static android.content.Context.MODE_PRIVATE;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ClientsListFragment extends Fragment implements RecyclerViewClickListener {
+public class ClientsListFragment extends Fragment implements RecyclerViewClickListener, SearchView.OnQueryTextListener {
     DBHelper dbHelper;
     SQLiteDatabase db;
     String dealer_id, user_id;
@@ -114,10 +119,34 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
         getActivity().setTitle("Клиенты");
 
-        MyTask mt = new MyTask();
-        mt.execute();
+        setHasOptionsMenu(true);
 
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.menu_search, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(this);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+
+        ListClients(query);
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+
+        ListClients(newText);
+        return false;
     }
 
     @Override
@@ -132,7 +161,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         exportDataReceiver.onReceive(getActivity(), intent);
 
     }
-
 
     class MyTask extends AsyncTask<Void, Void, Void> {
         ProgressDialog mProgressDialog;
@@ -327,22 +355,44 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             associated_client = "";
         }
 
-        sqlQuewy = "SELECT cl._id, cl.client_name, " +
-                "s.title, u.name, c.phone " +
-                "FROM rgzbn_gm_ceiling_clients AS cl " +
-                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
-                "ON cl._id = sm.client_id " +
-                "LEFT JOIN rgzbn_gm_ceiling_clients_statuses AS s " +
-                "ON s._id = sm.status_id " +
-                "LEFT JOIN rgzbn_gm_ceiling_clients_contacts AS c " +
-                "ON cl._id = c.client_id " +
-                "INNER JOIN rgzbn_users AS u " +
-                "ON cl.manager_id = u._id " +
-                "WHERE cl.dealer_id = ? " +
-                "AND cl._id <> ? " +
-                "AND cl.deleted_by_user <> 1 " +
-                "GROUP BY cl._id " +
-                "ORDER BY cl.created DESC";
+        if (query.equals("")) {
+            sqlQuewy = "SELECT cl._id, cl.client_name, " +
+                    "s.title, u.name, c.phone " +
+                    "FROM rgzbn_gm_ceiling_clients AS cl " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
+                    "ON cl._id = sm.client_id " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_statuses AS s " +
+                    "ON s._id = sm.status_id " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_contacts AS c " +
+                    "ON cl._id = c.client_id " +
+                    "INNER JOIN rgzbn_users AS u " +
+                    "ON cl.manager_id = u._id " +
+                    "WHERE cl.dealer_id = ? " +
+                    "AND cl._id <> ? " +
+                    "AND cl.deleted_by_user <> 1 " +
+                    "GROUP BY cl._id " +
+                    "ORDER BY cl.created DESC";
+        } else {
+            sqlQuewy = "SELECT cl._id, cl.client_name, " +
+                    "s.title, u.name, c.phone " +
+                    "FROM rgzbn_gm_ceiling_clients AS cl " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
+                    "ON cl._id = sm.client_id " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_statuses AS s " +
+                    "ON s._id = sm.status_id " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_contacts AS c " +
+                    "ON cl._id = c.client_id " +
+                    "INNER JOIN rgzbn_users AS u " +
+                    "ON cl.manager_id = u._id " +
+                    "WHERE cl.dealer_id = ? " +
+                    "AND cl._id <> ? " +
+                    "AND cl.deleted_by_user <> 1 " +
+                    "and cl.client_name like '%" + query + "%' " +
+                    "or c.phone like '%" + query + "%' " +
+                    "or s.title like '%" + query + "%' " +
+                    "GROUP BY cl._id " +
+                    "ORDER BY cl.created DESC";
+        }
         c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
         if (c != null) {
             if (c.moveToFirst()) {
