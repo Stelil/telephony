@@ -97,9 +97,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         txtSelectDay = view.findViewById(R.id.txtSelectDay);
         txtSelectDay.setText(HelperClass.nowDate().substring(0, 10));
 
-        MyTask mt = new MyTask();
-        mt.execute();
-
         final TextView txtSelectDay = view.findViewById(R.id.txtSelectDay);
         txtSelectDay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,7 +109,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         btnClearDay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                listClients("", "");
+                listClients("2100-01-01", "");
                 txtSelectDay.setText("");
             }
         });
@@ -140,14 +137,12 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-
         listClients(HelperClass.nowDate().substring(0, 10), query);
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
-
         listClients(HelperClass.nowDate().substring(0, 10), newText);
         return false;
     }
@@ -156,7 +151,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     public void onResume() {
         super.onResume();
 
-        MyTaskResume mt = new MyTaskResume();
+        MyTask mt = new MyTask();
         mt.execute();
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
@@ -179,7 +174,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
 
         @Override
         protected Void doInBackground(Void... params) {
-            listClients(HelperClass.nowDate().substring(0, 10), "");
+            listClients(txtSelectDay.getText().toString(), "");
             return null;
         }
 
@@ -190,6 +185,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         }
     }
 
+    /*
     class MyTaskResume extends AsyncTask<Void, Void, Void> {
         ProgressDialog mProgressDialog;
 
@@ -215,36 +211,37 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
             mProgressDialog.dismiss();
         }
     }
+    */
 
     private void listClients(String date, String query) {
         callbacks = new ArrayList<>();
 
-        String sqlQuewy;
+        String sqlQuery;
         Cursor c;
         if (query.equals("")) {
-            sqlQuewy = "SELECT callback.client_id, callback.date_time, " +
+            sqlQuery = "SELECT callback.client_id, callback.date_time, " +
                     "callback.comment, clients.client_name, " +
                     "users.name, clients_c.phone, " +
                     "callback._id " +
                     "FROM rgzbn_gm_ceiling_callback AS callback " +
                     "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
                     "ON clients._id = callback.client_id " +
-                    "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
+                    "left JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
                     "ON clients_c.client_id = callback.client_id " +
                     "INNER JOIN rgzbn_users AS users " +
                     "ON users._id = callback.manager_id " +
                     "where substr(date_time,1,10) <= ? " +
-                    "group by callback.date_time " +
+                    "group by callback._id " +
                     "order by callback.date_time desc";
         } else {
-            sqlQuewy = "SELECT callback.client_id, callback.date_time, " +
+            sqlQuery = "SELECT callback.client_id, callback.date_time, " +
                     "callback.comment, clients.client_name, " +
                     "users.name, clients_c.phone, " +
                     "callback._id " +
                     "FROM rgzbn_gm_ceiling_callback AS callback " +
                     "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
                     "ON clients._id = callback.client_id " +
-                    "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
+                    "left JOIN rgzbn_gm_ceiling_clients_contacts AS clients_c " +
                     "ON clients_c.client_id = callback.client_id " +
                     "INNER JOIN rgzbn_users AS users " +
                     "ON users._id = callback.manager_id " +
@@ -252,10 +249,10 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     "and clients.client_name like '%" + query + "%' " +
                     "or clients_c.phone like '%" + query + "%' " +
                     "or callback.comment like '%" + query + "%' " +
-                    "group by callback.date_time " +
+                    "group by callback._id " +
                     "order by callback.date_time desc";
         }
-        c = db.rawQuery(sqlQuewy, new String[]{date});
+        c = db.rawQuery(sqlQuery, new String[]{date});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
@@ -279,7 +276,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         }
         c.close();
 
-
         try {
             adapter = new RVAdapterCallback(callbacks, this);
             if (getActivity() != null) {
@@ -287,19 +283,17 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     @Override
                     public void run() {
                         recyclerView.setAdapter(adapter);
-
                         if (itemSelected == 0) {
                             recyclerView.scrollToPosition(itemSelected);
-                        }else {
-                            recyclerView.scrollToPosition(itemSelected-1);
+                        } else {
+                            recyclerView.scrollToPosition(itemSelected - 1);
                         }
                     }
                 });
             }
         } catch (Exception e) {
-            Log.d(TAG, "listClients error: " + e);
         }
-
+        
     }
 
     @Override

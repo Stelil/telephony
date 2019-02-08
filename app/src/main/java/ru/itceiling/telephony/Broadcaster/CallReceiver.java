@@ -186,10 +186,20 @@ public class CallReceiver extends BroadcastReceiver {
 
             Intent resultIntent = new Intent(ctx, MainActivity.class);
             resultIntent.putExtra("phone", phoneNumber);
+            resultIntent.putExtra("add", "0");
+            resultIntent.putExtra("notifyID", notifyID);
+            resultIntent.setAction(Long.toString(notifyID));
+
+            Intent addPhoneIntent = new Intent(ctx, MainActivity.class);
+            resultIntent.putExtra("phone", phoneNumber);
+            resultIntent.putExtra("add", "1");
             resultIntent.putExtra("notifyID", notifyID);
             resultIntent.setAction(Long.toString(notifyID));
 
             PendingIntent resultPendingIntent = PendingIntent.getActivity(ctx, 0, resultIntent,
+                    PendingIntent.FLAG_ONE_SHOT);
+
+            PendingIntent resultPendingIntent2 = PendingIntent.getActivity(ctx, 0, addPhoneIntent,
                     PendingIntent.FLAG_ONE_SHOT);
 
             String message = "Данный клиент не найден. Хотите добавить его?" +
@@ -206,6 +216,7 @@ public class CallReceiver extends BroadcastReceiver {
                         .setDefaults(Notification.DEFAULT_ALL)
                         .setSmallIcon(R.raw.icon_notif)
                         .addAction(R.raw.plus, "Добавить", resultPendingIntent)
+                        .addAction(R.raw.plus, "В существующий", resultPendingIntent2)
                         .setStyle(new Notification.BigTextStyle().bigText(message))
                         .setContentTitle("Планер звонков")
                         .setContentText(message)
@@ -294,11 +305,7 @@ public class CallReceiver extends BroadcastReceiver {
 
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
         int duration = Integer.parseInt(getCallDetails());
-
-        Log.d(TAG, "addHistoryClientCall: " + phoneNumber + " " + bool + " " + callStatus + " " + duration);
-
         try {
             if (duration >= Integer.valueOf(json.getString("CheckTimeCall"))) {
                 int client_id = 0;
