@@ -14,8 +14,8 @@ android {
         applicationId "ru.itceiling.telephony"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 20
-        versionName "1.252"
+        versionCode 21
+        versionName "1.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 

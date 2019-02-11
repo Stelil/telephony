@@ -17,12 +17,14 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.io.File;
 
+import ru.itceiling.telephony.Broadcaster.BroadcastNewClient;
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
@@ -59,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
     String getPhone = "", textSearch = "";
 
+    public static BottomNavigationView navigation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,13 +78,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
         String group_id = SP.getString("", "");
 
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
+        navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-
-        if (getIntent().getStringExtra("phone") == null) {
-        } else {
-            navigation.setSelectedItemId(R.id.clients);
-        }
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -207,6 +206,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        if (getIntent().getStringExtra("phone") == null) {
+            Log.d(TAG, "onCreate: ");
+        } else {
+            Log.d(TAG, "onCreate: " + getIntent().getStringExtra("phone"));
+            navigation.setSelectedItemId(R.id.clients);
+        }
+
         importDataReceiver = new ImportDataReceiver();
         if (importDataReceiver != null) {
             importDataReceiver.SetAlarm(this);
@@ -232,7 +238,6 @@ public class MainActivity extends AppCompatActivity {
         if (callbackReceiver != null)
             callbackReceiver.SetAlarm(this);
     }
-
 
     @Override
     protected void onStart() {

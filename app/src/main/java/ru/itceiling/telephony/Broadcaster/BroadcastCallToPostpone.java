@@ -89,7 +89,5 @@ public class BroadcastCallToPostpone extends BroadcastReceiver {
             }
         }
         c.close();
-
     }
-
 }

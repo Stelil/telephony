@@ -233,6 +233,7 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
 
 
         } else {
+            //String[] array = new String[]{"Добавить", "Добавить в существующего", "Удалить"};
             String[] array = new String[]{"Добавить", "Удалить"};
             AlertDialog.Builder builder;
             builder = new AlertDialog.Builder(getActivity());
@@ -253,9 +254,17 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
                         case 0:
                             Intent intent = new Intent(getActivity(), MainActivity.class);
                             intent.putExtra("phone", finalPhone);
+                            intent.putExtra("add", 0);
                             startActivity(intent);
                             getActivity().finish();
                             break;
+                        //case 1:
+                        //    intent = new Intent(getActivity(), MainActivity.class);
+                        //    intent.putExtra("phone", finalPhone);
+                        //    intent.putExtra("add", 1);
+                        //    startActivity(intent);
+                        //    getActivity().finish();
+                        //    break;
                         case 1:
                             db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY,
                                     "client_id = ?",
@@ -271,7 +280,6 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
 
                             callLogs.remove(pos);
                             adapter.notifyItemRemoved(pos);
-
                             break;
                     }
                 }

@@ -122,8 +122,10 @@ public class CallbackReceiver extends BroadcastReceiver {
                             intentClient.putExtra("check", "false");
                             intentClient.setAction(Long.toString(notifyID));
 
-                            PendingIntent pendingIntentClient = PendingIntent.getActivity(
-                                    context, 0, intentClient, PendingIntent.FLAG_ONE_SHOT);
+                            PendingIntent pendingIntentClient = PendingIntent.getActivity(context,
+                                    0,
+                                    intentClient,
+                                    PendingIntent.FLAG_ONE_SHOT);
 
                             //перенести звонок
                             Intent intentBr = new Intent(context, BroadcastCallToPostpone.class);

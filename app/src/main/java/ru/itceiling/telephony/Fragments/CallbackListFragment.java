@@ -258,6 +258,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                 do {
                     String client_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String date_time = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    date_time = date_time.substring(0,date_time.length()-3);
                     String comment = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(3)));
                     String nameManager = c.getString(c.getColumnIndex(c.getColumnName(4)));

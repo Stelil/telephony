@@ -82,7 +82,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
         } catch (Exception e) {
         }
 
-        if (count_line > 0) {
+        if (count_line > 0 && HelperClass.isOnline(context)) {
             try {
                 requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
             } catch (Exception e) {

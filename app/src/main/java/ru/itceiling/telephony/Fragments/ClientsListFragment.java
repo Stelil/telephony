@@ -56,6 +56,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     String TAG = "logd";
 
     String getPhone = "", textSearch = "";
+    Integer add = 0;
 
     private View view;
 
@@ -76,7 +77,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        getActivity().setTitle("Клиенты");
         view = inflater.inflate(R.layout.fragment_clients_list, container, false);
 
         SharedPreferences SP = getActivity().getSharedPreferences("dealer_id", MODE_PRIVATE);
@@ -88,16 +89,10 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         dbHelper = new DBHelper(getActivity());
         db = dbHelper.getWritableDatabase();
 
-        if (getActivity().getIntent().getStringExtra("phone") == null) {
-        } else {
-            getPhone = getActivity().getIntent().getStringExtra("phone");
-
-            long notifyID = getActivity().getIntent().getLongExtra("notifyID", 0);
-
-            NotificationManager notificationManager =
-                    (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel((int) notifyID);
-        }
+        recyclerView = view.findViewById(R.id.recyclerViewClients);
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        recyclerView.setLayoutManager(llm);
+        recyclerView.setHasFixedSize(true);
 
         Button addClient = view.findViewById(R.id.AddClient);
         addClient.setOnClickListener(new View.OnClickListener() {
@@ -107,19 +102,28 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             }
         });
 
-        if (!getPhone.equals("")) {
+        setHasOptionsMenu(true);
+
+        if (getActivity().getIntent().getStringExtra("phone") == null) {
+        } else {
+            getPhone = getActivity().getIntent().getStringExtra("phone");
+            long notifyID = getActivity().getIntent().getLongExtra("notifyID", 0);
+            NotificationManager notificationManager =
+                    (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel((int) notifyID);
+            Log.d(TAG, "onCreateView: " + getPhone);
+        }
+
+        if (getActivity().getIntent().getStringExtra("add") == null) {
+        } else {
+            add = 1;
+            Toast.makeText(getActivity(), "Выберите клиента, для добавление номера", Toast.LENGTH_SHORT).show();
+        }
+
+        if (!getPhone.equals("") && add == 0) {
             View view = null;
             onButtonAddClient(view);
         }
-
-        recyclerView = view.findViewById(R.id.recyclerViewClients);
-        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
-        recyclerView.setLayoutManager(llm);
-        recyclerView.setHasFixedSize(true);
-
-        getActivity().setTitle("Клиенты");
-
-        setHasOptionsMenu(true);
 
         return view;
     }
@@ -444,6 +448,9 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     @Override
     public void recyclerViewListClicked(View v, int pos) {
         int clickedDataItem = persons.get(pos).getId();
+        if (add == 1) {
+            addPhone(clickedDataItem);
+        }
         itemSelected = pos;
         Intent intent = new Intent(getActivity(), ClientActivity.class);
         intent.putExtra("id_client", String.valueOf(clickedDataItem));
@@ -451,9 +458,26 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         startActivity(intent);
     }
 
+    void addPhone(int id) {
+
+        Integer lastIdTable = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts", getActivity(), user_id);
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID, lastIdTable);
+        values.put(DBHelper.KEY_PHONE, getPhone);
+        values.put(DBHelper.KEY_CLIENT_ID, id);
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+    }
+
     @Override
     public void recyclerViewListLongClicked(View v, int id, int pos) {
 
+    }
+
+    @Override
+    public void onStop() {
+        Log.d(TAG, "onStop: ");
+        super.onStop();
+        add = 0;
     }
 
 }

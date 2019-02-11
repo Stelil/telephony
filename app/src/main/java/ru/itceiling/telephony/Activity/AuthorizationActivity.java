@@ -67,6 +67,9 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import ru.itceiling.telephony.App;
+import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
+import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
+import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
@@ -204,6 +207,13 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 }
                 if (subs) {
                     prBar();
+                } else {
+                    CallbackReceiver callbackReceiver = new CallbackReceiver();
+                    callbackReceiver.CancelAlarm(AuthorizationActivity.this);
+                    ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+                    exportDataReceiver.CancelAlarm(AuthorizationActivity.this);
+                    ImportDataReceiver importDataReceiver = new ImportDataReceiver();
+                    importDataReceiver.CancelAlarm(AuthorizationActivity.this);
                 }
             }
         });
@@ -662,7 +672,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         ed.commit();
 
         domen = "calc";
-
         new SendAuthorization().execute();
     }
 

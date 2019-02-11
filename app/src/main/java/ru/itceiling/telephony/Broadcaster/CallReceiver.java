@@ -1,6 +1,7 @@
 package ru.itceiling.telephony.Broadcaster;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -30,7 +31,9 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Activity.MainActivity;
@@ -98,13 +101,20 @@ public class CallReceiver extends BroadcastReceiver {
                     date1 = HelperClass.nowDate();
                     //recordCall();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                    //телефон находиться в ждущем режиме. Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
+                    // телефон находиться в ждущем режиме.
+                    // Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
                     date2 = HelperClass.nowDate();
                     if (date2.equals("")) {
                     } else {
                         //timeDifference();
                     }
                     newClient();
+
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     addHistoryClientCall();
                 }
             }
@@ -170,9 +180,11 @@ public class CallReceiver extends BroadcastReceiver {
         Log.d(TAG, "newClient: " + phoneNumber);
 
         int id = 0;
-        String sqlQuewy = "SELECT client_id "
-                + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                " WHERE phone = ? ";
+        String sqlQuewy = "SELECT cc.client_id"
+                + " FROM rgzbn_gm_ceiling_clients_contacts as cc" +
+                " INNER JOIN rgzbn_gm_ceiling_clients AS c" +
+                " ON c._id = cc.client_id " +
+                " WHERE cc.phone = ? AND c.deleted_by_user <> 1";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -184,22 +196,20 @@ public class CallReceiver extends BroadcastReceiver {
         long notifyID = (int) System.currentTimeMillis();
         if (id == 0) {
 
+            Intent intent = new Intent(ctx, BroadcastNewClient.class);
+            intent.putExtra("phone", phoneNumber);
+            intent.putExtra("add", 0);
+            ctx.sendBroadcast(intent);
+
+            /*
             Intent resultIntent = new Intent(ctx, MainActivity.class);
             resultIntent.putExtra("phone", phoneNumber);
-            resultIntent.putExtra("add", "0");
+            resultIntent.putExtra("add", 0);
             resultIntent.putExtra("notifyID", notifyID);
             resultIntent.setAction(Long.toString(notifyID));
-
-            Intent addPhoneIntent = new Intent(ctx, MainActivity.class);
-            resultIntent.putExtra("phone", phoneNumber);
-            resultIntent.putExtra("add", "1");
-            resultIntent.putExtra("notifyID", notifyID);
-            resultIntent.setAction(Long.toString(notifyID));
-
-            PendingIntent resultPendingIntent = PendingIntent.getActivity(ctx, 0, resultIntent,
-                    PendingIntent.FLAG_ONE_SHOT);
-
-            PendingIntent resultPendingIntent2 = PendingIntent.getActivity(ctx, 0, addPhoneIntent,
+            PendingIntent resultPendingIntent = PendingIntent.getActivity(ctx,
+                    0,
+                    resultIntent,
                     PendingIntent.FLAG_ONE_SHOT);
 
             String message = "Данный клиент не найден. Хотите добавить его?" +
@@ -210,13 +220,14 @@ public class CallReceiver extends BroadcastReceiver {
                 CharSequence name = "1";
                 int importance = NotificationManager.IMPORTANCE_HIGH;
                 NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+                @SuppressLint("ResourceType")
                 Notification notification = new Notification.Builder(ctx)
                         .setAutoCancel(true)
                         .setTicker("Звонок")
                         .setDefaults(Notification.DEFAULT_ALL)
                         .setSmallIcon(R.raw.icon_notif)
-                        .addAction(R.raw.plus, "Добавить", resultPendingIntent)
-                        .addAction(R.raw.plus, "В существующий", resultPendingIntent2)
+                        .addAction(R.raw.plus,
+                                "Добавить", resultPendingIntent)
                         .setStyle(new Notification.BigTextStyle().bigText(message))
                         .setContentTitle("Планер звонков")
                         .setContentText(message)
@@ -228,7 +239,6 @@ public class CallReceiver extends BroadcastReceiver {
                         (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.createNotificationChannel(mChannel);
                 mNotificationManager.notify((int) notifyID, notification);
-
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
             } else {
                 NotificationCompat.Builder builder =
@@ -237,7 +247,8 @@ public class CallReceiver extends BroadcastReceiver {
                                 .setTicker("Звонок")
                                 .setDefaults(Notification.DEFAULT_ALL)
                                 .setSmallIcon(R.raw.icon_notif)
-                                .addAction(R.raw.plus, "Добавить", resultPendingIntent)
+                                .addAction(R.raw.plus,
+                                        "Добавить", resultPendingIntent)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                                 .setContentTitle("Планер звонков")
                                 .setAutoCancel(true)
@@ -247,10 +258,10 @@ public class CallReceiver extends BroadcastReceiver {
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify((int) notifyID, notification);
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
-            }
+                */
 
-            addClient();
         }
+        addClient();
     }
 
     void addClient() {
@@ -303,11 +314,14 @@ public class CallReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
 
+        Log.d(TAG, "addHistoryClientCall callStatus: " + callStatus);
+
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        int duration = Integer.parseInt(getCallDetails());
+        int[] call = getCallDetails();
+
         try {
-            if (duration >= Integer.valueOf(json.getString("CheckTimeCall"))) {
+            if (call[1] >= Integer.valueOf(json.getString("CheckTimeCall")) && call[0] != 3) {
                 int client_id = 0;
                 String sqlQuewy = "SELECT client_id "
                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -319,15 +333,15 @@ public class CallReceiver extends BroadcastReceiver {
                         String text = "";
                         switch (callStatus) {
                             case 2:
-                                text = "Исходящий дозвон. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(duration));
+                                text = "Исходящий дозвон. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(call[1]));
                                 break;
                             case 3:
-                                text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(duration));
+                                text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(call[1]));
                                 break;
                         }
 
                         HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
-                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, duration, bool);
+                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, call[1], bool);
                     }
                 }
                 c.close();
@@ -336,8 +350,8 @@ public class CallReceiver extends BroadcastReceiver {
         }
 
         try {
-            if (callStatus == 2 && duration <= Integer.valueOf(json.getString("CheckTimeCall"))) {
-                int client_id = 0;
+            if (callStatus == 2 && call[0] == 3) {
+                int client_id;
                 String sqlQuewy = "SELECT client_id "
                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
                         " WHERE phone = ? ";
@@ -351,8 +365,8 @@ public class CallReceiver extends BroadcastReceiver {
                     }
                 }
                 c.close();
-            } else if (callStatus == 3 && duration <= Integer.valueOf(json.getString("CheckTimeCall"))) {
-                int client_id = 0;
+            } else if (callStatus == 3 && call[0] == 3) {
+                int client_id;
                 String sqlQuewy = "SELECT client_id "
                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
                         " WHERE phone = ? ";
@@ -381,9 +395,11 @@ public class CallReceiver extends BroadcastReceiver {
         dbHelper = new DBHelper(ctx);
         db = dbHelper.getWritableDatabase();
         int id = 0;
-        String sqlQuewy = "SELECT client_id "
-                + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                " WHERE phone = ? ";
+        String sqlQuewy = "SELECT cl._id "
+                + "FROM rgzbn_gm_ceiling_clients_contacts as cc " +
+                "inner join rgzbn_gm_ceiling_clients as cl " +
+                "on cl._id = cc.client_id " +
+                "WHERE cc.phone = ? and cl.deleted_by_user = 0";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -393,37 +409,13 @@ public class CallReceiver extends BroadcastReceiver {
         c.close();
 
         if (id != 0) {
-            String message = "";
-            sqlQuewy = "SELECT date_time, text "
-                    + "FROM rgzbn_gm_ceiling_client_history" +
-                    " WHERE client_id = ? " +
-                    "order by date_time desc";
-            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    do {
-                        message += c.getString(c.getColumnIndex(c.getColumnName(0))) + " ";
-                        message += c.getString(c.getColumnIndex(c.getColumnName(1))) + "\n";
-                    } while (c.moveToNext() && c.getPosition() < 2);
-                }
-            }
-            c.close();
 
-            String client_name = "";
+            Log.d("logd", "historyClient: ");
+            Intent intent = new Intent(ctx, BroadcastHistoryClient.class);
+            intent.putExtra("id", String.valueOf(id));
+            ctx.sendBroadcast(intent);
 
-            sqlQuewy = "SELECT client_name "
-                    + "FROM rgzbn_gm_ceiling_clients" +
-                    " WHERE _id = ? and deleted_by_user = ?";
-            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id), "0"});
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    do {
-                        client_name = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    } while (c.moveToNext());
-                }
-            }
-            c.close();
-
+            /*
             long notifyID = (int) System.currentTimeMillis();
 
             Intent intentClient = new Intent(ctx, ClientActivity.class);
@@ -445,6 +437,7 @@ public class CallReceiver extends BroadcastReceiver {
                     CharSequence name = "1";
                     int importance = NotificationManager.IMPORTANCE_HIGH;
                     NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+                    @SuppressLint("ResourceType")
                     Notification notification = new Notification.Builder(ctx)
                             .setAutoCancel(true)
                             .setTicker("Звонок")
@@ -486,12 +479,17 @@ public class CallReceiver extends BroadcastReceiver {
                     notification.flags |= Notification.FLAG_AUTO_CANCEL;
                 }
             }
+            */
+
         }
     }
 
-    static private String getCallDetails() {
+    static private int[] getCallDetails() {
 
-        StringBuffer sb = new StringBuffer("0");
+        int[] call = new int[2];
+        call[0] = 0;
+        call[1] = 0;
+
         if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
         } else {
             Cursor managedCursor = ctx.getContentResolver().query(CallLog.Calls.CONTENT_URI,
@@ -499,13 +497,22 @@ public class CallReceiver extends BroadcastReceiver {
                     null,
                     null,
                     null);
-            int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
             managedCursor.moveToLast();
-            String callDuration = managedCursor.getString(duration);
-            sb.append(callDuration);
+            int requiredNumber = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
+            int durations = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
+            String phNumber = managedCursor.getString(requiredNumber);
+            String dur = managedCursor.getString(durations);
+            String type = managedCursor.getString(managedCursor.getColumnIndex(CallLog.Calls.TYPE));
+            String date = managedCursor.getString(managedCursor.getColumnIndex(CallLog.Calls.DATE));
+            Log.e(TAG, "last position number " + phNumber);
+            Log.e(TAG, "last call Duration " + dur);
+            Log.e(TAG, "last call type " + type);
+            Log.e(TAG, "last call date " + date);
             managedCursor.close();
+            call[0] = Integer.valueOf(type);
+            call[1] = Integer.valueOf(dur);
         }
 
-        return sb.toString();
+        return call;
     }
 }

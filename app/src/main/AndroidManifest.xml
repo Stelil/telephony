@@ -67,7 +67,6 @@
         <activity
             android:name=".Activity.PhoneBookActivity"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".SubscriptionsActivity"
             android:screenOrientation="portrait" />
@@ -77,7 +76,15 @@
             android:enabled="true" />
         <receiver android:name=".Broadcaster.ImportDataReceiver" />
         <receiver android:name=".Broadcaster.ExportDataReceiver" />
-        <receiver android:name=".Broadcaster.BroadcastCallToPostpone" />
+        <receiver android:name=".Broadcaster.BroadcastCallToPostpone"
+            android:enabled="true" />
+        <receiver android:name=".Broadcaster.CallReceiver"
+            android:enabled="true"  />
+        <receiver android:name=".Broadcaster.BroadcastNewClient"
+            android:enabled="true"  />
+        <receiver android:name=".Broadcaster.BroadcastHistoryClient"
+            android:enabled="true"/>
 
     </application>
+
 </manifest>
