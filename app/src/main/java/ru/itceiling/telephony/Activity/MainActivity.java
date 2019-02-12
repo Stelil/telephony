@@ -1,6 +1,9 @@
 package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -8,7 +11,10 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -80,6 +86,12 @@ public class MainActivity extends AppCompatActivity {
 
         navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                alertDialogPermission();
+            }
+        }
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -254,10 +266,40 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.READ_CALL_LOG,
                             Manifest.permission.WRITE_CALL_LOG,
                             Manifest.permission.INTERNET,
-                            Manifest.permission.READ_CONTACTS,
-                            Manifest.permission.SYSTEM_ALERT_WINDOW},
+                            Manifest.permission.READ_CONTACTS},
                     1);
         }
+    }
+
+
+    void alertDialogPermission() {
+        final Context context = MainActivity.this;
+        String title = "Разрешение";
+        String message = "Для корректной работы приложения, вам надо разрешить нам отображать окно приложения поверх других приложений";
+        String button1String = "Разрешаю";
+        String button2String = "Нет";
+        AlertDialog.Builder ad = new AlertDialog.Builder(context);
+        ad.setTitle(title);  // заголовок
+        ad.setMessage(message); // сообщение
+        ad.setPositiveButton(button1String, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                checkPermission();
+            }
+        });
+        ad.setNegativeButton(button2String, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+
+            }
+        });
+        ad.setCancelable(false);
+        ad.show();
+    }
+
+    public static int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 5469;
+
+    public void checkPermission() {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+        startActivityForResult(intent, ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE);
     }
 
     @Override
