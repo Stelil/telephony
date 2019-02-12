@@ -1,11 +1,14 @@
 package ru.itceiling.telephony.Broadcaster;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.Build;
-import android.os.Parcelable;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -16,46 +19,89 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.io.Serializable;
-
+import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Activity.MainActivity;
+import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
 import static android.content.Context.WINDOW_SERVICE;
 
-public class BroadcastNewClient extends BroadcastReceiver {
+public class BroadcasterCallbackClient extends BroadcastReceiver {
     private WindowManager windowManager;
     private View view;
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
+        DBHelper dbHelper = new DBHelper(context);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        final String phone = intent.getStringExtra("phone");
+        final String id = intent.getStringExtra("id");
+
+        String client_name = "";
+        String phone = "";
+        String comment = "";
+        String date_time = "";
+        String sqlQuewy = "SELECT c.client_name, cc.phone, cal.comment, cal.date_time " +
+                "FROM rgzbn_gm_ceiling_clients AS c " +
+                "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS cc " +
+                "ON c._id = cc.client_id " +
+                "INNER JOIN rgzbn_gm_ceiling_callback AS cal " +
+                "ON cal.client_id = c._id " +
+                "WHERE c._id = ? " +
+                "ORDER BY cal.date_time DESC";
+        Cursor cc = db.rawQuery(sqlQuewy, new String[]{id});
+        if (cc != null) {
+            if (cc.moveToFirst()) {
+                client_name = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                phone = cc.getString(cc.getColumnIndex(cc.getColumnName(1)));
+                comment = cc.getString(cc.getColumnIndex(cc.getColumnName(2)));
+                date_time = cc.getString(cc.getColumnIndex(cc.getColumnName(3)));
+            }
+        }
+        cc.close();
 
         windowManager = (WindowManager) context.getSystemService(WINDOW_SERVICE);
 
-        view = LayoutInflater.from(context).inflate(R.layout.new_client_service, null);
+        view = LayoutInflater.from(context).inflate(R.layout.callback_service, null);
 
-        TextView phoneClient = view.findViewById(R.id.phoneClient);
-        phoneClient.setText(phoneClient.getText() + phone);
+        String message = "ФИО клиента: " + client_name +
+                "\nКомментарий: " + comment +
+                "\nВремя перезвона: " + date_time.substring(11, date_time.length() - 3);
+        TextView dataClient = view.findViewById(R.id.dataClient);
+        dataClient.setText(message);
 
-        Button addClient = view.findViewById(R.id.addClient);
-        addClient.setOnClickListener(new View.OnClickListener() {
+        Button callClient = view.findViewById(R.id.callClient);
+        final String finalPhone = phone;
+        callClient.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intentClient = new Intent(context, MainActivity.class);
-                intentClient.putExtra("phone", phone);
-                intentClient.putExtra("add", 0);
-                context.startActivity(intentClient);
+                Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + finalPhone));
+                context.startActivity(resultIntent);
                 windowManager.removeView(view);
             }
         });
 
-        Button addExistClient = view.findViewById(R.id.addExistClient);
-        addExistClient.setOnClickListener(new View.OnClickListener() {
+        Button postponeCall = view.findViewById(R.id.postponeCall);
+        postponeCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intentBr = new Intent(context, BroadcastCallToPostpone.class);
+                intentBr.putExtra("client_id", id);
+                context.sendBroadcast(intentBr);
+                windowManager.removeView(view);
+            }
+        });
 
+        Button openClient = view.findViewById(R.id.openClient);
+        openClient.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intentClient = new Intent(context, ClientActivity.class);
+                intentClient.putExtra("id_client", id);
+                intentClient.putExtra("check", "false");
+                intentClient.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intentClient);
+                windowManager.removeView(view);
             }
         });
 

@@ -111,7 +111,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             NotificationManager notificationManager =
                     (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel((int) notifyID);
-            Log.d(TAG, "onCreateView: " + getPhone);
         }
 
         if (getActivity().getIntent().getStringExtra("add") == null) {

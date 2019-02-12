@@ -40,9 +40,8 @@ public class CallbackReceiver extends BroadcastReceiver {
         dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        String sqlQuewy = "SELECT cb.client_id, cb.date_time, cb.comment, cl.client_name, cl._id "
-                + "FROM rgzbn_gm_ceiling_callback as cb INNER JOIN " +
-                " rgzbn_gm_ceiling_clients as cl ON cb.client_id = cl._id " +
+        String sqlQuewy = "SELECT cb.client_id, cb.date_time "
+                + "FROM rgzbn_gm_ceiling_callback as cb " +
                 "order by date_time DESC";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{});
         if (c != null) {
@@ -50,8 +49,6 @@ public class CallbackReceiver extends BroadcastReceiver {
                 do {
                     String client_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String date_time = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                    String comment = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                    String client_name = c.getString(c.getColumnIndex(c.getColumnName(3)));
 
                     String now_date = HelperClass.nowDate();
                     now_date = now_date.substring(0, now_date.length());
@@ -91,6 +88,11 @@ public class CallbackReceiver extends BroadcastReceiver {
 
                         if (min == checkTimeCallback) {
 
+                            intent = new Intent(context, BroadcasterCallbackClient.class);
+                            intent.putExtra("id", client_id);
+                            context.sendBroadcast(intent);
+
+                            /*
                             String phone = "";
                             sqlQuewy = "SELECT phone "
                                     + "FROM rgzbn_gm_ceiling_clients_contacts" +
@@ -191,6 +193,8 @@ public class CallbackReceiver extends BroadcastReceiver {
 
                             }
                             notifyID++;
+
+                            */
                         }
                     }
                 } while (c.moveToNext());

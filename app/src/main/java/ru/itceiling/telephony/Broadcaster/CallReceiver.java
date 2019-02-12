@@ -198,7 +198,6 @@ public class CallReceiver extends BroadcastReceiver {
 
             Intent intent = new Intent(ctx, BroadcastNewClient.class);
             intent.putExtra("phone", phoneNumber);
-            intent.putExtra("add", 0);
             ctx.sendBroadcast(intent);
 
             /*
@@ -260,8 +259,8 @@ public class CallReceiver extends BroadcastReceiver {
                 notification.flags |= Notification.FLAG_AUTO_CANCEL;
                 */
 
+            addClient();
         }
-        addClient();
     }
 
     void addClient() {

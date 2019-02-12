@@ -84,6 +84,8 @@
             android:enabled="true"  />
         <receiver android:name=".Broadcaster.BroadcastHistoryClient"
             android:enabled="true"/>
+        <receiver android:name=".Broadcaster.BroadcasterCallbackClient"
+            android:enabled="true"/>
 
     </application>
 

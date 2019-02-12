@@ -305,8 +305,6 @@ public class HelperClass {
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        Log.d("logd", "associated_client: " + user_id);
-
         String associated_client = "";
         String sqlQuewy = "SELECT associated_client "
                 + "FROM rgzbn_users " +
@@ -318,8 +316,6 @@ public class HelperClass {
             }
         }
         c.close();
-
-        Log.d("logd", "associated_client: " + associated_client);
 
         return associated_client;
     }
