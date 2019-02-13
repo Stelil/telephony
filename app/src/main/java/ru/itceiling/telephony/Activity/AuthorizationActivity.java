@@ -550,11 +550,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
                         jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
 
-                        SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-                        ed = SP.edit();
-                        ed.putString("", String.valueOf(jsonObject));
-                        ed.commit();
-
                         SP = getSharedPreferences("link", MODE_PRIVATE);
                         ed = SP.edit();
                         ed.putString("", domen);
@@ -594,6 +589,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 values.put(DBHelper.KEY_PARAMS, params);
                                 values.put(DBHelper.KEY_ASSOCIATED_CLIENT, associated_client);
                                 values.put(DBHelper.KEY_CHANGE_TIME, change_time);
+                                values.put(DBHelper.KEY_SETTINGS, String.valueOf(jsonObject));
                                 db.insert(DBHelper.TABLE_USERS, null, values);
                             }
                         }
@@ -711,6 +707,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         String dealer_id = jsonObject.getString("dealer_id");
                         String change_time = jsonObject.getString("change_time");
                         String associated_client = jsonObject.getString("associated_client");
+                        String settings = jsonObject.getString("settings");
 
                         String ob = jsonObject.getString("groups");
                         Log.d(TAG, ob);
@@ -728,15 +725,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         SP = getSharedPreferences("enter", MODE_PRIVATE);
                         ed = SP.edit();
                         ed.putString("", "1");
-                        ed.commit();
-
-                        jsonObject = new JSONObject();
-                        jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
-                        jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
-
-                        SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-                        ed = SP.edit();
-                        ed.putString("", String.valueOf(jsonObject));
                         ed.commit();
 
                         String sqlQuewy = "SELECT change_time "
@@ -773,6 +761,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 values.put(DBHelper.KEY_PARAMS, params);
                                 values.put(DBHelper.KEY_ASSOCIATED_CLIENT, associated_client);
                                 values.put(DBHelper.KEY_CHANGE_TIME, change_time);
+                                values.put(DBHelper.KEY_SETTINGS, settings);
                                 db.insert(DBHelper.TABLE_USERS, null, values);
                             }
                         }
@@ -1446,12 +1435,14 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 String username = user_v.getString("username");
                                 String email = user_v.getString("email");
                                 String dealer_id = user_v.getString("dealer_id");
+                                String settings = user_v.getString("settings");
                                 String change_time = user_v.getString("change_time");
 
                                 values.put(DBHelper.KEY_NAME, name);
                                 values.put(DBHelper.KEY_USERNAME, username);
                                 values.put(DBHelper.KEY_EMAIL, email);
                                 values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                                values.put(DBHelper.KEY_SETTINGS, settings);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_users" +

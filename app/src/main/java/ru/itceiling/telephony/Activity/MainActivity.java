@@ -2,12 +2,14 @@ package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -28,6 +30,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import org.json.simple.JSONObject;
+
 import java.io.File;
 
 import ru.itceiling.telephony.Broadcaster.BroadcastNewClient;
@@ -41,6 +45,7 @@ import ru.itceiling.telephony.Fragments.AnalyticsFragment;
 import ru.itceiling.telephony.Fragments.CallLogFragment;
 import ru.itceiling.telephony.Fragments.CallbackListFragment;
 import ru.itceiling.telephony.Fragments.ClientsListFragment;
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -85,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
         String group_id = SP.getString("", "");
 
+        SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        dealer_id = SP.getString("", "");
+
         navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
@@ -94,6 +102,42 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // если нет настроек
+        String stringToParse = "";
+        String sqlQuewy = "SELECT settings "
+                + "FROM rgzbn_users " +
+                "WHERE _id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    stringToParse = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        if (stringToParse.equals("null") || stringToParse.equals("")) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
+            jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
+            ContentValues values = new ContentValues();
+            values.put(DBHelper.KEY_SETTINGS, String.valueOf(jsonObject));
+            db.update(DBHelper.TABLE_USERS, values, "_id = ?", new String[]{dealer_id});
+            saveData(String.valueOf(jsonObject));
+        }
+    }
+
+    void saveData(String json) {
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_SETTINGS, json);
+        db.update(DBHelper.TABLE_USERS, values, "_id = ?", new String[]{dealer_id});
+
+        HelperClass.addExportData(
+                this,
+                Integer.valueOf(dealer_id),
+                "rgzbn_users",
+                "send");
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -136,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
         if (SP.getString("", "").equals("13")) {
             MenuItem item = menu.getItem(0);
             item.setVisible(false);
+            item = menu.getItem(2);
+            item.setVisible(false);
         }
 
         return true;
@@ -155,11 +201,6 @@ public class MainActivity extends AppCompatActivity {
                 ed.commit();
 
                 SP = getSharedPreferences("user_id", MODE_PRIVATE);
-                ed = SP.edit();
-                ed.putString("", "");
-                ed.commit();
-
-                SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
                 ed = SP.edit();
                 ed.putString("", "");
                 ed.commit();

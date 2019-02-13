@@ -67,16 +67,32 @@ public class CallbackReceiver extends BroadcastReceiver {
                     if (client_id.equals("")) {
                     } else if (two.getTime() < one.getTime()) {
 
+                        SharedPreferences SP = context.getSharedPreferences("dealer_id", MODE_PRIVATE);
+                        String dealer_id = SP.getString("", "");
+
                         int checkTimeCallback = 0;
-                        SharedPreferences SP = context.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-                        String jsonObject = SP.getString("", "");
+                        String stringToParse = "";
+                        sqlQuewy = "SELECT settings "
+                                + "FROM rgzbn_users " +
+                                "WHERE _id = ? ";
+                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+                        if (cc != null) {
+                            if (cc.moveToFirst()) {
+                                do {
+                                    stringToParse = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                } while (cc.moveToNext());
+                            }
+                        }
+                        cc.close();
+
                         try {
-                            org.json.JSONObject json = new org.json.JSONObject(jsonObject);
+                            org.json.JSONObject json = new org.json.JSONObject(stringToParse);
                             checkTimeCallback = json.getInt("CheckTimeCallback");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
 
+                        Log.d(TAG, "onReceive: checkTimeCallback " + checkTimeCallback);
                         try {
                             one = format.parse(date_time);
                             two = format.parse(now_date);

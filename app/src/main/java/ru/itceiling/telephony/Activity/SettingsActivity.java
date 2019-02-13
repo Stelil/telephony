@@ -1,9 +1,12 @@
 package ru.itceiling.telephony.Activity;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -44,15 +47,20 @@ import javax.annotation.Nonnull;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import ru.itceiling.telephony.App;
+import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.SubscriptionsActivity;
 
 public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
 
+    DBHelper dbHelper;
+    SQLiteDatabase db;
     TextView textMinValue;
     SeekBar seekBarValue;
     String time;
     String stringToParse;
+    String dealer_id;
     static String TAG = "logd";
 
     @Override
@@ -64,9 +72,24 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        SharedPreferences SP = this.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-        stringToParse = SP.getString("", "");
+        SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        dealer_id = SP.getString("", "");
 
+        dbHelper = new DBHelper(this);
+        db = dbHelper.getReadableDatabase();
+
+        String sqlQuewy = "SELECT settings "
+                + "FROM rgzbn_users " +
+                "WHERE _id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    stringToParse = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
 
         SP = this.getSharedPreferences("link", MODE_PRIVATE);
         String link = SP.getString("", "");
@@ -83,18 +106,19 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
                     startActivity(intent);
                 }
             });
+
+            ButterKnife.bind(this);
+
+            final Adapter adapter = new Adapter();
+            mRecycler.setLayoutManager(new LinearLayoutManager(this));
+            mRecycler.setAdapter(adapter);
+
+            final Billing billing = App.get().getBilling();
+            mCheckout = Checkout.forActivity(this, billing);
+            mCheckout.start();
+            mCheckout.whenReady(new HistoryLoader(adapter));
+
         }
-
-        ButterKnife.bind(this);
-
-        final Adapter adapter = new Adapter();
-        mRecycler.setLayoutManager(new LinearLayoutManager(this));
-        mRecycler.setAdapter(adapter);
-
-        final Billing billing = App.get().getBilling();
-        mCheckout = Checkout.forActivity(this, billing);
-        mCheckout.start();
-        mCheckout.whenReady(new HistoryLoader(adapter));
     }
 
     @Override
@@ -145,7 +169,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 }
-
                                 switch (time) {
                                     case "секунд":
                                         json.put("CheckTimeCall", progress);
@@ -155,10 +178,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
                                         break;
                                 }
 
-                                SharedPreferences SP = getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-                                SharedPreferences.Editor ed = SP.edit();
-                                ed.putString("", String.valueOf(json));
-                                ed.commit();
+                                stringToParse = String.valueOf(json);
 
                             }
                         })
@@ -174,18 +194,33 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         alertDialog.show();
     }
 
-    private void setSettings(String param) {
-        SharedPreferences SP = this.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-        String jsonObject = SP.getString("", "");
+    void saveData(String json) {
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_SETTINGS, json);
+        db.update(DBHelper.TABLE_USERS, values, "_id = ?", new String[]{dealer_id});
 
-        org.json.JSONObject json = null;
+        HelperClass.addExportData(
+                this,
+                Integer.valueOf(dealer_id),
+                "rgzbn_users",
+                "send");
+    }
+
+    private void setSettings(String param) {
+        org.json.JSONObject json;
         try {
-            json = new org.json.JSONObject(jsonObject);
+            json = new org.json.JSONObject(stringToParse);
             textMinValue.setText(json.getString(param));
             seekBarValue.setProgress(json.getInt(param));
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        saveData(String.valueOf(stringToParse));
     }
 
     @Override

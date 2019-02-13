@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "dbTelephony";
 
     private Context mContext;
@@ -67,6 +67,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String KEY_CHANGE_TIME = "change_time";
     public static final String KEY_DEALER_MOUNTERS = "dealer_mounters";
     public static final String KEY_DEMO_AND_DATE = "demo_end_date";
+    public static final String KEY_SETTINGS = "settings";
 
     public static final String TABLE_RGZBN_GM_CEILING_CALLS_STATUS = "rgzbn_gm_ceiling_calls_status";
     public static final String KEY_TITLE = "title";
@@ -140,7 +141,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 "dealer_type INTEGER, refused_to_cooperate INTEGER, block INTEGER, sendEmail INTEGER, registerDate TEXT, " +
                 "lastvisitDate TEXT, activation TEXT, params TEXT, lastResetTime TEXT, resetCount INTEGER, otpKey TEXT, " +
                 "otep TEXT, requireReset INTEGER, discount INTEGER,  wages TEXT, change_time TEXT, dealer_mounters INTEGER, " +
-                "demo_end_date TEXT)");
+                "demo_end_date TEXT, settings TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS history_import_to_server (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "user_id INTEGER, title TEXT, change_time TEXT)");
@@ -222,7 +223,10 @@ public class DBHelper extends SQLiteOpenHelper {
             values.put(DBHelper.KEY_TITLE, "Пропущенный звонок");
             values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
             db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
+        }
 
+        if (oldVersion < 3) { // 13.02
+            db.execSQL("ALTER TABLE rgzbn_users ADD settings TEXT;");
         }
 
     }

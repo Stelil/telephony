@@ -98,7 +98,6 @@ public class ImportDataReceiver extends BroadcastReceiver {
         }
     }
 
-
     public void SetAlarm(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, ImportDataReceiver.class);
@@ -113,7 +112,6 @@ public class ImportDataReceiver extends BroadcastReceiver {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);
     }
-
 
     static class ImportDate extends AsyncTask<Void, Void, Void> {
 
@@ -614,12 +612,14 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                 String username = user_v.getString("username");
                                 String email = user_v.getString("email");
                                 String dealer_id = user_v.getString("dealer_id");
+                                String settings = user_v.getString("settings");
                                 String change_time = user_v.getString("change_time");
 
                                 values.put(DBHelper.KEY_NAME, name);
                                 values.put(DBHelper.KEY_USERNAME, username);
                                 values.put(DBHelper.KEY_EMAIL, email);
                                 values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                                values.put(DBHelper.KEY_SETTINGS, settings);
 
                                 String sqlQuewy = "SELECT * "
                                         + "FROM rgzbn_users" +

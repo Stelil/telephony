@@ -303,29 +303,47 @@ public class CallReceiver extends BroadcastReceiver {
 
     private void addHistoryClientCall() {
 
-        SharedPreferences SP = ctx.getSharedPreferences("JsonCheckTime", MODE_PRIVATE);
-        String checkTime = SP.getString("", "");
+        SharedPreferences SP = ctx.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        String dealer_id = SP.getString("", "");
+
+        String stringToParse = "";
+        String sqlQuewy = "SELECT settings "
+                + "FROM rgzbn_users " +
+                "WHERE _id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    stringToParse = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
 
         JSONObject json = null;
         try {
-            json = new JSONObject(checkTime);
+            json = new JSONObject(stringToParse);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        Log.d(TAG, "addHistoryClientCall callStatus: " + callStatus);
 
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         int[] call = getCallDetails();
 
         try {
+            Log.d(TAG, "addHistoryClientCall CheckTimeCall: " + Integer.valueOf(json.getString("CheckTimeCall")));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
             if (call[1] >= Integer.valueOf(json.getString("CheckTimeCall")) && call[0] != 3) {
                 int client_id = 0;
-                String sqlQuewy = "SELECT client_id "
+                sqlQuewy = "SELECT client_id "
                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
                         " WHERE phone = ? ";
-                Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+                c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
                 if (c != null) {
                     if (c.moveToFirst()) {
                         client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
@@ -351,10 +369,10 @@ public class CallReceiver extends BroadcastReceiver {
         try {
             if (callStatus == 2 && call[0] == 3) {
                 int client_id;
-                String sqlQuewy = "SELECT client_id "
+                sqlQuewy = "SELECT client_id "
                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
                         " WHERE phone = ? ";
-                Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+                c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
                 if (c != null) {
                     if (c.moveToFirst()) {
                         client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
@@ -366,10 +384,10 @@ public class CallReceiver extends BroadcastReceiver {
                 c.close();
             } else if (callStatus == 3 && call[0] == 3) {
                 int client_id;
-                String sqlQuewy = "SELECT client_id "
+                sqlQuewy = "SELECT client_id "
                         + "FROM rgzbn_gm_ceiling_clients_contacts" +
                         " WHERE phone = ? ";
-                Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+                c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
                 if (c != null) {
                     if (c.moveToFirst()) {
                         client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
