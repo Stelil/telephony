@@ -129,10 +129,6 @@ public class MainActivity extends AppCompatActivity {
                 saveData(String.valueOf(jsonObject), user_id);
             }
         }
-
-        Intent intent = new Intent(this, BroadcasterCallbackClient.class);
-        intent.putExtra("id", String.valueOf(5717));
-        sendBroadcast(intent);
     }
 
     void saveData(String json, String user_id) {
