@@ -34,6 +34,7 @@ import org.json.simple.JSONObject;
 
 import java.io.File;
 
+import ru.itceiling.telephony.Broadcaster.BroadcastHistoryClient;
 import ru.itceiling.telephony.Broadcaster.BroadcastNewClient;
 import ru.itceiling.telephony.Broadcaster.BroadcasterCallbackClient;
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
@@ -87,10 +88,8 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver();
         registerCallbackReceiver();
 
-        SharedPreferences SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
-        String group_id = SP.getString("", "");
 
-        SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
 
         navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
@@ -102,40 +101,48 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // если нет настроек
-        String stringToParse = "";
-        String sqlQuewy = "SELECT settings "
-                + "FROM rgzbn_users " +
-                "WHERE _id = ? ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    stringToParse = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                } while (c.moveToNext());
+        SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
+        if (SP.getString("", "").equals("13")) {
+        } else {
+            SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+            String user_id = SP.getString("", "");
+
+            // если нет настроек
+            String stringToParse = "";
+            String sqlQuewy = "SELECT settings "
+                    + "FROM rgzbn_users " +
+                    "WHERE _id = ? ";
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    do {
+                        stringToParse = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    } while (c.moveToNext());
+                }
+            }
+            c.close();
+
+            if (stringToParse.equals("null") || stringToParse.equals("")) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
+                jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
+                saveData(String.valueOf(jsonObject), user_id);
             }
         }
-        c.close();
 
-        if (stringToParse.equals("null") || stringToParse.equals("")) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
-            jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
-            ContentValues values = new ContentValues();
-            values.put(DBHelper.KEY_SETTINGS, String.valueOf(jsonObject));
-            db.update(DBHelper.TABLE_USERS, values, "_id = ?", new String[]{dealer_id});
-            saveData(String.valueOf(jsonObject));
-        }
+        Intent intent = new Intent(this, BroadcasterCallbackClient.class);
+        intent.putExtra("id", String.valueOf(5717));
+        sendBroadcast(intent);
     }
 
-    void saveData(String json) {
+    void saveData(String json, String user_id) {
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_SETTINGS, json);
-        db.update(DBHelper.TABLE_USERS, values, "_id = ?", new String[]{dealer_id});
+        db.update(DBHelper.TABLE_USERS, values, "_id = ?", new String[]{user_id});
 
         HelperClass.addExportData(
                 this,
-                Integer.valueOf(dealer_id),
+                Integer.valueOf(user_id),
                 "rgzbn_users",
                 "send");
     }
@@ -262,9 +269,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         if (getIntent().getStringExtra("phone") == null) {
-            Log.d(TAG, "onCreate: ");
         } else {
-            Log.d(TAG, "onCreate: " + getIntent().getStringExtra("phone"));
             navigation.setSelectedItemId(R.id.clients);
         }
 

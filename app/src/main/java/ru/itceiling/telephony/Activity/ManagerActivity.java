@@ -107,6 +107,18 @@ public class ManagerActivity extends AppCompatActivity {
                             int maxIdClient = HelperClass.lastIdTable("rgzbn_users",
                                     ManagerActivity.this, dealer_id);
 
+                            String settings = "";
+                            String sqlQuewy = "SELECT settings " +
+                                    "     FROM rgzbn_users" +
+                                    "    WHERE dealer_id = ? ";
+                            Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+                            if (c != null) {
+                                if (c.moveToFirst()) {
+                                    settings = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                                }
+                            }
+                            c.close();
+
                             ContentValues values = new ContentValues();
                             values.put(DBHelper.KEY_ID, maxIdClient);
                             values.put(DBHelper.KEY_NAME, name);
@@ -137,6 +149,8 @@ public class ManagerActivity extends AppCompatActivity {
                                     "send",
                                     data);
 
+
+
                         } else {
                             Toast.makeText(getApplicationContext(), "Проверьте введенные данные", Toast.LENGTH_LONG).show();
                         }
@@ -147,18 +161,15 @@ public class ManagerActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    void createTable(){
+    void createTable() {
 
         client_mas.clear();
 
-        String sqlQuewy;
-        Cursor c;
-
-        sqlQuewy = "SELECT _id, name, username, email " +
+        String sqlQuewy = "SELECT _id, name, username, email " +
                 "     FROM rgzbn_users" +
                 "    WHERE dealer_id = ? " +
                 " order by registerDate desc";
-        c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {

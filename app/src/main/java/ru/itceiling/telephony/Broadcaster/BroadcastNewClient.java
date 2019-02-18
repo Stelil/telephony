@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -43,9 +44,11 @@ public class BroadcastNewClient extends BroadcastReceiver {
         addClient.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("logd", "onClick: addClient");
                 Intent intentClient = new Intent(context, MainActivity.class);
                 intentClient.putExtra("phone", phone);
-                intentClient.putExtra("add", 0);
+                intentClient.putExtra("add", "0");
+                intentClient.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intentClient);
                 windowManager.removeView(view);
             }
@@ -55,7 +58,13 @@ public class BroadcastNewClient extends BroadcastReceiver {
         addExistClient.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Log.d("logd", "onClick: addExistClient");
+                Intent intentClient = new Intent(context, MainActivity.class);
+                intentClient.putExtra("phone", phone);
+                intentClient.putExtra("add", "1");
+                intentClient.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intentClient);
+                windowManager.removeView(view);
             }
         });
 

@@ -1,84 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/rounded_button_white">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Планер звонков"
-        android:gravity="center"
-        android:textSize="20sp"
-        android:textColor="#000"/>
+    android:background="@drawable/alert_window_corner"
+    android:orientation="vertical">
 
-    <View
-        android:layout_width="wrap_content"
-        android:layout_height="1dp"
-        android:background="#000000"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Данный клиент не найден. Добавить его?"
-        android:gravity="center"
-        android:textSize="17sp"
-        android:textColor="#000"
-        android:layout_marginTop="10dp"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Номер клиента: "
-        android:gravity="center"
-        android:textSize="17sp"
+    <Button
+        android:id="@+id/closeView"
+        android:layout_width="40dp"
+        android:layout_height="30dp"
+        android:layout_alignParentRight="true"
         android:layout_marginTop="5dp"
-        android:textColor="#000"
-        android:id="@+id/phoneClient"/>
-
-    <View
-        android:layout_width="wrap_content"
-        android:layout_height="1dp"
-        android:background="#000000"
-        android:layout_marginTop="5dp"/>
+        android:layout_marginRight="5dp"
+        android:layout_weight="1"
+        android:background="@drawable/rounded_button"
+        android:text="X"
+        android:textColor="#edeaea"
+        android:textSize="20dp" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="3dp"
-        android:layout_marginBottom="3dp">
-        <Button
-            android:layout_width="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="Добавить"
-            android:background="@drawable/rounded_button"
-            android:layout_marginLeft="5dp"
-            android:textColor="#edeaea"
-            android:textSize="14dp"
-            android:id="@+id/addClient"/>
-        <Button
+            android:gravity="center"
+            android:text="Планер звонков"
+            android:textColor="#000"
+            android:textSize="20sp" />
+
+        <View
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="В существующий"
-            android:background="@drawable/rounded_button"
-            android:layout_marginLeft="5dp"
-            android:textColor="#edeaea"
-            android:textSize="14dp"
-            android:id="@+id/addExistClient"/>
-        <Button
+            android:layout_height="1dp"
+            android:background="#000000"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="Данный клиент не найден. Добавить его?"
+            android:textColor="#000"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/phoneClient"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center"
+            android:text="Номер клиента: "
+            android:textColor="#000"
+            android:textSize="17sp" />
+
+        <View
             android:layout_width="wrap_content"
+            android:layout_height="1dp"
+            android:layout_marginTop="5dp"
+            android:background="#000000" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="Закрыть"
-            android:background="@drawable/rounded_button"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:textColor="#edeaea"
-            android:textSize="14dp"
-            android:id="@+id/closeView"/>
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/addClient"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="3dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:text="Добавить"
+                android:textColor="#edeaea"
+                android:textSize="14dp" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="#000000" />
+
+            <Button
+                android:id="@+id/addExistClient"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginLeft="3dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:text="Привязать"
+                android:textColor="#edeaea"
+                android:textSize="14dp" />
+        </LinearLayout>
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>

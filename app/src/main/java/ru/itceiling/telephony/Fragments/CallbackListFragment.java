@@ -39,6 +39,7 @@ import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterCallback;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
+import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.Callback;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
@@ -157,6 +158,10 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
         exportDataReceiver.onReceive(getActivity(), intent);
+
+        ImportDataReceiver importDataReceiver = new ImportDataReceiver();
+        intent = new Intent(getActivity(), ImportDataReceiver.class);
+        importDataReceiver.onReceive(getActivity(), intent);
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {

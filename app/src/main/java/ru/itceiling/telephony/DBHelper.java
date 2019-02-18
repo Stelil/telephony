@@ -106,37 +106,37 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients (_id INTEGER, " +
                 "client_name TEXT, client_data_id INTEGER, type_id INTEGER, dealer_id INTEGER, manager_id INTEGER, " +
                 "created TEXT, sex TEXT, deleted_by_user INTEGER, api_phone_id INTEGER, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_contacts (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_contacts (_id INTEGER, " +
                 "client_id INTEGER, phone TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_dop_contacts (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_dop_contacts (_id INTEGER, " +
                 "client_id INTEGER, type_id INTEGER, contact TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_client_history (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_client_history (_id INTEGER, " +
                 "client_id INTEGER, date_time TEXT, text TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_callback (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_callback (_id INTEGER, " +
                 "client_id INTEGER, date_time TEXT, comment TEXT, manager_id INTEGER, notify INTEGER, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses_map (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses_map (_id INTEGER, " +
                 " client_id TEXT, status_id TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status_history (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status_history (_id INTEGER, " +
                 "manager_id INTEGER, client_id INTEGER, status INTEGER, date_time TEXT, call_length TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status (_id INTEGER PRIMARY KEY, title TEXT, change_time TEXT)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_calls_status (_id INTEGER, title TEXT, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses (_id INTEGER PRIMARY KEY, title TEXT," +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_statuses (_id INTEGER, title TEXT," +
                 " change_time TEXT, dealer_id INTEGER)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_api_phones (_id INTEGER PRIMARY KEY, number TEXT," +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_api_phones (_id INTEGER, number TEXT," +
                 " name TEXT, description TEXT, site TEXT, dealer_id INTEGER, change_time TEXT)");
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_users (_id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_users (_id INTEGER, " +
                 "name TEXT, username TEXT, email TEXT, password TEXT, dealer_id INTEGER, associated_client TEXT," +
                 "dealer_type INTEGER, refused_to_cooperate INTEGER, block INTEGER, sendEmail INTEGER, registerDate TEXT, " +
                 "lastvisitDate TEXT, activation TEXT, params TEXT, lastResetTime TEXT, resetCount INTEGER, otpKey TEXT, " +

@@ -621,7 +621,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
                     parameters.put("r_data", jsonAuth);
-                    Log.d(TAG, "getParams: " + parameters + " " + domen);
+                    Log.d(TAG, "getParams: " + parameters);
                     return parameters;
                 }
             };

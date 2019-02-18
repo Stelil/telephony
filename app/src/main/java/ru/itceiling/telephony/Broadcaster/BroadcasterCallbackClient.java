@@ -1,5 +1,6 @@
 package ru.itceiling.telephony.Broadcaster;
 
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,8 +8,13 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PixelFormat;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
+import android.os.Vibrator;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -64,11 +70,11 @@ public class BroadcasterCallbackClient extends BroadcastReceiver {
 
         view = LayoutInflater.from(context).inflate(R.layout.callback_service, null);
 
-        String message = "ФИО клиента: " + client_name +
-                "\nКомментарий: " + comment +
-                "\nВремя перезвона: " + date_time.substring(11, date_time.length() - 3);
+        String message = "<b>ФИО клиента:</b> " + client_name +
+                "<br><b>Время перезвона:</b> " + date_time.substring(11, date_time.length() - 3) +
+                "<br><b>Комментарий:</b> " + comment;
         TextView dataClient = view.findViewById(R.id.dataClient);
-        dataClient.setText(message);
+        dataClient.setText(Html.fromHtml(message));
 
         Button callClient = view.findViewById(R.id.callClient);
         final String finalPhone = phone;
@@ -174,5 +180,26 @@ public class BroadcasterCallbackClient extends BroadcastReceiver {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        try {
+            Uri notify = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            Ringtone r = RingtoneManager.getRingtone(context.getApplicationContext(), notify);
+            r.play();
+
+            turnOnScreen();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+
+    private PowerManager mPowerManager;
+    private PowerManager.WakeLock mWakeLock;
+
+    public void turnOnScreen() {
+        // turn on screen
+        mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "tag");
+        mWakeLock.acquire();
+    }
+
 }

@@ -37,6 +37,7 @@ import ru.itceiling.telephony.Adapter.RVAdapterClient;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
+import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.Person;
@@ -107,16 +108,24 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         if (getActivity().getIntent().getStringExtra("phone") == null) {
         } else {
             getPhone = getActivity().getIntent().getStringExtra("phone");
-            long notifyID = getActivity().getIntent().getLongExtra("notifyID", 0);
-            NotificationManager notificationManager =
-                    (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel((int) notifyID);
         }
 
-        if (getActivity().getIntent().getStringExtra("add") == null) {
+        if (getActivity().getIntent().getStringExtra("add") == null ||
+                getActivity().getIntent().getStringExtra("add") == "0") {
         } else {
             add = 1;
-            Toast.makeText(getActivity(), "Выберите клиента, для добавление номера", Toast.LENGTH_SHORT).show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Добавление")
+                    .setMessage("Выберите контакт для привязки номера")
+                    .setCancelable(false)
+                    .setNegativeButton("ОК",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
         }
 
         if (!getPhone.equals("") && add == 0) {
@@ -162,6 +171,10 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
         exportDataReceiver.onReceive(getActivity(), intent);
+
+        ImportDataReceiver importDataReceiver = new ImportDataReceiver();
+        intent = new Intent(getActivity(), ImportDataReceiver.class);
+        importDataReceiver.onReceive(getActivity(), intent);
 
     }
 
@@ -459,12 +472,44 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
     void addPhone(int id) {
 
+        int idOldClient = 0;
+        String sqlQuewy = "SELECT h.client_id " +
+                "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
+                "INNER JOIN rgzbn_gm_ceiling_calls_status_history AS h " +
+                "ON c.client_id = h.client_id " +
+                "WHERE c.phone = ?";
+        Cursor cc = db.rawQuery(sqlQuewy, new String[]{getPhone});
+        if (cc != null) {
+            if (cc.moveToLast()) {
+                idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+
+                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY,
+                        "client_id = ?",
+                        new String[]{String.valueOf(idOldClient)});
+
+                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
+                        "_id = ?",
+                        new String[]{String.valueOf(idOldClient)});
+
+                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
+                        "client_id = ?",
+                        new String[]{String.valueOf(idOldClient)});
+            }
+        }
+        cc.close();
+
         Integer lastIdTable = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts", getActivity(), user_id);
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, lastIdTable);
         values.put(DBHelper.KEY_PHONE, getPhone);
         values.put(DBHelper.KEY_CLIENT_ID, id);
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+        HelperClass.addExportData(
+                getActivity(),
+                Integer.valueOf(lastIdTable),
+                "rgzbn_gm_ceiling_clients_contacts",
+                "send");
     }
 
     @Override
@@ -476,7 +521,9 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     public void onStop() {
         Log.d(TAG, "onStop: ");
         super.onStop();
+        getActivity().getIntent().removeExtra("add");
+        getActivity().getIntent().removeExtra("phone");
         add = 0;
+        getPhone = "";
     }
-
 }
