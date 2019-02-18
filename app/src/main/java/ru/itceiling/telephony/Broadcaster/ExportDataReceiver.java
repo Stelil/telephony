@@ -1406,7 +1406,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
                             }
                         } catch (Exception e) {
-                            Log.d(TAG, "onResponse: " + e);
                         }
 
                         try {
@@ -1869,6 +1868,7 @@ public class ExportDataReceiver extends BroadcastReceiver {
                         public void onResponse(String res) {
 
                             Log.d(TAG, "onResponse: " + res);
+
 
                             if (res.equals("")) {
                             } else {

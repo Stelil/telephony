@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="match_parent"
     android:descendantFocusability="beforeDescendants"
@@ -76,6 +77,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center"
+            android:orientation="horizontal"
             android:visibility="gone">
 
             <EditText
@@ -87,7 +89,8 @@
                 android:background="@drawable/blue_corners_text"
                 android:gravity="center"
                 android:hint="Добавить почту(ххх@xx.xx)"
-                android:inputType="textEmailAddress">
+                android:inputType="textEmailAddress"
+                tools:ignore="HardcodedText">
 
                 <requestFocus />
             </EditText>
@@ -146,6 +149,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center"
+            android:orientation="horizontal"
             android:visibility="gone">
 
             <EditText
@@ -158,7 +162,8 @@
                 android:gravity="center"
                 android:hint="Добавить номер(7хххххххххх)"
                 android:inputType="number"
-                android:maxLength="11" />
+                android:maxLength="11"
+                tools:ignore="HardcodedText" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -177,12 +182,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:gravity="left"
                 android:paddingLeft="6dp"
                 android:text="Статус"
@@ -195,7 +201,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
                 android:layout_marginRight="5dp"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:gravity="center"
                 android:inputType="number" />
 
@@ -205,6 +211,47 @@
                 android:layout_gravity="center"
                 android:background="@drawable/rounded_button"
                 android:onClick="onButtonEditStatusOfClient"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:text="Изменить"
+                android:textColor="#fff" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:id="@+id/layoutManager">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:gravity="left"
+                android:paddingLeft="6dp"
+                android:text="Менеджер"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtManagerOfClient"
+                style="@style/text_style_spisok"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:inputType="number" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_button"
+                android:onClick="onButtonEditManagerOfClient"
                 android:padding="6dp"
                 android:scaleType="fitCenter"
                 android:text="Изменить"
@@ -316,7 +363,8 @@
                     android:hint="Изменить звонок"
                     android:onClick="onEditButtonCallback"
                     android:paddingLeft="5dp"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"
+                    tools:ignore="HardcodedText" />
 
                 <EditText
                     android:id="@+id/txtEditCallbackComment"
@@ -330,7 +378,8 @@
                     android:hint="Введите примечание"
                     android:minHeight="40dp"
                     android:paddingLeft="5dp"
-                    android:textSize="15dp" />
+                    android:textSize="15dp"
+                    tools:ignore="HardcodedText" />
 
                 <ImageButton
                     android:id="@+id/btnEditAddCallback"
@@ -349,13 +398,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginTop="5dp"
             android:visibility="gone">
 
             <TextView
                 android:id="@+id/text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:text="Добавить звонок"
                 android:textColor="#000"
@@ -364,7 +413,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -379,7 +427,8 @@
                     android:hint="Добавить звонок"
                     android:onClick="onButtonCallback"
                     android:paddingLeft="5dp"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"
+                    tools:ignore="HardcodedText" />
 
                 <EditText
                     android:id="@+id/txtCallbackComment"
@@ -393,7 +442,8 @@
                     android:hint="Введите примечание"
                     android:minHeight="40dp"
                     android:paddingLeft="5dp"
-                    android:textSize="15dp" />
+                    android:textSize="15dp"
+                    tools:ignore="HardcodedText" />
 
                 <ImageButton
                     android:id="@+id/btnAddCallback"
@@ -438,24 +488,25 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-
                 <android.support.v4.widget.NestedScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1">
+
                     <EditText
                         android:id="@+id/editCommentClient"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@drawable/without_corners_text"
                         android:hint="Добавить комментарий"
+                        android:minHeight="40dp"
                         android:paddingLeft="6dp"
-                        android:minHeight="50dp"
-                        android:scrollbars="vertical" />
+                        android:scrollbars="vertical"
+                        tools:ignore="HardcodedText" />
                 </android.support.v4.widget.NestedScrollView>
 
                 <ImageButton

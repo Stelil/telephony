@@ -66,7 +66,7 @@ public class ClientActivity extends AppCompatActivity {
     private TextView phoneClient;
     private TextView txtStatusOfClient;
     private TextView txtApiPhone;
-    private TextView txtCallback, txtEditCallback;
+    private TextView txtCallback, txtEditCallback, txtManagerOfClient;
     private ListView listHistoryClient;
     private ArrayList<AdapterList> client_mas = new ArrayList<>();
     private EditText editCommentClient, txtEditCallbackComment;
@@ -113,6 +113,7 @@ public class ClientActivity extends AppCompatActivity {
 
         phoneClient = findViewById(R.id.phoneClient);
         txtStatusOfClient = findViewById(R.id.txtStatusOfClient);
+        txtManagerOfClient = findViewById(R.id.txtManagerOfClient);
         txtCallback = findViewById(R.id.txtCallback);
         txtEditCallback = findViewById(R.id.txtEditCallback);
 
@@ -148,6 +149,12 @@ public class ClientActivity extends AppCompatActivity {
 
         linearNewCall = findViewById(R.id.linearNewCall);
         layoutCallback = findViewById(R.id.layoutCallback);
+
+        SP = this.getSharedPreferences("group_id", MODE_PRIVATE);
+        if (SP.getString("", "").equals("13")) {
+            LinearLayout layoutManager = findViewById(R.id.layoutManager);
+            layoutManager.setVisibility(View.GONE);
+        }
     }
 
     public void onButtonEditCallback(View view) {
@@ -156,13 +163,13 @@ public class ClientActivity extends AppCompatActivity {
             if (linearNewCall.getVisibility() == View.VISIBLE) {
                 linearNewCall.setVisibility(View.GONE);
             }
+            setDateEditCallback(txtEditCallback);
         } else {
             layoutCallback.setVisibility(View.GONE);
         }
     }
 
     public void onEditButtonCallback(View view) {
-        setDateEditCallback(txtEditCallback);
 
         ImageButton btnEditAddCallback = findViewById(R.id.btnEditAddCallback);
         final TextView txtEditCallbackComment = findViewById(R.id.txtEditCallbackComment);
@@ -318,6 +325,20 @@ public class ClientActivity extends AppCompatActivity {
                     }
                 }
                 c.close();
+            }
+        }
+        c.close();
+
+        sqlQuewy = "SELECT us.name " +
+                "FROM rgzbn_gm_ceiling_clients AS cl " +
+                "INNER JOIN rgzbn_users AS us " +
+                "ON us._id = cl.manager_id " +
+                "WHERE cl._id = ?";
+        c = db.rawQuery(sqlQuewy, new String[]{id_client});
+        if (c != null) {
+            if (c.moveToLast()) {
+                String name = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                txtManagerOfClient.setText(name);
             }
         }
         c.close();
@@ -946,6 +967,126 @@ public class ClientActivity extends AppCompatActivity {
         });
     }
 
+    public void onButtonEditManagerOfClient(View view) {
+        final Context context = ClientActivity.this;
+        DBHelper dbHelper = new DBHelper(context);
+        db = dbHelper.getWritableDatabase();
+
+        final ArrayList<String> arrayList = new ArrayList<>();
+        LayoutInflater li = LayoutInflater.from(context);
+        View promptsView = li.inflate(R.layout.dialog_status_client, null);
+        AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+        mDialogBuilder.setView(promptsView);
+        final ListView listView = (ListView) promptsView.findViewById(R.id.listView);
+
+        LinearLayout layoutText = promptsView.findViewById(R.id.layoutText);
+        layoutText.setVisibility(View.GONE);
+
+        String sqlQuewy = "select _id, name "
+                + "FROM rgzbn_users";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    String idd = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    String name = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    arrayList.add(name);
+                } while (c.moveToNext());
+            }
+            c.close();
+        }
+
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, arrayList);
+        listView.setAdapter(adapter);
+
+        final AlertDialog Alertdialog = new AlertDialog.Builder(context)
+                .setView(promptsView)
+                .setTitle("Выберите менеджера")
+                .setNegativeButton("Назад", null)
+                .setCancelable(false)
+                .create();
+
+        Alertdialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button button_negative = ((AlertDialog) Alertdialog).getButton(AlertDialog.BUTTON_NEGATIVE);
+                button_negative.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Alertdialog.dismiss();
+                    }
+                });
+            }
+        });
+
+        Alertdialog.getWindow().setBackgroundDrawableResource(R.color.colorWhite);
+        Alertdialog.show();
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View itemClicked, int position,
+                                    long id) {
+
+                int idManager = 0;
+                String sqlQuewy = "select _id "
+                        + "FROM rgzbn_users " +
+                        "where name = ?";
+                Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(((TextView) itemClicked).getText())});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        do {
+                            idManager = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                        } while (c.moveToNext());
+                    }
+                    c.close();
+                }
+
+                ContentValues values = new ContentValues();
+                values.put(DBHelper.KEY_MANAGER_ID, idManager);
+                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?",
+                        new String[]{id_client});
+
+                HelperClass.addExportData(
+                        ClientActivity.this,
+                        Integer.valueOf(id_client),
+                        "rgzbn_gm_ceiling_clients",
+                        "send");
+
+                values = new ContentValues();
+                values.put(DBHelper.KEY_MANAGER_ID, idManager);
+                sqlQuewy = "select _id "
+                        + "FROM rgzbn_gm_ceiling_callback " +
+                        "where client_id = ?";
+                c = db.rawQuery(sqlQuewy, new String[]{id_client});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        do {
+                            Integer idCallback = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+
+                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?",
+                                    new String[]{String.valueOf(idCallback)});
+
+                            HelperClass.addExportData(
+                                    ClientActivity.this,
+                                    idCallback,
+                                    "rgzbn_gm_ceiling_callback",
+                                    "send");
+
+                        } while (c.moveToNext());
+                    }
+                    c.close();
+                }
+
+                Toast.makeText(getApplicationContext(), "Менеджер изменён",
+                        Toast.LENGTH_SHORT).show();
+
+                info();
+                Alertdialog.dismiss();
+            }
+        });
+    }
+
     public void onButtonEditNameClient(View view) {
         final Context context = ClientActivity.this;
         View promptsView;
@@ -1176,7 +1317,6 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public void onButtonCallback(View view) {
-        Log.d(TAG, "onButtonCallback: ");
         setDate(txtCallback);
 
         ImageButton btnAddCallback = findViewById(R.id.btnAddCallback);
@@ -1274,6 +1414,7 @@ public class ClientActivity extends AppCompatActivity {
             if (layoutCallback.getVisibility() == View.VISIBLE) {
                 layoutCallback.setVisibility(View.GONE);
             }
+            setDate(txtCallback);
         } else {
             linearNewCall.setVisibility(View.GONE);
         }

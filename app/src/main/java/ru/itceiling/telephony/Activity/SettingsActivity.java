@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
@@ -21,10 +22,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.simple.JSONObject;
@@ -41,6 +51,7 @@ import org.solovyev.android.checkout.RequestListener;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import javax.annotation.Nonnull;
 
@@ -60,8 +71,10 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     SeekBar seekBarValue;
     String time;
     String stringToParse;
-    String dealer_id;
+    String dealer_id, user_id;
+    String domen, jsonPassword;
     static String TAG = "logd";
+    private RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,8 +85,14 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
+        SharedPreferences SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
+        user_id = SP.getString("", "");
+
+        SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
+
+        SP = this.getSharedPreferences("link", MODE_PRIVATE);
+        domen = SP.getString("", "");
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
@@ -118,6 +137,128 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
             mCheckout.start();
             mCheckout.whenReady(new HistoryLoader(adapter));
 
+        }
+    }
+
+    AlertDialog dialog;
+
+    public void onButtonPwd(View view) {
+        try {
+            requestQueue = Volley.newRequestQueue(getApplicationContext());
+
+            final Context context = this;
+            LayoutInflater li = LayoutInflater.from(context);
+            View promptsView = li.inflate(R.layout.layout_profile_password, null);
+            AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+            mDialogBuilder.setView(promptsView);
+            final EditText ed_oldPassword = (EditText) promptsView.findViewById(R.id.ed_oldPassword);
+            final EditText ed_newPassword1 = (EditText) promptsView.findViewById(R.id.ed_newPassword1);
+            final EditText ed_newPassword2 = (EditText) promptsView.findViewById(R.id.ed_newPassword2);
+
+            DBHelper dbHelper = new DBHelper(this);
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+            dialog = new AlertDialog.Builder(context)
+                    .setView(promptsView)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setTitle("Изменение пароля ")
+                    .create();
+
+            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+
+                @Override
+                public void onShow(DialogInterface dialogInterface) {
+
+                    Button button = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // TODO Do something
+
+                            if (HelperClass.isOnline(SettingsActivity.this)) {
+
+                                if (ed_newPassword1.getText().toString().length() > 5 &&
+                                        ed_newPassword2.getText().toString().length() > 5) {
+                                    if (ed_newPassword1.getText().toString().equals(ed_newPassword2.getText().toString())) {
+
+                                        JSONObject jsonObject = new JSONObject();
+                                        jsonObject.put("old_password", ed_oldPassword.getText().toString());
+                                        jsonObject.put("password", ed_newPassword1.getText().toString());
+                                        jsonObject.put("user_id", user_id);
+
+                                        jsonPassword = String.valueOf(jsonObject);
+                                        new ChangePwd().execute();
+
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), "Новые пароли не совпадают",
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Длина пароля должна быть больше 5 символов",
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Не удалось проверить старый пароль(нет интернета)",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+                }
+            });
+            dialog.show();
+        } catch (Exception e) {
+            Log.d(TAG, "ChangePass: exception " + e);
+        }
+    }
+
+    class ChangePwd extends AsyncTask<Void, Void, Void> {
+
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&amp;task=api.changePwd";
+        java.util.Map<String, String> parameters = new HashMap<String, String>();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(final Void... params) {
+
+            StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new com.android.volley.Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+                    try {
+
+                        if (res.equals("true")) {
+                            dialog.dismiss();
+                            Toast.makeText(getApplicationContext(), "Пароль изменён",
+                                    Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Неверный старый пароль",
+                                    Toast.LENGTH_LONG).show();
+                        }
+
+                    } catch (Exception e) {
+                    }
+                }
+            }, new com.android.volley.Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }) {
+
+                @Override
+                protected java.util.Map<String, String> getParams() throws AuthFailureError {
+                    parameters.put("u_data", jsonPassword);
+                    return parameters;
+                }
+            };
+
+            requestQueue.add(request);
+
+            return null;
         }
     }
 
