@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -88,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver();
         registerCallbackReceiver();
 
-
         SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
 
@@ -129,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
                 saveData(String.valueOf(jsonObject), user_id);
             }
         }
+
+
     }
 
     void saveData(String json, String user_id) {
@@ -302,13 +304,9 @@ public class MainActivity extends AppCompatActivity {
         int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE);
         if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
         } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.PROCESS_OUTGOING_CALLS,
+            ActivityCompat.requestPermissions(this, new String[]{
                             Manifest.permission.READ_PHONE_STATE,
-                            Manifest.permission.RECORD_AUDIO,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.CAPTURE_AUDIO_OUTPUT,
                             Manifest.permission.READ_CALL_LOG,
-                            Manifest.permission.WRITE_CALL_LOG,
                             Manifest.permission.INTERNET,
                             Manifest.permission.READ_CONTACTS},
                     1);

@@ -96,24 +96,30 @@
 
         </LinearLayout>
 
-        <com.google.android.gms.common.SignInButton
-            android:id="@+id/sign_in_button"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginRight="5dp" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="5dp">
 
-        <!--
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@raw/iconfinder_vk_100562"
-            android:layout_marginLeft="5dp"
-            android:padding="1dp"
-            android:background="#fff"
-            android:layout_gravity="center"
-            android:id="@+id/buttonVK"/>
-            -->
+            <ImageButton
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:srcCompat="@drawable/google"
+                android:background="@drawable/blue_corners_text"
+                android:id="@+id/sign_in_button"
+                android:layout_margin="5dp"/>
+
+             <!--<ImageButton
+                 android:layout_width="40dp"
+                 android:layout_height="40dp"
+                 app:srcCompat="@drawable/vk"
+                 android:background="@drawable/blue_corners_text"
+                 android:id="@+id/buttonVK"
+                 android:layout_margin="5dp"/>-->
+
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

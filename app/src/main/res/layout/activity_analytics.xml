@@ -76,7 +76,7 @@
                 <TableLayout
                     android:id="@+id/titleTable"
                     android:layout_width="640dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_marginTop="5dp" />
 
                 <View

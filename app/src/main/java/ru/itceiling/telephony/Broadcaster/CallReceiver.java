@@ -94,8 +94,10 @@ public class CallReceiver extends BroadcastReceiver {
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
                     phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                    Log.d(TAG, "onReceive: телефон звонит, получаем входящий номер");
-                    historyClient();
+
+                    if (phoneNumber.length() > 5) {
+                        historyClient();
+                    }
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                     //телефон находится в режиме звонка (набор номера / разговор)
                     date1 = HelperClass.nowDate();
@@ -108,14 +110,19 @@ public class CallReceiver extends BroadcastReceiver {
                     } else {
                         //timeDifference();
                     }
-                    newClient();
+                    if (phoneNumber.length() > 5) {
+                        newClient();
+                    }
 
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    addHistoryClientCall();
+
+                    if (phoneNumber.length() > 5) {
+                        addHistoryClientCall();
+                    }
                 }
             }
         }
@@ -270,77 +277,45 @@ public class CallReceiver extends BroadcastReceiver {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         int[] call = getCallDetails();
 
-        try {
-            Log.d(TAG, "addHistoryClientCall CheckTimeCall: " + Integer.valueOf(json.getString("CheckTimeCall")));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            if (call[1] >= Integer.valueOf(json.getString("CheckTimeCall")) && call[0] != 3) {
-                int client_id = 0;
-                sqlQuewy = "SELECT client_id "
-                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                        " WHERE phone = ? ";
-                c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-                        client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-                        String text = "";
-                        switch (callStatus) {
-                            case 2:
-                                text = "Исходящий дозвон. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(call[1]));
-                                break;
-                            case 3:
-                                text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(call[1]));
-                                break;
-                        }
-
-                        HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
-                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, call[1], bool);
-                    }
-                }
-                c.close();
+        int client_id = 0;
+        sqlQuewy = "SELECT client_id "
+                + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                " WHERE phone = ? ";
+        c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
             }
-        } catch (JSONException e) {
         }
+        c.close();
 
         try {
-            if (callStatus == 2 && call[0] == 3) {
-                int client_id;
-                sqlQuewy = "SELECT client_id "
-                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                        " WHERE phone = ? ";
-                c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-                        client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
-                        String text = "Исходящий недозвон";
-                        HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
-                        HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
-                    }
+            if (call[1] <= json.getInt("CheckTimeCall")) {
+                String text = "Hедозвон";
+                HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
+            } else if (call[0] == 3) {
+                String text = "Hедозвон";
+                HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
+            } else if (call[1] >= json.getInt("CheckTimeCall")) {
+                String text = "";
+                switch (call[0]) {
+                    case 1:
+                        text = "Исходящий дозвон. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(call[1]));
+                        break;
+                    case 2:
+                        text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(call[1]));
+                        break;
                 }
-                c.close();
-            } else if (callStatus == 3 && call[0] == 3) {
-                int client_id;
-                sqlQuewy = "SELECT client_id "
-                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                        " WHERE phone = ? ";
-                c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-                        client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
 
-                        String text = "Пропущенный звонок";
-                        HelperClass.addHistory(text, ctx, String.valueOf(client_id), false);
-                        HelperClass.addCallsStatusHistory(ctx, client_id, 0, 0, false);
-                    }
-                }
-                c.close();
+                HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, call[1], bool);
             }
         } catch (Exception e) {
-            Log.d(TAG, "addHistoryClientCall error: " + e);
+            Log.d(TAG, "addHistoryClientCall: error " + e);
         }
+
     }
 
     private void historyClient() {

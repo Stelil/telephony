@@ -116,6 +116,7 @@ public class ClientActivity extends AppCompatActivity {
         txtManagerOfClient = findViewById(R.id.txtManagerOfClient);
         txtCallback = findViewById(R.id.txtCallback);
         txtEditCallback = findViewById(R.id.txtEditCallback);
+        txtEditCallbackComment = findViewById(R.id.txtEditCallbackComment);
 
         btnAddVoiceComment = findViewById(R.id.btnAddVoiceComment);
 
@@ -170,69 +171,64 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public void onEditButtonCallback(View view) {
+        setDateEditCallback(txtEditCallback);
+    }
 
-        ImageButton btnEditAddCallback = findViewById(R.id.btnEditAddCallback);
-        final TextView txtEditCallbackComment = findViewById(R.id.txtEditCallbackComment);
-        final SQLiteDatabase finalDb4 = db;
-        btnEditAddCallback.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (txtEditCallback.getText().toString().length() > 0) {
-                    String sqlQuewy;
-                    Cursor c;
-                    sqlQuewy = "SELECT _id "
-                            + "FROM rgzbn_gm_ceiling_callback " +
-                            "where client_id = ? " +
-                            "order by date_time desc";
-                    c = db.rawQuery(sqlQuewy, new String[]{id_client});
-                    if (c != null) {
-                        if (c.moveToFirst()) {
-                            String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+    public void btnEditAddCallback(View view) {
+        if (txtEditCallback.getText().toString().length() > 0) {
+            String sqlQuewy;
+            Cursor c;
+            sqlQuewy = "SELECT _id "
+                    + "FROM rgzbn_gm_ceiling_callback " +
+                    "where client_id = ? " +
+                    "order by date_time desc";
+            c = db.rawQuery(sqlQuewy, new String[]{id_client});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
 
-                            ContentValues values = new ContentValues();
-                            if (txtEditCallbackComment.getText().toString().equals("")) {
-                            } else {
-                                values.put(DBHelper.KEY_COMMENT, txtEditCallbackComment.getText().toString());
-                            }
-                            values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
-                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
-                            values.put(DBHelper.KEY_MANAGER_ID, user_id);
-                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
-
-                            values = new ContentValues();
-                            values.put(DBHelper.KEY_MANAGER_ID, user_id);
-                            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
-
-                            HelperClass.addExportData(
-                                    ClientActivity.this,
-                                    Integer.parseInt(id),
-                                    "rgzbn_gm_ceiling_callback",
-                                    "send");
-
-                            HelperClass.addExportData(
-                                    ClientActivity.this,
-                                    Integer.parseInt(id_client),
-                                    "rgzbn_gm_ceiling_clients",
-                                    "send");
-
-                            HelperClass.addHistory("Звонок перенесён на " + callbackDate,
-                                    ClientActivity.this,
-                                    id_client);
-
-                            Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
-                                    "Звонок перенесён ", Toast.LENGTH_SHORT);
-                            toast.show();
-                        }
+                    ContentValues values = new ContentValues();
+                    if (txtEditCallbackComment.getText().toString().equals("")) {
+                    } else {
+                        values.put(DBHelper.KEY_COMMENT, txtEditCallbackComment.getText().toString());
                     }
-                    c.close();
+                    values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
+                    values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+                    values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                    db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
 
-                    txtEditCallback.setText("");
-                    txtEditCallbackComment.setText("");
+                    values = new ContentValues();
+                    values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                    db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
 
-                    historyClient();
+                    HelperClass.addExportData(
+                            ClientActivity.this,
+                            Integer.parseInt(id),
+                            "rgzbn_gm_ceiling_callback",
+                            "send");
+
+                    HelperClass.addExportData(
+                            ClientActivity.this,
+                            Integer.parseInt(id_client),
+                            "rgzbn_gm_ceiling_clients",
+                            "send");
+
+                    HelperClass.addHistory("Звонок перенесён на " + callbackDate,
+                            ClientActivity.this,
+                            id_client);
+
+                    Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                            "Звонок перенесён ", Toast.LENGTH_SHORT);
+                    toast.show();
                 }
             }
-        });
+            c.close();
+
+            txtEditCallback.setText("");
+            txtEditCallbackComment.setText("");
+
+            historyClient();
+        }
     }
 
     public void setDateEditCallback(final View v) {
@@ -1318,94 +1314,89 @@ public class ClientActivity extends AppCompatActivity {
 
     public void onButtonCallback(View view) {
         setDate(txtCallback);
+    }
 
-        ImageButton btnAddCallback = findViewById(R.id.btnAddCallback);
+    public void btnAddCallback(View view) {
         final TextView txtCallbackComment = findViewById(R.id.txtCallbackComment);
-        final SQLiteDatabase finalDb4 = db;
-        btnAddCallback.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (txtCallback.getText().toString().length() > 0) {
-                    if (check.equals("false")) {
+        if (txtCallback.getText().toString().length() > 0) {
+            if (check.equals("false")) {
 
-                        Log.d(TAG, "onClick: history new");
-                        HelperClass.addHistory("Добавлен звонок на " + txtCallback.getText().toString(),
-                                ClientActivity.this, id_client);
+                Log.d(TAG, "onClick: history new");
+                HelperClass.addHistory("Добавлен звонок на " + txtCallback.getText().toString(),
+                        ClientActivity.this, id_client);
+
+                HelperClass.addCallback(txtCallbackComment.getText().toString(),
+                        ClientActivity.this, id_client, callbackDate, user_id);
+                txtCallback.setText("");
+                txtCallbackComment.setText("");
+
+                historyClient();
+                Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                        "Звонок добавлен ", Toast.LENGTH_SHORT);
+                toast.show();
+
+            } else {
+
+                Log.d(TAG, "onClick: history callback upd");
+                String sqlQuewy;
+                Cursor c;
+                sqlQuewy = "SELECT _id "
+                        + "FROM rgzbn_gm_ceiling_callback " +
+                        "where client_id = ? and substr(date_time, 1, 10) = ?" +
+                        "order by date_time desc";
+                c = db.rawQuery(sqlQuewy, new String[]{id_client, txtCallback.getText().toString().substring(0, 10)});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+
+                        ContentValues values = new ContentValues();
+                        if (txtCallbackComment.getText().toString().equals("")) {
+                        } else {
+                            values.put(DBHelper.KEY_COMMENT, txtCallbackComment.getText().toString());
+                        }
+                        values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
+                        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+                        values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
+
+                        values = new ContentValues();
+                        values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
+
+                        HelperClass.addExportData(
+                                ClientActivity.this,
+                                Integer.parseInt(id),
+                                "rgzbn_gm_ceiling_callback",
+                                "send");
+
+                        HelperClass.addExportData(
+                                ClientActivity.this,
+                                Integer.parseInt(id_client),
+                                "rgzbn_gm_ceiling_clients",
+                                "send");
+
+                        Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
+                                "Звонок перенесён ", Toast.LENGTH_SHORT);
+                        toast.show();
+                    } else {
+
+                        Log.d(TAG, "onClick: history callback new");
 
                         HelperClass.addCallback(txtCallbackComment.getText().toString(),
                                 ClientActivity.this, id_client, callbackDate, user_id);
-                        txtCallback.setText("");
-                        txtCallbackComment.setText("");
 
-                        historyClient();
                         Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
                                 "Звонок добавлен ", Toast.LENGTH_SHORT);
                         toast.show();
-
-                    } else {
-
-                        Log.d(TAG, "onClick: history callback upd");
-                        String sqlQuewy;
-                        Cursor c;
-                        sqlQuewy = "SELECT _id "
-                                + "FROM rgzbn_gm_ceiling_callback " +
-                                "where client_id = ? and substr(date_time, 1, 10) = ?" +
-                                "order by date_time desc";
-                        c = db.rawQuery(sqlQuewy, new String[]{id_client, txtCallback.getText().toString().substring(0, 10)});
-                        if (c != null) {
-                            if (c.moveToFirst()) {
-                                String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
-
-                                ContentValues values = new ContentValues();
-                                if (txtCallbackComment.getText().toString().equals("")) {
-                                } else {
-                                    values.put(DBHelper.KEY_COMMENT, txtCallbackComment.getText().toString());
-                                }
-                                values.put(DBHelper.KEY_DATE_TIME, callbackDate + ":00");
-                                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
-                                values.put(DBHelper.KEY_MANAGER_ID, user_id);
-                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values, "_id = ?", new String[]{id});
-
-                                values = new ContentValues();
-                                values.put(DBHelper.KEY_MANAGER_ID, user_id);
-                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
-
-                                HelperClass.addExportData(
-                                        ClientActivity.this,
-                                        Integer.parseInt(id),
-                                        "rgzbn_gm_ceiling_callback",
-                                        "send");
-
-                                HelperClass.addExportData(
-                                        ClientActivity.this,
-                                        Integer.parseInt(id_client),
-                                        "rgzbn_gm_ceiling_clients",
-                                        "send");
-
-                                Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
-                                        "Звонок перенесён ", Toast.LENGTH_SHORT);
-                                toast.show();
-                            } else {
-
-                                Log.d(TAG, "onClick: history callback new");
-
-                                HelperClass.addCallback(txtCallbackComment.getText().toString(),
-                                        ClientActivity.this, id_client, callbackDate, user_id);
-
-                                Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
-                                        "Звонок добавлен ", Toast.LENGTH_SHORT);
-                                toast.show();
-                            }
-                        }
-                        c.close();
-
-                        txtCallback.setText("");
-                        txtCallbackComment.setText("");
-
                     }
                 }
+                c.close();
+
+                txtCallback.setText("");
+                txtCallbackComment.setText("");
+
             }
-        });
+        }
     }
 
     public void onButtonNewCallback(View view) {

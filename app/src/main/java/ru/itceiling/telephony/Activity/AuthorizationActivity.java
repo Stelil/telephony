@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +43,11 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.vk.sdk.VKCallback;
+import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.VKApi;
+import com.vk.sdk.api.VKError;
+import com.vk.sdk.api.VKResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -121,8 +127,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     private boolean subs = false;
     private int typeEnter = 0;
 
-    private Inventory mInventory;
-
     private class PurchaseListener extends EmptyRequestListener<Purchase> {
         @Override
         public void onSuccess(Purchase purchase) {
@@ -146,26 +150,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         }
     }
 
-    /*
-    private static class TargetSkusAdapter extends ArrayAdapter<SkuItem> implements Inventory.Callback {
-        public TargetSkusAdapter(Context context) {
-            super(context, R.layout.support_simple_spinner_dropdown_item);
-        }
-        @Override
-        public void onLoaded(@Nonnull Inventory.Products products) {
-            final Inventory.Product product = products.get(SUBSCRIPTION);
-            setNotifyOnChange(false);
-            clear();
-            for (Sku sku : product.getSkus()) {
-                if (!product.isPurchased(sku)) {
-                    add(new SkuItem(sku));
-                }
-            }
-            notifyDataSetChanged();
-        }
-    }
-    */
-
     private static class SkuItem {
         private final Sku mSku;
 
@@ -178,6 +162,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             return mSku.getDisplayTitle();
         }
     }
+
+    //private String[] scope = new String[]{VKScope.EMAIL};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -217,6 +203,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 }
             }
         });
+        //subs = true;
 
         mCheckout.createPurchaseFlow(new PurchaseListener());
 
@@ -233,13 +220,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
 
-        SignInButton sb = findViewById(R.id.sign_in_button);
-        sb.setSize(SignInButton.SIZE_WIDE);
         //Button listeners
         findViewById(R.id.sign_in_button).setOnClickListener(this);
-
-        //Button listeners
-        //findViewById(R.id.buttonVK).setOnClickListener(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("549262362686-fqjaiichc2vuegqmtesoe6pii6l9ci82.apps.googleusercontent.com")
@@ -254,6 +236,12 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
+
+        //Button listeners
+
+        /*findViewById(R.id.buttonVK).setOnClickListener(this);
+        VKSdk.initialize(this);
+        VKSdk.login(this, scope);*/
     }
 
     void prBar() {
@@ -293,6 +281,20 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        //GP
+        if (requestCode == G_SIGN_IN && resultCode != 0) {
+            subs = true;
+            dialogSubs.dismiss();
+            if (typeEnter == 1) {
+                signIn();
+            } else if (typeEnter == 2) {
+                registrationButton();
+            }
+            /*else if (typeEnter == 3) {
+                VKSdk.login(this, scope);
+            }*/
+        }
+
         // Google
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -303,19 +305,9 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }
         }
 
-        //GP
-        if (requestCode == G_SIGN_IN && resultCode != 0) {
-            subs = true;
-            dialogSubs.dismiss();
-            if (typeEnter == 1) {
-                signIn();
-            } else if (typeEnter == 2) {
-                registrationButton();
-            }
-        }
+        //VK
 
         /*
-        //VK
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
             public void onResult(final VKAccessToken res) {
@@ -364,6 +356,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         }
 
         */
+
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
@@ -417,9 +410,14 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 alertSubs();
             }
         }
-        //if (i == R.id.buttonVK) {
-        //    //VKSdk.login(this, scope);
-        //}
+        /*if (i == R.id.buttonVK) {
+            typeEnter = 3;
+            if (subs) {
+                VKSdk.login(this, scope);
+            } else {
+                alertSubs();
+            }
+        }*/
     }
 
     void alertSubs() {
