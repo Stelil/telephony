@@ -177,7 +177,20 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         intent = new Intent(getActivity(), ImportDataReceiver.class);
         importDataReceiver.onReceive(getActivity(), intent);
 
+        int count = 0;
+        String sqlQuewy = "SELECT count(_id) "
+                + "FROM rgzbn_gm_ceiling_clients " +
+                "WHERE dealer_id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+            }
+        }
+        c.close();
 
+
+        getActivity().setTitle(getActivity().getTitle() + "(" + String.valueOf(count) + ")");
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {
