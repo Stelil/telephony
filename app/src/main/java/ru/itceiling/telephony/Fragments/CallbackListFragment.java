@@ -199,7 +199,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
             sqlQuery = "SELECT callback.client_id, callback.date_time, " +
                     "callback.comment, clients.client_name, " +
                     "users.name, clients_c.phone, " +
-                    "callback._id " +
+                    "callback._id, strftime('%Y-%m-%d',callback.date_time) AS c_date, strftime('%H:%M:%S',callback.date_time) AS c_time " +
                     "FROM rgzbn_gm_ceiling_callback AS callback " +
                     "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
                     "ON clients._id = callback.client_id " +
@@ -209,12 +209,12 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     "ON users._id = callback.manager_id " +
                     "where substr(date_time,1,10) <= ? " +
                     "group by callback._id " +
-                    "order by callback.date_time desc";
+                    "order by c_date desc, c_time";
         } else {
             sqlQuery = "SELECT callback.client_id, callback.date_time, " +
                     "callback.comment, clients.client_name, " +
                     "users.name, clients_c.phone, " +
-                    "callback._id " +
+                    "callback._id, strftime('%Y-%m-%d',callback.date_time) AS c_date, strftime('%H:%M:%S',callback.date_time) AS c_time " +
                     "FROM rgzbn_gm_ceiling_callback AS callback " +
                     "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
                     "ON clients._id = callback.client_id " +
@@ -227,7 +227,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     "or clients_c.phone like '%" + query + "%' " +
                     "or callback.comment like '%" + query + "%' " +
                     "group by callback._id " +
-                    "order by callback.date_time desc";
+                    "order by DATE desc, TIME";
         }
         c = db.rawQuery(sqlQuery, new String[]{date});
         if (c != null) {
