@@ -1,0 +1,17 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <TextView
+        android:id="@+id/c"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginStart="15dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:background="@drawable/notification_badge"
+        android:gravity="center"
+        android:textColor="@color/colorWhite"
+        android:textSize="13sp" />
+</merge>

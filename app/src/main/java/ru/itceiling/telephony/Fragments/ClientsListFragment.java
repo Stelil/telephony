@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
+import ru.itceiling.telephony.Activity.MainActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterClient;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
@@ -175,6 +176,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         ImportDataReceiver importDataReceiver = new ImportDataReceiver();
         intent = new Intent(getActivity(), ImportDataReceiver.class);
         importDataReceiver.onReceive(getActivity(), intent);
+
 
     }
 

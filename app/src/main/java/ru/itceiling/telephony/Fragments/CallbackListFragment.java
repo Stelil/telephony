@@ -190,34 +190,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
         }
     }
 
-    /*
-    class MyTaskResume extends AsyncTask<Void, Void, Void> {
-        ProgressDialog mProgressDialog;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mProgressDialog = new ProgressDialog(getActivity());
-            mProgressDialog.setMessage("Загрузка...");
-            mProgressDialog.setIndeterminate(false);
-            mProgressDialog.setCancelable(false);
-            mProgressDialog.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            listClients(txtSelectDay.getText().toString(), "");
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-            mProgressDialog.dismiss();
-        }
-    }
-    */
-
     private void listClients(String date, String query) {
         callbacks = new ArrayList<>();
 
@@ -263,7 +235,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                 do {
                     String client_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
                     String date_time = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                    date_time = date_time.substring(0,date_time.length()-3);
+                    date_time = date_time.substring(0, date_time.length() - 3);
                     String comment = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     String client_name = c.getString(c.getColumnIndex(c.getColumnName(3)));
                     String nameManager = c.getString(c.getColumnIndex(c.getColumnName(4)));
@@ -299,7 +271,6 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
             }
         } catch (Exception e) {
         }
-        
     }
 
     @Override

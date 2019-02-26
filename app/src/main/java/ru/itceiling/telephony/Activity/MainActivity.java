@@ -9,9 +9,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -19,6 +23,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.internal.BottomNavigationItemView;
+import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -27,8 +33,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.simple.JSONObject;
@@ -129,8 +138,73 @@ public class MainActivity extends AppCompatActivity {
                 saveData(String.valueOf(jsonObject), user_id);
             }
         }
+    }
 
+    void bubbleCountCallback() {
 
+        SharedPreferences SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
+        String user_id = SP.getString("", "");
+
+        int count = 0;
+        String sqlQuewy = "SELECT count(_id) "
+                + "FROM rgzbn_gm_ceiling_callback " +
+                "WHERE manager_id = ? and substr(date_time,1,10) = ?";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id, HelperClass.nowDate().substring(0, 10)});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+            }
+        }
+        c.close();
+
+        BottomNavigationMenuView bottomNavigationMenuView =
+                (BottomNavigationMenuView) navigation.getChildAt(0);
+        View v = bottomNavigationMenuView.getChildAt(0);
+        BottomNavigationItemView itemView = (BottomNavigationItemView) v;
+
+        View badge = LayoutInflater.from(this)
+                .inflate(R.layout.notification_badge, itemView, true);
+
+        TextView b = findViewById(R.id.b);
+
+        if (count > 9) {
+            b.setText("9+");
+        } else {
+            b.setText(String.valueOf(count));
+        }
+        Log.d(TAG, "bubbleCountCallback: " + b.getText().toString());
+    }
+
+    void bubbleCountClient() {
+
+        int count = 0;
+        String sqlQuewy = "SELECT count(_id) "
+                + "FROM rgzbn_gm_ceiling_clients " +
+                "WHERE dealer_id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+            }
+        }
+        c.close();
+
+        BottomNavigationMenuView bottomNavigationMenuView =
+                (BottomNavigationMenuView) navigation.getChildAt(0);
+        View v = bottomNavigationMenuView.getChildAt(1);
+        BottomNavigationItemView itemView = (BottomNavigationItemView) v;
+
+        View badge = LayoutInflater.from(this)
+                .inflate(R.layout.notification_badge_client, itemView, true);
+
+        TextView cl = findViewById(R.id.c);
+
+        if (count > 9) {
+            cl.setText("9+");
+        } else {
+            cl.setText(String.valueOf(count));
+        }
+        Log.d(TAG, "bubbleCountClient: " + cl.getText().toString());
     }
 
     void saveData(String json, String user_id) {
@@ -150,19 +224,18 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+
+
             switch (item.getItemId()) {
                 case R.id.recall:
                     loadFragment(CallbackListFragment.newInstance());
                     return true;
-
                 case R.id.clients:
                     loadFragment(ClientsListFragment.newInstance());
                     return true;
-
                 case R.id.call_log:
                     loadFragment(CallLogFragment.newInstance());
                     return true;
-
                 case R.id.analytics:
                     loadFragment(AnalyticsFragment.newInstance());
                     return true;
@@ -267,7 +340,9 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         if (getIntent().getStringExtra("phone") == null) {
+            Log.d(TAG, "onResume: null");
         } else {
+            Log.d(TAG, "onResume: not null");
             navigation.setSelectedItemId(R.id.clients);
         }
 
@@ -280,6 +355,9 @@ public class MainActivity extends AppCompatActivity {
         if (exportDataReceiver != null) {
             exportDataReceiver.SetAlarm(this);
         }
+
+        bubbleCountCallback();
+        bubbleCountClient();
     }
 
     public void registerReceiver() {
@@ -347,6 +425,4 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
-
-
 }

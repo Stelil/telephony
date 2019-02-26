@@ -203,7 +203,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 }
             }
         });
-        //subs = true;
+        subs = true;
 
         mCheckout.createPurchaseFlow(new PurchaseListener());
 
@@ -215,7 +215,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        prBar();
+        //prBar();
 
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
@@ -887,6 +887,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     private void importData() {
 
+        Log.d(TAG, "importData: " );
         SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
         int count = 0;

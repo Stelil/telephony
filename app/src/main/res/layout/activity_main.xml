@@ -24,7 +24,7 @@
         app:layout_constraintRight_toRightOf="parent"
         android:background="?android:attr/windowBackground"
         app:menu="@menu/main_bottom_navigation"
-        app:itemIconTint="@color/colorBlack"
-        app:itemTextColor="@color/colorBlack"/>
+        app:itemIconTint="@drawable/bottom_nav_selector"
+        app:itemTextColor="@drawable/bottom_nav_selector"/>
 
 </android.support.constraint.ConstraintLayout>
