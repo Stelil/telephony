@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashMap;
 
+import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 
@@ -59,7 +60,7 @@ public class BroadcastHistoryClient extends BroadcastReceiver {
                     history.put("date_time", c.getString(c.getColumnIndex(c.getColumnName(0))));
                     history.put("text", c.getString(c.getColumnIndex(c.getColumnName(1))));
                     arrayList.add(history);
-                } while (c.moveToNext() && c.getPosition() < 6);
+                } while (c.moveToNext());
             }
         }
         c.close();
@@ -98,6 +99,19 @@ public class BroadcastHistoryClient extends BroadcastReceiver {
             }
         });
 
+        Button openClient = view.findViewById(R.id.openClient);
+        openClient.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intentClient = new Intent(context, ClientActivity.class);
+                intentClient.putExtra("id_client", id);
+                intentClient.putExtra("check", "false");
+                intentClient.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intentClient);
+                windowManager.removeView(view);
+            }
+        });
+
         //here is all the science of params
         final ViewGroup.LayoutParams myParams;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
@@ -115,8 +129,7 @@ public class BroadcastHistoryClient extends BroadcastReceiver {
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                     PixelFormat.TRANSLUCENT);
         }
-        ((WindowManager.LayoutParams) myParams).gravity = Gravity.TOP;
-        ((WindowManager.LayoutParams) myParams).y = 100;
+        ((WindowManager.LayoutParams) myParams).gravity = Gravity.CENTER;
         windowManager.addView(view, myParams);
 
         try {

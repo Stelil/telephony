@@ -14,11 +14,9 @@ import ru.itceiling.telephony.R;
  */
 public class WelcomeFragment extends Fragment {
 
-
     public WelcomeFragment() {
         // Required empty public constructor
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

@@ -1,6 +1,7 @@
 package ru.itceiling.telephony.Fragments;
 
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -10,13 +11,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -30,19 +27,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Random;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
+import ru.itceiling.telephony.Activity.MainActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterCallback;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
@@ -180,7 +173,7 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
         }
         c.close();
 
-        getActivity().setTitle(getActivity().getTitle() + "(" + String.valueOf(count) + ")");
+        getActivity().setTitle("Перезвоны(" + String.valueOf(count) + ")");
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {
@@ -196,6 +189,7 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
             mProgressDialog.show();
         }
 
+        @SuppressLint("WrongThread")
         @Override
         protected Void doInBackground(Void... params) {
             listClients(txtSelectDay.getText().toString(), "");
@@ -291,6 +285,9 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
                             break;
                     }
 
+                    nameDay += " " + date_time.substring(5, 10);
+                    nameDay = nameDay.replace('-', '.');
+
                     callbacks.add(new Callback(client_name,
                             phone,
                             comment,
@@ -321,6 +318,10 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
             }
         } catch (Exception e) {
         }
+    }
+
+    @Override
+    public void run() {
     }
 
     @Override
@@ -356,6 +357,9 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
                             "rgzbn_gm_ceiling_callback",
                             "delete");
 
+                    ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+                    exportDataReceiver.onReceive(getContext(), null);
+
                 }
             });
             ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
@@ -365,6 +369,7 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
             });
             ad.setCancelable(true);
             ad.show();
+
         }
     }
 

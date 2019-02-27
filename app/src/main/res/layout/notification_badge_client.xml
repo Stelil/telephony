@@ -4,7 +4,8 @@
 
     <TextView
         android:id="@+id/c"
-        android:layout_width="18dp"
+        android:layout_width="wrap_content"
+        android:minWidth="18dp"
         android:layout_height="18dp"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginStart="15dp"
@@ -12,6 +13,8 @@
         android:layout_marginTop="7dp"
         android:background="@drawable/notification_badge"
         android:gravity="center"
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
         android:textColor="@color/colorWhite"
         android:textSize="13sp" />
 </merge>

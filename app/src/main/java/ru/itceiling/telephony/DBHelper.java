@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "dbTelephony";
 
     private Context mContext;
@@ -161,7 +161,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         values = new ContentValues();
         values.put(DBHelper.KEY_ID, 1);
-        values.put(DBHelper.KEY_TITLE, "Исходящий недозвон");
+        values.put(DBHelper.KEY_TITLE, "Недозвон");
         values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, null, values);
 
@@ -228,6 +228,14 @@ public class DBHelper extends SQLiteOpenHelper {
         if (oldVersion < 3) { // 13.02
             db.execSQL("ALTER TABLE rgzbn_users ADD settings TEXT;");
         }
+
+        if (oldVersion < 4) { // 27.02
+            ContentValues values = new ContentValues();
+            values.put(DBHelper.KEY_TITLE, "Недозвон");
+            db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, values, "_id = ?",
+                    new String[]{"1"});
+        }
+
 
     }
 }

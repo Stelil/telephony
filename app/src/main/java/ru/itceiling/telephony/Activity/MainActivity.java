@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     DBHelper dbHelper;
     SQLiteDatabase db;
 
-    private String dealer_id;
+    private static String dealer_id;
     private String phoneNumber = "";
     private static String mLastState = "";
     private String date1, date2 = "";
@@ -84,7 +84,13 @@ public class MainActivity extends AppCompatActivity {
 
     String getPhone = "", textSearch = "";
 
-    public static BottomNavigationView navigation;
+    public BottomNavigationView navigation;
+
+    private TextView b;
+    private TextView cl;
+
+    View badgeCallback;
+    View badgeClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,9 +144,32 @@ public class MainActivity extends AppCompatActivity {
                 saveData(String.valueOf(jsonObject), user_id);
             }
         }
+
+        bubble();
     }
 
-    void bubbleCountCallback() {
+    void bubble() {
+
+        BottomNavigationMenuView bottomNavigationMenuView =
+                (BottomNavigationMenuView) navigation.getChildAt(0);
+        View v = bottomNavigationMenuView.getChildAt(0);
+        BottomNavigationItemView itemView = (BottomNavigationItemView) v;
+
+        badgeCallback = LayoutInflater.from(this)
+                .inflate(R.layout.notification_badge, itemView, true);
+        b = findViewById(R.id.b);
+
+        bottomNavigationMenuView =
+                (BottomNavigationMenuView) navigation.getChildAt(0);
+        v = bottomNavigationMenuView.getChildAt(1);
+        itemView = (BottomNavigationItemView) v;
+
+        badgeClient = LayoutInflater.from(this)
+                .inflate(R.layout.notification_badge_client, itemView, true);
+        cl = findViewById(R.id.c);
+    }
+
+    void bubbleCount() {
 
         SharedPreferences SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
         String user_id = SP.getString("", "");
@@ -157,31 +186,19 @@ public class MainActivity extends AppCompatActivity {
         }
         c.close();
 
-        BottomNavigationMenuView bottomNavigationMenuView =
-                (BottomNavigationMenuView) navigation.getChildAt(0);
-        View v = bottomNavigationMenuView.getChildAt(0);
-        BottomNavigationItemView itemView = (BottomNavigationItemView) v;
+        Log.d(TAG, "bubbleCount: " + count);
 
-        if (count > 9) {
-            View badge = LayoutInflater.from(this)
-                    .inflate(R.layout.notification_badge, itemView, true);
-            TextView b = findViewById(R.id.b);
-            b.setText("9+");
-        } else if (count < 10 && count > 0) {
-            View badge = LayoutInflater.from(this)
-                    .inflate(R.layout.notification_badge, itemView, true);
-            TextView b = findViewById(R.id.b);
+        if (count > 0) {
             b.setText(String.valueOf(count));
+        } else {
+            b.setVisibility(View.GONE);
         }
-    }
 
-    void bubbleCountClient() {
-
-        int count = 0;
-        String sqlQuewy = "SELECT count(_id) "
+        count = 0;
+        sqlQuewy = "SELECT count(_id) "
                 + "FROM rgzbn_gm_ceiling_clients " +
-                "WHERE dealer_id = ? ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+                "WHERE dealer_id = ? and deleted_by_user <> 1";
+        c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
         if (c != null) {
             if (c.moveToFirst()) {
                 count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
@@ -189,27 +206,11 @@ public class MainActivity extends AppCompatActivity {
         }
         c.close();
 
-        BottomNavigationMenuView bottomNavigationMenuView =
-                (BottomNavigationMenuView) navigation.getChildAt(0);
-        View v = bottomNavigationMenuView.getChildAt(1);
-        BottomNavigationItemView itemView = (BottomNavigationItemView) v;
-
-        if (count > 9) {
-
-            View badge = LayoutInflater.from(this)
-                    .inflate(R.layout.notification_badge_client, itemView, true);
-
-            TextView cl = findViewById(R.id.c);
-            cl.setText("9+");
-        } else if (count < 10 && count > 0) {
-
-            View badge = LayoutInflater.from(this)
-                    .inflate(R.layout.notification_badge_client, itemView, true);
-
-            TextView cl = findViewById(R.id.c);
+        if (count > 0) {
             cl.setText(String.valueOf(count));
+        } else {
+            cl.setVisibility(View.GONE);
         }
-
     }
 
     void saveData(String json, String user_id) {
@@ -226,11 +227,8 @@ public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
-
             switch (item.getItemId()) {
                 case R.id.recall:
                     loadFragment(CallbackListFragment.newInstance());
@@ -341,13 +339,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume: ");
 
         if (getIntent().getStringExtra("phone") == null) {
-            Log.d(TAG, "onResume: null");
         } else {
-            Log.d(TAG, "onResume: not null");
             navigation.setSelectedItemId(R.id.clients);
         }
 
@@ -361,8 +358,7 @@ public class MainActivity extends AppCompatActivity {
             exportDataReceiver.SetAlarm(this);
         }
 
-        bubbleCountCallback();
-        bubbleCountClient();
+        bubbleCount();
     }
 
     public void registerReceiver() {

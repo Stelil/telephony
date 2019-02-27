@@ -705,6 +705,11 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     }
 
     @Override
+    public void run() {
+
+    }
+
+    @Override
     public void recyclerViewListClicked(View v, int id) {
         Intent intent = new Intent(getActivity(), ClientActivity.class);
         intent.putExtra("id_client", " " + id);

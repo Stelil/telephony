@@ -1,7 +1,6 @@
 package ru.itceiling.telephony.Fragments;
 
 
-import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -33,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
-import ru.itceiling.telephony.Activity.MainActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterClient;
 import ru.itceiling.telephony.Adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
@@ -112,7 +110,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         }
 
         if (getActivity().getIntent().getStringExtra("add") == null ||
-                getActivity().getIntent().getStringExtra("add") == "0") {
+                getActivity().getIntent().getStringExtra("add").equals("0")) {
         } else {
             add = 1;
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -180,7 +178,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         int count = 0;
         String sqlQuewy = "SELECT count(_id) "
                 + "FROM rgzbn_gm_ceiling_clients " +
-                "WHERE dealer_id = ? ";
+                "WHERE dealer_id = ? and deleted_by_user <> 1";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -190,7 +188,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         c.close();
 
 
-        getActivity().setTitle(getActivity().getTitle() + "(" + String.valueOf(count) + ")");
+        getActivity().setTitle("Клиенты(" + String.valueOf(count) + ")");
     }
 
     class MyTask extends AsyncTask<Void, Void, Void> {
@@ -470,6 +468,10 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             Log.d(TAG, "ListClients error: " + e);
         }
 
+    }
+
+    @Override
+    public void run() {
     }
 
     @Override
