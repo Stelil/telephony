@@ -162,17 +162,17 @@ public class MainActivity extends AppCompatActivity {
         View v = bottomNavigationMenuView.getChildAt(0);
         BottomNavigationItemView itemView = (BottomNavigationItemView) v;
 
-        View badge = LayoutInflater.from(this)
-                .inflate(R.layout.notification_badge, itemView, true);
-
-        TextView b = findViewById(R.id.b);
-
         if (count > 9) {
+            View badge = LayoutInflater.from(this)
+                    .inflate(R.layout.notification_badge, itemView, true);
+            TextView b = findViewById(R.id.b);
             b.setText("9+");
-        } else {
+        } else if (count < 10 && count > 0) {
+            View badge = LayoutInflater.from(this)
+                    .inflate(R.layout.notification_badge, itemView, true);
+            TextView b = findViewById(R.id.b);
             b.setText(String.valueOf(count));
         }
-        Log.d(TAG, "bubbleCountCallback: " + b.getText().toString());
     }
 
     void bubbleCountClient() {
@@ -194,17 +194,22 @@ public class MainActivity extends AppCompatActivity {
         View v = bottomNavigationMenuView.getChildAt(1);
         BottomNavigationItemView itemView = (BottomNavigationItemView) v;
 
-        View badge = LayoutInflater.from(this)
-                .inflate(R.layout.notification_badge_client, itemView, true);
-
-        TextView cl = findViewById(R.id.c);
-
         if (count > 9) {
+
+            View badge = LayoutInflater.from(this)
+                    .inflate(R.layout.notification_badge_client, itemView, true);
+
+            TextView cl = findViewById(R.id.c);
             cl.setText("9+");
-        } else {
+        } else if (count < 10 && count > 0) {
+
+            View badge = LayoutInflater.from(this)
+                    .inflate(R.layout.notification_badge_client, itemView, true);
+
+            TextView cl = findViewById(R.id.c);
             cl.setText(String.valueOf(count));
         }
-        Log.d(TAG, "bubbleCountClient: " + cl.getText().toString());
+
     }
 
     void saveData(String json, String user_id) {

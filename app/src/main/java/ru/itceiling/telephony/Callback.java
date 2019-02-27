@@ -8,8 +8,9 @@ public class Callback {
     public Integer id;
     public Integer idCallback;
     public String manager;
+    public String nameDay;
 
-    public Callback(String name, String phone, String comment, String date, Integer id, Integer idCallback, String manager) {
+    public Callback(String name, String phone, String comment, String date, Integer id, Integer idCallback, String manager, String nameDay) {
         this.name = name;
         this.phone = phone;
         this.comment = comment;
@@ -17,6 +18,7 @@ public class Callback {
         this.id = id;
         this.idCallback = idCallback;
         this.manager = manager;
+        this.nameDay = nameDay;
     }
 
     public String getManager() {
@@ -73,5 +75,13 @@ public class Callback {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getNameDay() {
+        return nameDay;
+    }
+
+    public void setNameDay(String nameDay) {
+        this.nameDay = nameDay;
     }
 }

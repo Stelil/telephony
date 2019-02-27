@@ -10,6 +10,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -28,12 +30,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Random;
 
 import ru.itceiling.telephony.Activity.ClientActivity;
 import ru.itceiling.telephony.Adapter.RVAdapterCallback;
@@ -47,10 +54,7 @@ import ru.itceiling.telephony.R;
 
 import static android.content.Context.MODE_PRIVATE;
 
-/**
- * A simple {@link Fragment} subclass.
- */
-public class CallbackListFragment extends Fragment implements RecyclerViewClickListener, SearchView.OnQueryTextListener {
+public class CallbackListFragment extends Fragment implements SearchView.OnQueryTextListener, RecyclerViewClickListener {
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -78,6 +82,7 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
     public static CallbackListFragment newInstance() {
         return new CallbackListFragment();
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -213,7 +218,9 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
             sqlQuery = "SELECT callback.client_id, callback.date_time, " +
                     "callback.comment, clients.client_name, " +
                     "users.name, clients_c.phone, " +
-                    "callback._id, strftime('%Y-%m-%d',callback.date_time) AS c_date, strftime('%H:%M:%S',callback.date_time) AS c_time " +
+                    "callback._id, strftime('%Y-%m-%d',callback.date_time) AS c_date, " +
+                    "strftime('%H:%M:%S',callback.date_time) AS c_time, " +
+                    "strftime('%w', callback.date_time) as c_day " +
                     "FROM rgzbn_gm_ceiling_callback AS callback " +
                     "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
                     "ON clients._id = callback.client_id " +
@@ -228,7 +235,9 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
             sqlQuery = "SELECT callback.client_id, callback.date_time, " +
                     "callback.comment, clients.client_name, " +
                     "users.name, clients_c.phone, " +
-                    "callback._id, strftime('%Y-%m-%d',callback.date_time) AS c_date, strftime('%H:%M:%S',callback.date_time) AS c_time " +
+                    "callback._id, strftime('%Y-%m-%d',callback.date_time) AS c_date, " +
+                    "strftime('%H:%M:%S',callback.date_time) AS c_time, " +
+                    "strftime('%w', callback.date_time) as c_day  " +
                     "FROM rgzbn_gm_ceiling_callback AS callback " +
                     "INNER JOIN rgzbn_gm_ceiling_clients AS clients " +
                     "ON clients._id = callback.client_id " +
@@ -255,6 +264,32 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                     String nameManager = c.getString(c.getColumnIndex(c.getColumnName(4)));
                     String phone = c.getString(c.getColumnIndex(c.getColumnName(5)));
                     String id = c.getString(c.getColumnIndex(c.getColumnName(6)));
+                    int day = c.getInt(c.getColumnIndex(c.getColumnName(9)));
+                    String nameDay = "";
+
+                    switch (day) {
+                        case 0:
+                            nameDay = "Воскресенье";
+                            break;
+                        case 1:
+                            nameDay = "Понедельник";
+                            break;
+                        case 2:
+                            nameDay = "Вторник";
+                            break;
+                        case 3:
+                            nameDay = "Среда";
+                            break;
+                        case 4:
+                            nameDay = "Четверг";
+                            break;
+                        case 5:
+                            nameDay = "Пятница";
+                            break;
+                        case 6:
+                            nameDay = "Суббота";
+                            break;
+                    }
 
                     callbacks.add(new Callback(client_name,
                             phone,
@@ -262,7 +297,8 @@ public class CallbackListFragment extends Fragment implements RecyclerViewClickL
                             date_time,
                             Integer.valueOf(client_id),
                             Integer.valueOf(id),
-                            nameManager));
+                            nameManager,
+                            nameDay));
                 } while (c.moveToNext());
             }
         }

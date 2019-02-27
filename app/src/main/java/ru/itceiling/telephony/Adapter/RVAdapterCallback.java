@@ -2,6 +2,7 @@ package ru.itceiling.telephony.Adapter;
 
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,43 +14,45 @@ import java.util.List;
 import ru.itceiling.telephony.Callback;
 import ru.itceiling.telephony.R;
 
-public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.CallbackViewHolder>{
+public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.CallbackViewHolder> {
 
     public static List<Callback> callbacks;
     private static RecyclerViewClickListener itemListener;
 
-    public static class CallbackViewHolder extends RecyclerView.ViewHolder{
+    public static class CallbackViewHolder extends RecyclerView.ViewHolder {
         CardView cv;
         TextView callbackName;
         TextView callbackPhone;
         TextView callbackDate;
         TextView callbackComment;
         TextView callbackManager;
+        TextView nameDay;
 
         CallbackViewHolder(View itemView) {
             super(itemView);
-            cv = (CardView)itemView.findViewById(R.id.cv);
-            callbackName = (TextView)itemView.findViewById(R.id.callback_name);
-            callbackPhone = (TextView)itemView.findViewById(R.id.callback_phone);
-            callbackDate = (TextView)itemView.findViewById(R.id.callback_time);
-            callbackComment = (TextView)itemView.findViewById(R.id.callback_comment);
-            callbackManager = (TextView)itemView.findViewById(R.id.callback_manager);
+            cv = (CardView) itemView.findViewById(R.id.cv);
+            callbackName = (TextView) itemView.findViewById(R.id.callback_name);
+            callbackPhone = (TextView) itemView.findViewById(R.id.callback_phone);
+            callbackDate = (TextView) itemView.findViewById(R.id.callback_time);
+            callbackComment = (TextView) itemView.findViewById(R.id.callback_comment);
+            callbackManager = (TextView) itemView.findViewById(R.id.callback_manager);
+            nameDay = (TextView) itemView.findViewById(R.id.nameDay);
 
-            itemView.setOnClickListener(new View.OnClickListener(){
+            itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     int pos = getAdapterPosition();
-                    if(pos != RecyclerView.NO_POSITION){
+                    if (pos != RecyclerView.NO_POSITION) {
                         itemListener.recyclerViewListClicked(v, pos);
                     }
                 }
             });
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener(){
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     int pos = getAdapterPosition();
-                    if(pos != RecyclerView.NO_POSITION){
+                    if (pos != RecyclerView.NO_POSITION) {
                         int clickedDataItem = callbacks.get(pos).getIdCallback();
                         itemListener.recyclerViewListLongClicked(v, clickedDataItem, pos);
                     }
@@ -59,7 +62,7 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
         }
     }
 
-    public RVAdapterCallback(List<Callback> callbacks, RecyclerViewClickListener itemListener){
+    public RVAdapterCallback(List<Callback> callbacks, RecyclerViewClickListener itemListener) {
         this.callbacks = callbacks;
         this.itemListener = itemListener;
     }
@@ -84,6 +87,15 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
         callbackViewHolder.callbackDate.setText(callbacks.get(i).date);
         callbackViewHolder.callbackComment.setText(callbacks.get(i).comment);
         callbackViewHolder.callbackManager.setText(callbacks.get(i).manager);
+
+        if (i == 0) {
+            callbackViewHolder.nameDay.setText(callbacks.get(i).nameDay);
+        } else if (!callbacks.get(i - 1).nameDay.equals(callbacks.get(i).nameDay)) {
+            callbackViewHolder.nameDay.setText(callbacks.get(i).nameDay);
+        } else {
+            callbackViewHolder.nameDay.setVisibility(View.GONE);
+        }
+
     }
 
     @Override
