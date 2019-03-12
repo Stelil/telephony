@@ -9,13 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -44,9 +39,6 @@ import org.json.simple.JSONObject;
 
 import java.io.File;
 
-import ru.itceiling.telephony.Broadcaster.BroadcastHistoryClient;
-import ru.itceiling.telephony.Broadcaster.BroadcastNewClient;
-import ru.itceiling.telephony.Broadcaster.BroadcasterCallbackClient;
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
@@ -71,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private static String mLastState = "";
     private String date1, date2 = "";
     int callStatus = 0;
-    private String TAG = "callReceiver";
+    private String TAG = "LogMainActivity";
     private MediaRecorder mediaRecorder;
     private MediaPlayer mediaPlayer;
     private String fileName;

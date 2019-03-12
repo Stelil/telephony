@@ -51,7 +51,7 @@ public class BroadcastHistoryClient extends BroadcastReceiver {
         String sqlQuewy = "SELECT date_time, text "
                 + "FROM rgzbn_gm_ceiling_client_history" +
                 " WHERE client_id = ? " +
-                "order by date_time desc";
+                "order by date_time";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
         if (c != null) {
             if (c.moveToFirst()) {

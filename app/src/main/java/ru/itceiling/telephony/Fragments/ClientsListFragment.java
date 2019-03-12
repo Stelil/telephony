@@ -350,7 +350,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             cc.close();
 
                             persons.add(0, new Person(name, phone, nameManager, "#000000",
-                                    "Холодный", "Необработанный", Integer.valueOf(maxIdClient)));
+                                    " ", "Необработанный", Integer.valueOf(maxIdClient)));
                             adapter.notifyItemInserted(0);
                             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(0, 0);
 

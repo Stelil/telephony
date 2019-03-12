@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -129,11 +130,24 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
                     cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status)});
                     if (cc != null) {
                         if (cc.moveToLast()) {
-                            if (status.equals("1") || status.equals("0")) {
+                            /*if (status.equals("1") || status.equals("0")) {
                                 type = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
                             } else {
                                 type = cc.getString(cc.getColumnIndex(cc.getColumnName(0))) +
                                         "\n(Длина: " + HelperClass.editTimeCall(call_length) + ")";
+                            }*/
+
+
+                            switch (cc.getString(cc.getColumnIndex(cc.getColumnName(0)))) {
+                                case "Исходящий недозвон":
+                                    type = "Недозвон";
+                                    break;
+                                case "Входящий звонок":
+                                    type = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                    break;
+                                case "Исходящий дозвон":
+                                    type = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                    break;
                             }
                         }
                     }
@@ -152,6 +166,7 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
         c.close();
 
         adapter = new RVAdapterCallLog(callLogs, this);
+        adapter.notifyDataSetChanged();
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override

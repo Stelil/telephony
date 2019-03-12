@@ -28,8 +28,11 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,9 +56,10 @@ public class CallReceiver extends BroadcastReceiver {
 
     private static String mLastState = "";
 
-    static private String date1, date2;
+    static private Date date1, date2;
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    static int callStatus = 1;
+    static int callStatus = 2;
 
     static private MediaRecorder mediaRecorder;
     static private MediaPlayer mediaPlayer;
@@ -88,43 +92,58 @@ public class CallReceiver extends BroadcastReceiver {
             callStatus = 2;
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
-            if (!phone_state.equals(mLastState)) {
-                mLastState = phone_state;
-                if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                    //телефон звонит, получаем входящий номер
-                    callStatus = 3;
-                    phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+            //if (!phone_state.equals(mLastState)) {
+            mLastState = phone_state;
+            if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                Log.d(TAG, "onReceive: EXTRE_StaTE_RINGING");
+                //телефон звонит, получаем входящий номер
+                callStatus = 3;
+                phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                if (phoneNumber.length() > 5) {
+                    historyClient();
+                }
+                try {
+                    date1 = dateFormat.parse(HelperClass.nowDate());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+                //телефон находится в режиме звонка (набор номера / разговор)
+                try {
+                    date1 = dateFormat.parse(HelperClass.nowDate());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                //recordCall();
+            } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                // телефон находиться в ждущем режиме.
+                // Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
+                phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                try {
+                    date2 = dateFormat.parse(HelperClass.nowDate());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                if (date2.equals("")) {
+                } else {
+                    //timeDifference();
+                }
+                if (phoneNumber.length() > 5) {
+                    newClient();
+                }
 
-                    if (phoneNumber.length() > 5) {
-                        historyClient();
-                    }
-                } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-                    //телефон находится в режиме звонка (набор номера / разговор)
-                    date1 = HelperClass.nowDate();
-                    //recordCall();
-                } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                    // телефон находиться в ждущем режиме.
-                    // Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
-                    date2 = HelperClass.nowDate();
-                    if (date2.equals("")) {
-                    } else {
-                        //timeDifference();
-                    }
-                    if (phoneNumber.length() > 5) {
-                        newClient();
-                    }
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (phoneNumber.length() > 5) {
-                        addHistoryClientCall();
-                    }
+                Log.d(TAG, "onReceive: " + phoneNumber);
+                if (phoneNumber.length() > 5) {
+                    addHistoryClientCall();
                 }
             }
+            //}
         }
 
     }
@@ -275,7 +294,7 @@ public class CallReceiver extends BroadcastReceiver {
 
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        int[] call = getCallDetails();
+        //int[] call = getCallDetails();
 
         int client_id = 0;
         sqlQuewy = "SELECT client_id "
@@ -289,6 +308,31 @@ public class CallReceiver extends BroadcastReceiver {
         }
         c.close();
 
+        Log.d(TAG, "addHistoryClientCall: " + date1);
+        Log.d(TAG, "addHistoryClientCall: " + date2);
+        try {
+            if (((date2.getTime() - date1.getTime()) / 1000) <= 10) {
+                String text = "Hедозвон";
+                HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
+            } else {
+                switch (callStatus) {
+                    case 2:
+                        String text = "Исходящий звонок";
+                        HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, 0, bool);
+                        break;
+                    case 3:
+                        text = "Входящий звонок";
+                        HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, 0, bool);
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "addHistoryClientCall: error " + e);
+        }
+        /*
         try {
             if (call[1] <= json.getInt("CheckTimeCall")) {
                 String text = "Hедозвон";
@@ -315,6 +359,8 @@ public class CallReceiver extends BroadcastReceiver {
         } catch (Exception e) {
             Log.d(TAG, "addHistoryClientCall: error " + e);
         }
+*/
+
 
     }
 
@@ -347,6 +393,7 @@ public class CallReceiver extends BroadcastReceiver {
         }
     }
 
+    /*
     static private int[] getCallDetails() {
 
         int[] call = new int[2];
@@ -378,4 +425,5 @@ public class CallReceiver extends BroadcastReceiver {
 
         return call;
     }
+    */
 }
