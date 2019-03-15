@@ -7,18 +7,50 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.annotation.IntegerRes;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.system.ErrnoException;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 import static android.content.Context.MODE_PRIVATE;
+import static ru.itceiling.telephony.SubscriptionsActivity.TAG;
 
 public class HelperClass {
+
+    static String TAG = "ImportLog";
 
     public static boolean isOnline(Context context) {
         ConnectivityManager cm =
@@ -339,5 +371,182 @@ public class HelperClass {
         }
 
         return newTime;
+    }
+
+    public static String publicKey(String publicKeyPEM, String text) {
+        publicKeyPEM = publicKeyPEM.replace("\n", "");
+        publicKeyPEM = publicKeyPEM.replace("-----BEGIN PUBLIC KEY-----", "");
+        publicKeyPEM = publicKeyPEM.replace("-----END PUBLIC KEY-----", "");
+
+        byte[] keyBytes = new byte[0];
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            keyBytes = Base64.getDecoder().decode(publicKeyPEM);
+        } else {
+            keyBytes = android.util.Base64.decode(publicKeyPEM, android.util.Base64.DEFAULT);
+        }
+
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = null;
+        RSAPublicKey publicKey = null;
+        try {
+            keyFactory = KeyFactory.getInstance("RSA");
+            publicKey = (RSAPublicKey) keyFactory.generatePublic(keySpec);
+        } catch (NoSuchAlgorithmException e) {
+            Log.d(TAG, "onCreate:NoSuchAlgorithmException " + e);
+        } catch (InvalidKeySpecException e) {
+            Log.d(TAG, "onCreate:InvalidKeySpecException " + e);
+        }
+
+        Cipher cipher = null;
+        try {
+            cipher = Cipher.getInstance("RSA/ECB/PKCS1PADDING");
+        } catch (NoSuchAlgorithmException e) {
+            Log.d(TAG, "onCreate:NoSuchAlgorithmException " + e);
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            Log.d(TAG, "onCreate:NoSuchPaddingException " + e);
+        }
+
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        } catch (InvalidKeyException e) {
+            Log.d(TAG, "onCreate:InvalidKeyException  " + e);
+        }
+
+        byte[] encrypted = new byte[0];
+        try {
+            encrypted = cipher.doFinal(text.getBytes());
+        } catch (IllegalBlockSizeException e) {
+            Log.d(TAG, "onCreate:IllegalBlockSizeException " + e);
+        } catch (BadPaddingException e) {
+            Log.d(TAG, "onCreate:BadPaddingException " + e);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return Base64.getEncoder().encodeToString(encrypted);
+        } else {
+            return android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT);
+        }
+    }
+
+    public static String SHA512(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA512");
+            byte[] messageDigest = md.digest(input.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+            return hashtext;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static String generateSecret(Context context) throws NoSuchAlgorithmException {
+        String md5;
+
+        SharedPreferences SP = context.getSharedPreferences("login_user", MODE_PRIVATE);
+        String login_user = SP.getString("", "");
+
+        SP = context.getSharedPreferences("static_key", MODE_PRIVATE);
+        String static_key = SP.getString("", "");
+
+        String param = static_key + login_user;
+
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(param.getBytes());
+
+        byte byteData[] = md.digest();
+
+        //конвертируем байт в шестнадцатеричный формат первым способом
+        StringBuffer sb = new StringBuffer();
+        for (byte aByteData : byteData) {
+            sb.append(Integer.toString((aByteData & 0xff) + 0x100, 16).substring(1));
+        }
+
+        return sb.toString();
+    }
+
+    public static String decrypt(String hash, String data, Context context) {
+        String secret = "";
+        try {
+            secret = generateSecret(context);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        byte[] keyBytes = new byte[0];
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            keyBytes = Base64.getDecoder().decode(data);
+        } else {
+            keyBytes = android.util.Base64.decode(data, android.util.Base64.DEFAULT);
+        }
+
+        String newData = xor(keyBytes, secret);
+
+        String newHash = SHA512(newData + secret);
+
+        if (!newHash.equals(hash)) {
+            return null;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            keyBytes = Base64.getDecoder().decode(newData);
+        } else {
+            keyBytes = android.util.Base64.decode(newData, android.util.Base64.DEFAULT);
+        }
+
+        newData = new String(keyBytes);
+
+        return newData;
+    }
+
+    public static String encrypt(String data, Context context) {
+        String res = "";
+        String secret = "";
+        try {
+            secret = generateSecret(context);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            data = Base64.getEncoder().encodeToString(data.getBytes());
+        } else {
+            data = android.util.Base64.encodeToString(data.getBytes(), android.util.Base64.DEFAULT);
+        }
+
+        String hash = SHA512(data + secret);
+
+        String newData = xor(data.getBytes(), secret);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            newData = Base64.getEncoder().encodeToString(newData.getBytes());
+        } else {
+            newData = android.util.Base64.encodeToString(newData.getBytes(), android.util.Base64.DEFAULT);
+        }
+
+        SharedPreferences SP = context.getSharedPreferences("user_id", MODE_PRIVATE);
+        String keyNumber = SP.getString("", "");
+
+        org.json.simple.JSONObject jsonObjectClient = new org.json.simple.JSONObject();
+        jsonObjectClient.put("key_number", keyNumber);
+        jsonObjectClient.put("data", newData);
+        jsonObjectClient.put("hash", hash);
+        res = String.valueOf(jsonObjectClient);
+
+        return res;
+    }
+
+    private static String xor(byte[] data, String key) {
+        byte[] result = new byte[data.length];
+        byte[] keyarr = key.getBytes();
+
+        for (int i = 0; data.length > i; i++) {
+            result[i] = (byte) (data[i] ^ keyarr[i % keyarr.length]);
+        }
+        return new String(result);
     }
 }

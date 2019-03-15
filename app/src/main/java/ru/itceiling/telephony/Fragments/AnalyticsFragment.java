@@ -41,6 +41,7 @@ import com.echo.holographlibrary.PieGraph;
 import com.echo.holographlibrary.PieSlice;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -91,6 +92,8 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     int listManagerClientsStep = 0,
             stepTxt = 0,
             countStatuses = 0;
+
+    Map<String, String> parameters = new HashMap<String, String>();
 
     public AnalyticsFragment() {
         // Required empty public constructor
@@ -772,6 +775,8 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
             }
 
             dataManager = String.valueOf(jsonObj);
+            Log.d(TAG, "createTableForManager: " + dataManager);
+            parameters.put("data", HelperClass.encrypt(jsonObj.toString(), getActivity()));
             new GetManagersAnalytic().execute();
         } else {
             try {
@@ -1169,7 +1174,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
     class GetManagersAnalytic extends AsyncTask<Void, Void, Void> {
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.getManagersAnalytic";
-        Map<String, String> parameters = new HashMap<String, String>();
 
         @Override
         protected void onPreExecute() {
@@ -1183,7 +1187,19 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
             final StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String res) {
-                    Log.d(TAG, res);
+                    Log.d(TAG, "come " + res);
+
+                    String newRes = "";
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(res);
+                        String data = jsonObject.getString("data");
+                        String hash = jsonObject.getString("hash");
+                        newRes = HelperClass.decrypt(hash, data, getActivity());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(TAG, "come newRes " + newRes);
 
                     int length = arrayId.length + listManager.size() * 2 + 1;
                     String[] array = new String[length];
@@ -1201,7 +1217,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                             JSONArray jAr2 = new JSONArray();
 
                             try {
-                                JSONObject jsonObject = new JSONObject(res);
+                                jsonObject = new JSONObject(newRes);
                                 JSONObject jsonObjectMan = jsonObject.getJSONObject(listManager.get(ii).toString());
                                 JSONArray clients = jsonObjectMan.getJSONArray("clients");
                                 JSONArray projects = jsonObjectMan.getJSONArray("projects");
@@ -1277,8 +1293,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
 
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
-                    parameters.put("data", dataManager);
-                    Log.d(TAG, String.valueOf(parameters));
+                    Log.d(TAG, " send " + String.valueOf(parameters));
                     return parameters;
                 }
             };

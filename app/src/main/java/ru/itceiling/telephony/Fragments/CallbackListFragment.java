@@ -369,7 +369,6 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
             });
             ad.setCancelable(true);
             ad.show();
-
         }
     }
 

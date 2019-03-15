@@ -17,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,7 +33,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -43,11 +41,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.vk.sdk.VKCallback;
-import com.vk.sdk.VKSdk;
-import com.vk.sdk.api.VKApi;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -69,6 +62,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 
@@ -77,6 +72,7 @@ import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 
 import static org.solovyev.android.checkout.ProductTypes.SUBSCRIPTION;
@@ -125,6 +121,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month", "telephony.subscription.6month");
 
     private boolean subs = false;
+    private String timeSubs;
     private int typeEnter = 0;
 
     private class PurchaseListener extends EmptyRequestListener<Purchase> {
@@ -174,6 +171,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         mCheckout = Checkout.forActivity(this, billing);
         mCheckout.start();
 
+        requestQueue = Volley.newRequestQueue(getApplicationContext());
         final Inventory.Request request = Inventory.Request.create();
         request.loadPurchases(SUBSCRIPTION);
         request.loadSkus(SUBSCRIPTION, SKUS);
@@ -191,9 +189,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         }
                     }
                 }
-                if (subs) {
-                    prBar();
-                } else {
+                if (!subs) {
                     CallbackReceiver callbackReceiver = new CallbackReceiver();
                     callbackReceiver.CancelAlarm(AuthorizationActivity.this);
                     ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
@@ -203,7 +199,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                 }
             }
         });
-        subs = true;
+        prBar();
+        //subs = true;
 
         mCheckout.createPurchaseFlow(new PurchaseListener());
 
@@ -214,8 +211,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         db = dbHelper.getReadableDatabase();
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-
-        //prBar();
 
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
@@ -242,26 +237,23 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         /*findViewById(R.id.buttonVK).setOnClickListener(this);
         VKSdk.initialize(this);
         VKSdk.login(this, scope);*/
+
+        int buy = getIntent().getIntExtra("buy", 0);
+
+        if (buy == 1) {
+            alertSubs();
+        }
     }
 
     void prBar() {
-        try {
-            SharedPreferences SP = getSharedPreferences("enter", MODE_PRIVATE);
-            if (SP.getString("", "").equals("1") && subs) {
-                if (this != null) {
-                    pd = new ProgressDialog(AuthorizationActivity.this);
-                    pd.setTitle("Загрузка клиентов ... ");
-                    pd.setMessage("Пожалуйста подождите");
-                    pd.setIndeterminate(false);
-                    pd.setCancelable(false);
-                    pd.show();
-
-                    importData();
-                }
-            } else if (subs) {
-                //оповестить что окончена подписка скорее всего или не оплачена
+        SharedPreferences SP = getSharedPreferences("enter", MODE_PRIVATE);
+        Log.d(TAG, "prBar: " + SP.getString("", ""));
+        if (SP.getString("", "").equals("1")) {
+            if (this != null) {
+                importData();
             }
-        } catch (Exception e) {
+        } else if (subs) {
+            //оповестить что окончена подписка скорее всего или не оплачена
         }
     }
 
@@ -288,7 +280,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             if (typeEnter == 1) {
                 signIn();
             } else if (typeEnter == 2) {
-                registrationButton();
+                new GetPublicKey().execute();
             }
             /*else if (typeEnter == 3) {
                 VKSdk.login(this, scope);
@@ -359,6 +351,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     }
 
+    FirebaseUser user;
+
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         // [START_EXCLUDE silent]
         progressBar.setVisibility(View.VISIBLE);
@@ -370,8 +364,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            registrationGoogleOnDB(user);
+                            user = mAuth.getCurrentUser();
+                            new GetPublicKey().execute();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -387,7 +381,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     }
 
     private void signIn() {
-        Log.d(TAG, "signIn: ");
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -397,6 +390,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         Toast.makeText(this,
                 "Google Play Services error.",
                 Toast.LENGTH_SHORT).show();
+
+        Log.d(TAG, "onConnectionFailed: " + connectionResult);
     }
 
     @Override
@@ -404,11 +399,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         int i = v.getId();
         if (i == R.id.sign_in_button) {
             typeEnter = 1;
-            if (subs) {
-                signIn();
-            } else {
-                alertSubs();
-            }
+            signIn();
         }
         /*if (i == R.id.buttonVK) {
             typeEnter = 3;
@@ -449,6 +440,9 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             @Override
             public void onClick(View view) {
                 dialogSubs.dismiss();
+                if (mProgressDialog.isShowing()) {
+                    mProgressDialog.dismiss();
+                }
             }
         });
 
@@ -460,19 +454,84 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         super.onStop();
     }
 
-    private void registrationGoogleOnDB(FirebaseUser user) {
+    class GetPublicKey extends AsyncTask<Void, Void, Void> {
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.getPublicKey";
 
-        org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
-        jsonObjectAuth.put("email", user.getEmail());
-        jsonObjectAuth.put("fio", user.getDisplayName());
-        jsonAuth = String.valueOf(jsonObjectAuth);
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
+            mProgressDialog.setMessage("Проверяем...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.show();
+        }
 
-        mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
-        mProgressDialog.setMessage("Проверяем...");
-        mProgressDialog.setIndeterminate(false);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.show();
+        @Override
+        protected Void doInBackground(final Void... params) {
 
+            request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+                    Log.d(TAG, "onResponse GetPublicKey: " + res);
+                    try {
+                        JSONObject jsonObject = new JSONObject(res);
+                        String key_number = jsonObject.getString("key_number");
+                        String public_key = jsonObject.getString("public_key");
+                        switch (typeEnter) {
+                            case 1:
+                                registrationGoogleOnDB(key_number, public_key, user);
+                                break;
+                            case 2:
+                                registrationButton(key_number, public_key);
+                                break;
+                        }
+
+                    } catch (Exception e) {
+                        Log.d(TAG, "onResponse: GetPublicKey " + e);
+                    }
+                }
+
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    //mProgressDialog.dismiss();
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Проверьте подключение к интернету, или возможны работы на сервере", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }) {
+
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    parameters.put("data", "give me a public key");
+                    Log.d(TAG, "getParams: " + parameters);
+                    return parameters;
+                }
+            };
+
+            request.setShouldCache(false);
+            RequestQueue requestQueue = Volley.newRequestQueue(AuthorizationActivity.this);
+            requestQueue.add(request);
+
+            return null;
+        }
+    }
+
+    Map<String, String> parametersAuth = new HashMap<String, String>();
+
+    private void registrationGoogleOnDB(String key_number, String public_key, FirebaseUser user) {
+
+        org.json.simple.JSONObject jsonObjectAuth1 = new org.json.simple.JSONObject();
+        jsonObjectAuth1.put("email", user.getEmail());
+        jsonObjectAuth1.put("fio", user.getDisplayName());
+
+        org.json.simple.JSONObject jsonObjectAuth2 = new org.json.simple.JSONObject();
+        jsonObjectAuth2.put("key_number", key_number);
+        jsonObjectAuth2.put("data", HelperClass.publicKey(public_key, String.valueOf(jsonObjectAuth1)));
+
+        parametersAuth.put("data", String.valueOf(jsonObjectAuth2));
+        Log.d(TAG, "registrationGoogleOnDB: " + parametersAuth.toString());
         new SocialAuth().execute();
     }
 
@@ -493,7 +552,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     }
 
     class SocialAuth extends AsyncTask<Void, Void, Void> {
-
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.register";
 
         @Override
@@ -510,106 +568,180 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                     mProgressDialog.dismiss();
 
-                    Log.d(TAG, "onResponse: " + res);
+                    String log = user.getEmail();
+                    int i = log.indexOf("@");
+                    String login = log.substring(0, i);
+                    login = login.toLowerCase();
 
-                    try {
-                        JSONObject jsonObject = new JSONObject(res);
-
-                        int user_id = jsonObject.getInt("id");
-                        String name = jsonObject.getString("name");
-                        String username = jsonObject.getString("username");
-                        String email = jsonObject.getString("email");
-                        String block = jsonObject.getString("block");
-                        String sendEmail = jsonObject.getString("sendEmail");
-                        String registerDate = jsonObject.getString("registerDate");
-                        String lastvisitDate = jsonObject.getString("lastvisitDate");
-                        String activation = jsonObject.getString("activation");
-                        String params = jsonObject.getString("params");
-                        String dealer_id = jsonObject.getString("dealer_id");
-                        String change_time = jsonObject.getString("change_time");
-                        String associated_client = jsonObject.getString("associated_client");
-
-                        SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
-                        SharedPreferences.Editor ed = SP.edit();
-                        ed.putString("", dealer_id);
-                        ed.commit();
-
-                        SP = getSharedPreferences("user_id", MODE_PRIVATE);
-                        ed = SP.edit();
-                        ed.putString("", String.valueOf(user_id));
-                        ed.commit();
-
-                        SP = getSharedPreferences("enter", MODE_PRIVATE);
-                        ed = SP.edit();
-                        ed.putString("", "1");
-                        ed.commit();
-
-                        jsonObject = new JSONObject();
-                        jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
-                        jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
-
-                        SP = getSharedPreferences("link", MODE_PRIVATE);
-                        ed = SP.edit();
-                        ed.putString("", domen);
-                        ed.commit();
-
-                        String sqlQuewy = "SELECT change_time "
-                                + "FROM history_import_to_server " +
-                                "where user_id = ?";
-                        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
-                        if (c != null) {
-                            if (c.moveToFirst()) {
-                            } else {
-                                ContentValues values = new ContentValues();
-                                values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
-                                values.put(DBHelper.KEY_USER_ID, dealer_id);
-                                db.insert(DBHelper.HISTORY_IMPORT_TO_SERVER, null, values);
-                            }
-                        }
-
-                        sqlQuewy = "SELECT _id "
-                                + "FROM rgzbn_users " +
-                                "where _id = ?";
-                        c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
-                        if (c != null) {
-                            if (c.moveToFirst()) {
-                            } else {
-                                ContentValues values = new ContentValues();
-                                values.put(DBHelper.KEY_ID, user_id);
-                                values.put(DBHelper.KEY_NAME, name);
-                                values.put(DBHelper.KEY_USERNAME, username);
-                                values.put(DBHelper.KEY_EMAIL, email);
-                                values.put(DBHelper.KEY_BLOCK, block);
-                                values.put(DBHelper.KEY_SENDEMAIL, sendEmail);
-                                values.put(DBHelper.KEY_REGISTERDATE, registerDate);
-                                values.put(DBHelper.KEY_LASTVISITDATE, lastvisitDate);
-                                values.put(DBHelper.KEY_ACTIVATION, activation);
-                                values.put(DBHelper.KEY_PARAMS, params);
-                                values.put(DBHelper.KEY_ASSOCIATED_CLIENT, associated_client);
-                                values.put(DBHelper.KEY_CHANGE_TIME, change_time);
-                                values.put(DBHelper.KEY_SETTINGS, String.valueOf(jsonObject));
-                                db.insert(DBHelper.TABLE_USERS, null, values);
-                            }
-                        }
-
-                        pd = new ProgressDialog(AuthorizationActivity.this);
-                        pd.setTitle("Загрузка клиентов ... ");
-                        pd.setMessage("Пожалуйста подождите");
-                        pd.setIndeterminate(false);
-                        pd.setCancelable(false);
-                        pd.show();
-
-                        importData();
-
-                    } catch (JSONException e) {
-                        Log.d(TAG, "onResponse: " + e);
+                    Pattern pattern = Pattern.compile("[^a-z0-9\\_\\-\\.]");
+                    Matcher matcher = pattern.matcher(login);
+                    String result = matcher.replaceAll("-");
+                    if (result.charAt(0) == '-') {
+                        result = result.substring(1);
                     }
-                }
+                    if (result.charAt(result.length() - 1) == '-') {
+                        result = result.substring(0, result.length() - 1);
+                    }
 
+                    SharedPreferences SP = getSharedPreferences("login_user", MODE_PRIVATE);
+                    SharedPreferences.Editor ed = SP.edit();
+                    ed.putString("", result);
+                    ed.commit();
+
+                    SP = getSharedPreferences("static_key", MODE_PRIVATE);
+                    ed = SP.edit();
+                    ed.putString("", "crutch");
+                    ed.commit();
+
+                    String newRes = "";
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(res);
+                        String data = jsonObject.getString("data");
+                        String hash = jsonObject.getString("hash");
+                        newRes = HelperClass.decrypt(hash, data, AuthorizationActivity.this);
+                    } catch (JSONException e) {
+                        Log.d(TAG, "onResponse: socialAuth " + e);
+                        newRes = "null";
+                    }
+
+                    if (newRes != null && !newRes.equals("null")) {
+                        try {
+                            jsonObject = new JSONObject(newRes);
+
+                            Log.d(TAG, "onResponse: " + newRes);
+                            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                            final SimpleDateFormat dateFormatDD = new SimpleDateFormat("dd");
+                            int user_id = jsonObject.getInt("id");
+                            String name = jsonObject.getString("name");
+                            String email = jsonObject.getString("email");
+                            String block = jsonObject.getString("block");
+                            String sendEmail = jsonObject.getString("sendEmail");
+                            String registerDate = jsonObject.getString("registerDate");
+                            String lastvisitDate = jsonObject.getString("lastvisitDate");
+                            String activation = jsonObject.getString("activation");
+                            String params = jsonObject.getString("params");
+                            String dealer_id = jsonObject.getString("dealer_id");
+                            String change_time = jsonObject.getString("change_time");
+                            String associated_client = jsonObject.getString("associated_client");
+                            String period_start_date = jsonObject.getString("period_start_date");
+                            String period = jsonObject.getString("period");
+                            final String datetime = jsonObject.getString("datetime");
+
+                            SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
+                            ed = SP.edit();
+                            ed.putString("", dealer_id);
+                            ed.commit();
+
+                            SP = getSharedPreferences("user_id", MODE_PRIVATE);
+                            ed = SP.edit();
+                            ed.putString("", String.valueOf(user_id));
+                            ed.commit();
+
+                            SP = getSharedPreferences("enter", MODE_PRIVATE);
+                            ed = SP.edit();
+                            ed.putString("", "1");
+                            ed.commit();
+
+                            jsonObject = new JSONObject();
+                            jsonObject.put("CheckTimeCallback", 10); // для CallbackReceiver
+                            jsonObject.put("CheckTimeCall", 5);    // для CallReceiver
+
+                            SP = getSharedPreferences("link", MODE_PRIVATE);
+                            ed = SP.edit();
+                            ed.putString("", domen);
+                            ed.commit();
+
+                            String sqlQuewy = "SELECT change_time "
+                                    + "FROM history_import_to_server " +
+                                    "where user_id = ?";
+                            Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
+                            if (c != null) {
+                                if (c.moveToFirst()) {
+                                } else {
+                                    ContentValues values = new ContentValues();
+                                    values.put(DBHelper.KEY_CHANGE_TIME, "0000-00-00 00:00:00");
+                                    values.put(DBHelper.KEY_USER_ID, dealer_id);
+                                    db.insert(DBHelper.HISTORY_IMPORT_TO_SERVER, null, values);
+                                }
+                            }
+
+                            sqlQuewy = "SELECT _id "
+                                    + "FROM rgzbn_users " +
+                                    "where _id = ?";
+                            c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(dealer_id)});
+                            if (c != null) {
+                                if (c.moveToFirst()) {
+                                } else {
+                                    ContentValues values = new ContentValues();
+                                    values.put(DBHelper.KEY_ID, user_id);
+                                    values.put(DBHelper.KEY_NAME, name);
+                                    values.put(DBHelper.KEY_EMAIL, email);
+                                    values.put(DBHelper.KEY_BLOCK, block);
+                                    values.put(DBHelper.KEY_SENDEMAIL, sendEmail);
+                                    values.put(DBHelper.KEY_REGISTERDATE, registerDate);
+                                    values.put(DBHelper.KEY_LASTVISITDATE, lastvisitDate);
+                                    values.put(DBHelper.KEY_ACTIVATION, activation);
+                                    values.put(DBHelper.KEY_PARAMS, params);
+                                    values.put(DBHelper.KEY_ASSOCIATED_CLIENT, associated_client);
+                                    values.put(DBHelper.KEY_CHANGE_TIME, change_time);
+                                    values.put(DBHelper.KEY_SETTINGS, String.valueOf(jsonObject));
+                                    db.insert(DBHelper.TABLE_USERS, null, values);
+                                }
+                            }
+
+                            try {
+                                if (subs) {
+                                    jsonObject = new JSONObject();
+                                    jsonObject.put("id", user_id);
+                                    jsonObject.put("period", "1 month");
+                                    parameters.clear();
+                                    parameters.put("data", HelperClass.encrypt(jsonObject.toString(),
+                                            AuthorizationActivity.this));
+                                    new UpdateSubscription().execute();
+                                } else {
+                                    if (period_start_date.equals("null")) {
+                                        jsonObject = new JSONObject();
+                                        jsonObject.put("id", user_id);
+                                        jsonObject.put("period", "2 week");
+                                        parameters.clear();
+                                        parameters.put("data", HelperClass.encrypt(jsonObject.toString(),
+                                                AuthorizationActivity.this));
+                                        alertWelcome();
+                                    } else {
+                                        Date date1 = dateFormat.parse(period_start_date);
+                                        Date date2 = dateFormat.parse(datetime);
+                                        Date dateDD = dateFormatDD.parse(period.substring(0, 1));
+                                        long d1 = 0;
+                                        long d2 = 0;
+                                        if (period.equals("2 week")) {
+                                            d1 = date1.getTime();
+                                            d2 = date2.getTime();
+                                            long d3 = dateDD.getTime();
+                                            d1 = d1 + d3;
+                                        }
+                                        if (d1 - d2 > 0) {
+                                            importData();
+                                        } else {
+                                            alertSubs();
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                Log.d(TAG, "onResponse: " + e);
+                            }
+                        } catch (JSONException e) {
+                            Log.d(TAG, "JSONException: socialAuth " + e);
+                            Toast.makeText(AuthorizationActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     mProgressDialog.dismiss();
+                    Log.d(TAG, "onErrorResponse:PublicKey " + error);
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "Проверьте подключение к интернету, или возможны работы на сервере", Toast.LENGTH_SHORT);
                     toast.show();
@@ -618,9 +750,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
-                    parameters.put("r_data", jsonAuth);
-                    Log.d(TAG, "getParams: " + parameters);
-                    return parameters;
+                    Log.d(TAG, "getParams: " + parametersAuth);
+                    return parametersAuth;
                 }
             };
 
@@ -639,26 +770,27 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             toast.show();
         } else {
             typeEnter = 2;
-            if (subs) {
-                registrationButton();
-            } else {
-                alertSubs();
-            }
+            new GetPublicKey().execute();
         }
     }
 
-    void registrationButton() {
+    void registrationButton(String key_number, String public_key) {
 
         org.json.simple.JSONObject jsonObjectAuth = new org.json.simple.JSONObject();
         jsonObjectAuth.put("username", login.getText().toString());
         jsonObjectAuth.put("password", password.getText().toString());
-        jsonAuth = String.valueOf(jsonObjectAuth);
 
-        mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
-        mProgressDialog.setMessage("Проверяем...");
-        mProgressDialog.setIndeterminate(false);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.show();
+        org.json.simple.JSONObject jsonObjectAuth2 = new org.json.simple.JSONObject();
+        jsonObjectAuth2.put("key_number", key_number);
+        jsonObjectAuth2.put("data", HelperClass.publicKey(public_key, String.valueOf(jsonObjectAuth)));
+
+        parametersAuth.put("data", String.valueOf(jsonObjectAuth2));
+        Log.d(TAG, "registrationButton: " + parametersAuth);
+        //mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
+        //mProgressDialog.setMessage("Проверяем...");
+        //mProgressDialog.setIndeterminate(false);
+        //mProgressDialog.setCancelable(false);
+        //mProgressDialog.show();
 
         SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
         SharedPreferences.Editor ed = SP.edit();
@@ -689,29 +821,54 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String res) {
-                    Log.d(TAG, res);
+                    SharedPreferences SP = getSharedPreferences("login_user", MODE_PRIVATE);
+                    SharedPreferences.Editor ed = SP.edit();
+                    ed.putString("", login.getText().toString());
+                    ed.commit();
+
+                    SP = getSharedPreferences("static_key", MODE_PRIVATE);
+                    ed = SP.edit();
+                    ed.putString("", "crutch");
+                    ed.commit();
+
+                    String newRes = "";
+                    final JSONObject[] jsonObject = {null};
                     try {
-                        JSONObject jsonObject = new JSONObject(res);
-                        int user_id = jsonObject.getInt("id");
-                        String name = jsonObject.getString("name");
-                        String username = jsonObject.getString("username");
-                        String email = jsonObject.getString("email");
-                        String block = jsonObject.getString("block");
-                        String sendEmail = jsonObject.getString("sendEmail");
-                        String registerDate = jsonObject.getString("registerDate");
-                        String lastvisitDate = jsonObject.getString("lastvisitDate");
-                        String activation = jsonObject.getString("activation");
-                        String params = jsonObject.getString("params");
-                        String dealer_id = jsonObject.getString("dealer_id");
-                        String change_time = jsonObject.getString("change_time");
-                        String associated_client = jsonObject.getString("associated_client");
-                        String settings = jsonObject.getString("settings");
+                        jsonObject[0] = new JSONObject(res);
+                        String data = jsonObject[0].getString("data");
+                        String hash = jsonObject[0].getString("hash");
+                        newRes = HelperClass.decrypt(hash, data, AuthorizationActivity.this);
+                    } catch (JSONException e) {
+                        Log.d(TAG, "onResponse: " + e);
+                    }
 
-                        String ob = jsonObject.getString("groups");
-                        Log.d(TAG, ob);
+                    try {
 
-                        SharedPreferences SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
-                        SharedPreferences.Editor ed = SP.edit();
+                        Log.d(TAG, "onResponse: " + newRes);
+                        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        final SimpleDateFormat dateFormatDD = new SimpleDateFormat("dd");
+                        jsonObject[0] = new JSONObject(newRes);
+                        final int user_id = jsonObject[0].getInt("id");
+                        String name = jsonObject[0].getString("name");
+                        String email = jsonObject[0].getString("email");
+                        String block = jsonObject[0].getString("block");
+                        String sendEmail = jsonObject[0].getString("sendEmail");
+                        String registerDate = jsonObject[0].getString("registerDate");
+                        String lastvisitDate = jsonObject[0].getString("lastvisitDate");
+                        String activation = jsonObject[0].getString("activation");
+                        String params = jsonObject[0].getString("params");
+                        String dealer_id = jsonObject[0].getString("dealer_id");
+                        String change_time = jsonObject[0].getString("change_time");
+                        String associated_client = jsonObject[0].getString("associated_client");
+                        final String settings = jsonObject[0].getString("settings");
+                        final String period_start_date = jsonObject[0].getString("period_start_date");
+                        final String period = jsonObject[0].getString("period");
+                        final String datetime = jsonObject[0].getString("datetime");
+
+                        String ob = jsonObject[0].getString("groups");
+
+                        SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
+                        ed = SP.edit();
                         ed.putString("", String.valueOf(dealer_id));
                         ed.commit();
 
@@ -749,7 +906,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 ContentValues values = new ContentValues();
                                 values.put(DBHelper.KEY_ID, dealer_id);
                                 values.put(DBHelper.KEY_NAME, name);
-                                values.put(DBHelper.KEY_USERNAME, username);
                                 values.put(DBHelper.KEY_EMAIL, email);
                                 values.put(DBHelper.KEY_BLOCK, block);
                                 values.put(DBHelper.KEY_SENDEMAIL, sendEmail);
@@ -800,14 +956,47 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                         ed.putString("", "test1");
                                                         ed.commit();
                                                         domen = "test1";
-
-                                                        pd = new ProgressDialog(AuthorizationActivity.this);
-                                                        pd.setTitle("Загрузка клиентов ... ");
-                                                        pd.setMessage("Пожалуйста подождите");
-                                                        pd.setIndeterminate(false);
-                                                        pd.setCancelable(false);
-                                                        pd.show();
-                                                        importData();
+                                                        try {
+                                                            if (subs) {
+                                                                jsonObject[0] = new JSONObject();
+                                                                jsonObject[0].put("id", user_id);
+                                                                jsonObject[0].put("period", "1 month");
+                                                                parameters.clear();
+                                                                parameters.put("data", HelperClass.encrypt(jsonObject[0].toString(),
+                                                                        AuthorizationActivity.this));
+                                                                new UpdateSubscription().execute();
+                                                            } else {
+                                                                Log.d(TAG, "onClick:period_start_date " + period_start_date);
+                                                                if (period_start_date.equals("null")) {
+                                                                    jsonObject[0] = new JSONObject();
+                                                                    jsonObject[0].put("id", user_id);
+                                                                    jsonObject[0].put("period", "2 week");
+                                                                    parameters.clear();
+                                                                    parameters.put("data", HelperClass.encrypt(jsonObject[0].toString(),
+                                                                            AuthorizationActivity.this));
+                                                                    alertWelcome();
+                                                                } else {
+                                                                    Date date1 = dateFormat.parse(period_start_date);
+                                                                    Date date2 = dateFormat.parse(datetime);
+                                                                    Date dateDD = dateFormatDD.parse(period.substring(0, 1));
+                                                                    long d1 = 0;
+                                                                    long d2 = 0;
+                                                                    if (period.equals("2 week")) {
+                                                                        d1 = date1.getTime();
+                                                                        d2 = date2.getTime();
+                                                                        long d3 = dateDD.getTime();
+                                                                        d1 = d1 + d3;
+                                                                    }
+                                                                    if (d1 - d2 > 0) {
+                                                                        importData();
+                                                                    } else {
+                                                                        alertSubs();
+                                                                    }
+                                                                }
+                                                            }
+                                                        } catch (Exception e) {
+                                                            Log.d(TAG, "onClick: " + e);
+                                                        }
                                                         break;
                                                     case 1:
                                                         SP = getSharedPreferences("link", MODE_PRIVATE);
@@ -816,13 +1005,47 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                         ed.commit();
                                                         domen = "calc";
 
-                                                        pd = new ProgressDialog(AuthorizationActivity.this);
-                                                        pd.setTitle("Загрузка клиентов ... ");
-                                                        pd.setMessage("Пожалуйста подождите");
-                                                        pd.setIndeterminate(false);
-                                                        pd.setCancelable(false);
-                                                        pd.show();
-                                                        importData();
+                                                        try {
+
+                                                            if (subs) {
+                                                                jsonObject[0] = new JSONObject();
+                                                                jsonObject[0].put("id", user_id);
+                                                                jsonObject[0].put("period", "1 month");
+                                                                parameters.clear();
+                                                                parameters.put("data", HelperClass.encrypt(jsonObject[0].toString(),
+                                                                        AuthorizationActivity.this));
+                                                                new UpdateSubscription().execute();
+                                                            } else {
+                                                                if (period_start_date.equals("null")) {
+                                                                    jsonObject[0] = new JSONObject();
+                                                                    jsonObject[0].put("id", user_id);
+                                                                    jsonObject[0].put("period", "2 week");
+                                                                    parameters.clear();
+                                                                    parameters.put("data", HelperClass.encrypt(jsonObject[0].toString(),
+                                                                            AuthorizationActivity.this));
+                                                                    alertWelcome();
+                                                                } else {
+                                                                    Date date1 = dateFormat.parse(period_start_date);
+                                                                    Date date2 = dateFormat.parse(datetime);
+                                                                    Date dateDD = dateFormatDD.parse(period.substring(0, 1));
+                                                                    long d1 = 0;
+                                                                    long d2 = 0;
+                                                                    if (period.equals("2 week")) {
+                                                                        d1 = date1.getTime();
+                                                                        d2 = date2.getTime();
+                                                                        long d3 = dateDD.getTime();
+                                                                        d1 = d1 + d3;
+                                                                    }
+                                                                    if (d1 - d2 > 0) {
+                                                                        importData();
+                                                                    } else {
+                                                                        alertSubs();
+                                                                    }
+                                                                }
+                                                            }
+                                                        } catch (Exception e) {
+                                                            Log.d(TAG, "onClick: " + e);
+                                                        }
                                                         break;
                                                 }
                                             }
@@ -839,25 +1062,53 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         }
 
                         if (i[0] == 0) {
-                            pd = new ProgressDialog(AuthorizationActivity.this);
-                            pd.setTitle("Загрузка клиентов ... ");
-                            pd.setMessage("Пожалуйста подождите");
-                            pd.setIndeterminate(false);
-                            pd.setCancelable(false);
-                            pd.show();
 
-                            importData();
+                            if (subs) {
+                                jsonObject[0] = new JSONObject();
+                                jsonObject[0].put("id", user_id);
+                                jsonObject[0].put("period", "1 month");
+                                parameters.clear();
+                                parameters.put("data", HelperClass.encrypt(jsonObject[0].toString(),
+                                        AuthorizationActivity.this));
+                                new UpdateSubscription().execute();
+                            } else {
+                                if (period_start_date.equals("null")) {
+                                    jsonObject[0] = new JSONObject();
+                                    jsonObject[0].put("id", user_id);
+                                    jsonObject[0].put("period", "2 week");
+                                    parameters.clear();
+                                    parameters.put("data", HelperClass.encrypt(jsonObject[0].toString(),
+                                            AuthorizationActivity.this));
+                                    alertWelcome();
+                                } else {
+                                    Date date1 = dateFormat.parse(period_start_date);
+                                    Date date2 = dateFormat.parse(datetime);
+                                    Date dateDD = dateFormatDD.parse(period.substring(0, 1));
+                                    long d1 = 0;
+                                    long d2 = 0;
+                                    if (period.equals("2 week")) {
+                                        d1 = date1.getTime();
+                                        d2 = date2.getTime();
+                                        long d3 = dateDD.getTime();
+                                        d1 = d1 + d3;
+                                    }
+                                    if (d1 - d2 > 0) {
+                                        importData();
+                                    } else {
+                                        alertSubs();
+                                    }
+                                }
+                            }
                             mProgressDialog.dismiss();
                         }
-
                     } catch (Exception e) {
 
+                        Log.d(TAG, "onResponse: sendAuthorization " + e);
                         mProgressDialog.dismiss();
                         Toast toast = Toast.makeText(getApplicationContext(),
-                                res, Toast.LENGTH_SHORT);
+                                newRes, Toast.LENGTH_SHORT);
                         toast.show();
                     }
-
                 }
 
             }, new Response.ErrorListener() {
@@ -872,8 +1123,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
-                    parameters.put("authorizations", jsonAuth);
-                    return parameters;
+                    return parametersAuth;
                 }
             };
 
@@ -887,7 +1137,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
     private void importData() {
 
-        Log.d(TAG, "importData: " );
+        Log.d(TAG, "importData: ");
         SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
         domen = SP.getString("", "");
         int count = 0;
@@ -908,8 +1158,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         if (count == 0) {
             SharedPreferences SP_end = getSharedPreferences("dealer_id", MODE_PRIVATE);
             user_id = SP_end.getString("", "");
-            requestQueue = Volley.newRequestQueue(getApplicationContext());
 
+            JSONObject jsonObject = new JSONObject();
             sqlQuewy = "SELECT change_time "
                     + "FROM history_import_to_server" +
                     " WHERE user_id = ?";
@@ -923,9 +1173,16 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }
             c.close();
 
-            jsonSync_Import.put("change_time", change_time_global);
-            jsonSync_Import.put("dealer_id", user_id);
-            sync_import = String.valueOf(jsonSync_Import);
+            try {
+                jsonObject.put("change_time", change_time_global);
+                jsonObject.put("dealer_id", user_id);
+            } catch (Exception e) {
+                Log.d(TAG, "onResponse: ImportData() " + e);
+            }
+
+            parameters.clear();
+            parameters.put("data", HelperClass.encrypt(jsonObject.toString(), this));
+            Log.d(TAG, "importData: 2");
             new ImportData().execute();
 
         } else {
@@ -935,14 +1192,41 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         }
     }
 
+    void alertWelcome() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Здравствуйте")
+                .setMessage(R.string.alert_welcome)
+                .setCancelable(false)
+                .setNegativeButton("Я отказываюсь",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                                mProgressDialog.dismiss();
+                            }
+                        })
+                .setPositiveButton("Я согласен", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        new UpdateSubscription().execute();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
     class ImportData extends AsyncTask<Void, Void, Void> {
 
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.sendInfoToAndroidCallGlider";
-        Map<String, String> parameters = new HashMap<String, String>();
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            pd = new ProgressDialog(AuthorizationActivity.this);
+            pd.setTitle("Загрузка клиентов ... ");
+            pd.setMessage("Пожалуйста подождите");
+            pd.setIndeterminate(false);
+            pd.setCancelable(false);
+            pd.show();
         }
 
         @Override
@@ -952,14 +1236,22 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String res) {
-
-                    Log.d(TAG, "ImportData = " + res);
-
                     SQLiteDatabase db;
                     db = dbHelper.getReadableDatabase();
+                    String newRes = "";
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(res);
+                        String data = jsonObject.getString("data");
+                        String hash = jsonObject.getString("hash");
+                        newRes = HelperClass.decrypt(hash, data, AuthorizationActivity.this);
+                    } catch (JSONException e) {
+                        Log.d(TAG, "onResponse: ImportData " + e);
+                        newRes = "null";
+                    }
 
-                    if (res.equals("null")) {
-                    } else {
+                    Log.d(TAG, "onResponse: " + newRes);
+                    if (newRes != null && !newRes.equals("null")) {
                         int count = 0;
                         try {
                             ContentValues values;
@@ -967,7 +1259,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                             Date change_max = ft.parse(change_time_global);
 
-                            JSONObject jsonObject = new JSONObject(res);
+                            jsonObject = new JSONObject(newRes);
                             JSONArray rgzbn_gm_ceiling_clients = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients");
 
                             for (int i = 0; i < rgzbn_gm_ceiling_clients.length(); i++) {
@@ -1479,14 +1771,13 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             Log.d(TAG, "NEW change_time: " + String.valueOf(out_format.format(change_max)));
 
                         } catch (Exception e) {
-                            Log.d(TAG, "onResponse: " + e);
+                            Log.d(TAG, "onResponse: ImportLog " + e);
                         }
 
                         int i = 0;
                     }
 
                     pd.dismiss();
-
                     finish();
                     intent = new Intent(AuthorizationActivity.this, MainActivity.class);
                     startActivity(intent);
@@ -1506,8 +1797,42 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
-                    parameters.put("synchronization", sync_import);
                     Log.d(TAG, String.valueOf(parameters));
+                    return parameters;
+                }
+            };
+
+            requestQueue.add(request);
+
+            return null;
+        }
+
+    }
+
+    class UpdateSubscription extends AsyncTask<Void, Void, Void> {
+        String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&task=api.updateSubscription";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(final Void... params) {
+            StringRequest request = new StringRequest(Request.Method.POST, insertUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String res) {
+                    Log.d(TAG, "onResponse: UpdateSubscription");
+                    importData();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                }
+            }) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Log.d(TAG, "SUB " + String.valueOf(parameters));
                     return parameters;
                 }
             };

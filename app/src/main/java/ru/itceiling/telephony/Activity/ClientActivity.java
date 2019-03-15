@@ -50,6 +50,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.CallbackListFragment;
 import ru.itceiling.telephony.HelperClass;
@@ -156,6 +157,9 @@ public class ClientActivity extends AppCompatActivity {
             LinearLayout layoutManager = findViewById(R.id.layoutManager);
             layoutManager.setVisibility(View.GONE);
         }
+
+        ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
+        exportDataReceiver.CancelAlarm(this);
     }
 
     public void onButtonEditCallback(View view) {
@@ -565,6 +569,12 @@ public class ClientActivity extends AppCompatActivity {
                                                                 "_id = ?",
                                                                 new String[]{id_phone});
 
+                                                        HelperClass.addExportData(
+                                                                ClientActivity.this,
+                                                                Integer.valueOf(id_phone),
+                                                                "rgzbn_gm_ceiling_clients_contacts",
+                                                                "delete");
+
                                                         phonesClient();
 
                                                         Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
@@ -777,6 +787,13 @@ public class ClientActivity extends AppCompatActivity {
 
                                                         db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS,
                                                                 "_id = ?", new String[]{id_phone});
+
+                                                        HelperClass.addExportData(
+                                                                ClientActivity.this,
+                                                                Integer.valueOf(id_phone),
+                                                                "rgzbn_gm_ceiling_clients_dop_contacts",
+                                                                "delete");
+
                                                         emailClient();
                                                         Toast toast = Toast.makeText(ClientActivity.this.getApplicationContext(),
                                                                 "Почта удаленa ", Toast.LENGTH_SHORT);

@@ -75,6 +75,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     String domen, jsonPassword;
     static String TAG = "logd";
     private RequestQueue requestQueue;
+    java.util.Map<String, String> parameters = new HashMap<String, String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,7 +188,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
                                         jsonObject.put("password", ed_newPassword1.getText().toString());
                                         jsonObject.put("user_id", user_id);
 
-                                        jsonPassword = String.valueOf(jsonObject);
+                                        parameters.put("data", HelperClass.encrypt(jsonObject.toString(), context));
                                         new ChangePwd().execute();
 
                                     } else {
@@ -215,7 +216,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     class ChangePwd extends AsyncTask<Void, Void, Void> {
 
         String insertUrl = "http://" + domen + ".gm-vrn.ru/index.php?option=com_gm_ceiling&amp;task=api.changePwd";
-        java.util.Map<String, String> parameters = new HashMap<String, String>();
 
         @Override
         protected void onPreExecute() {
@@ -229,8 +229,20 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
                 @Override
                 public void onResponse(String res) {
                     try {
+                        String newRes = "";
+                        org.json.JSONObject jsonObject = null;
+                        try {
+                            jsonObject = new org.json.JSONObject(res);
+                            String data = jsonObject.getString("data");
+                            String hash = jsonObject.getString("hash");
+                            newRes = HelperClass.decrypt(hash, data, SettingsActivity.this);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
 
-                        if (res.equals("true")) {
+                        Log.d(TAG, "onResponse: " + newRes);
+
+                        if (newRes.equals("true")) {
                             dialog.dismiss();
                             Toast.makeText(getApplicationContext(), "Пароль изменён",
                                     Toast.LENGTH_LONG).show();
@@ -251,7 +263,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
                 @Override
                 protected java.util.Map<String, String> getParams() throws AuthFailureError {
-                    parameters.put("u_data", jsonPassword);
                     return parameters;
                 }
             };

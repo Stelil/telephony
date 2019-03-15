@@ -36,7 +36,6 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
             callbackDate = (TextView) itemView.findViewById(R.id.callback_time);
             callbackComment = (TextView) itemView.findViewById(R.id.callback_comment);
             callbackManager = (TextView) itemView.findViewById(R.id.callback_manager);
-            nameDay = (TextView) itemView.findViewById(R.id.nameDay);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -87,15 +86,6 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
         callbackViewHolder.callbackDate.setText(callbacks.get(i).date);
         callbackViewHolder.callbackComment.setText(callbacks.get(i).comment);
         callbackViewHolder.callbackManager.setText(callbacks.get(i).manager);
-
-        if (i == 0) {
-            callbackViewHolder.nameDay.setText(callbacks.get(i).nameDay);
-        } else if (!callbacks.get(i - 1).nameDay.equals(callbacks.get(i).nameDay)) {
-            callbackViewHolder.nameDay.setText(callbacks.get(i).nameDay);
-        } else {
-            callbackViewHolder.nameDay.setVisibility(View.GONE);
-        }
-
     }
 
     @Override

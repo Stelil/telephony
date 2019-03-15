@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
@@ -89,18 +90,45 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         dbHelper = new DBHelper(getActivity());
         db = dbHelper.getWritableDatabase();
 
+
+        final FloatingActionButton fab = view.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onButtonAddClient(view);
+            }
+        });
+        fab.hide();
+        fab.show();
+
         recyclerView = view.findViewById(R.id.recyclerViewClients);
         LinearLayoutManager llm = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(llm);
         recyclerView.setHasFixedSize(true);
-
-        Button addClient = view.findViewById(R.id.AddClient);
-        addClient.setOnClickListener(new View.OnClickListener() {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onClick(View view) {
-                onButtonAddClient(view);
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0 || dy < 0 && fab.isShown()) {
+                    fab.hide();
+                }
+            }
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    fab.show();
+                }
+
+                super.onScrollStateChanged(recyclerView, newState);
             }
         });
+
+        //Button addClient = view.findViewById(R.id.AddClient);
+        //addClient.setOnClickListener(new View.OnClickListener() {
+        //    @Override
+        //    public void onClick(View view) {
+        //    }
+        //});
 
         setHasOptionsMenu(true);
 
@@ -175,11 +203,12 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         intent = new Intent(getActivity(), ImportDataReceiver.class);
         importDataReceiver.onReceive(getActivity(), intent);
 
+        String ass_client = HelperClass.associated_client(getActivity(), user_id);
         int count = 0;
         String sqlQuewy = "SELECT count(_id) "
                 + "FROM rgzbn_gm_ceiling_clients " +
-                "WHERE dealer_id = ? and deleted_by_user <> 1";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+                "WHERE dealer_id = ? and deleted_by_user <> 1 and _id <> ?";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id, ass_client});
         if (c != null) {
             if (c.moveToFirst()) {
                 count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
@@ -350,7 +379,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             cc.close();
 
                             persons.add(0, new Person(name, phone, nameManager, "#000000",
-                                    "Холодный", "Необработанный", Integer.valueOf(maxIdClient)));
+                                    " ", "Необработанный", Integer.valueOf(maxIdClient)));
                             adapter.notifyItemInserted(0);
                             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(0, 0);
 

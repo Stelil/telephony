@@ -5,18 +5,16 @@
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
-    <!--<uses-permission android:name="android.permission.WRITE_CALL_LOG" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission
-        android:name="android.permission.CAPTURE_AUDIO_OUTPUT"
-        android:protectionLevel="signature|privileged" />
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" /> -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!--<uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    -->
 
     <application
         android:name=".App"
@@ -27,8 +25,9 @@
         android:roundIcon="@mipmap/ic_launcher_foreground4"
         android:supportsRtl="true"
         android:theme="@style/themeWhite"
-        tools:replace="android:icon, android:theme"
-        tools:ignore="GoogleAppIndexingWarning">
+        tools:ignore="GoogleAppIndexingWarning"
+        tools:replace="android:icon, android:theme">
+
         <activity
             android:name=".Activity.AuthorizationActivity"
             android:screenOrientation="portrait">
@@ -78,17 +77,21 @@
             android:enabled="true" />
         <receiver android:name=".Broadcaster.ImportDataReceiver" />
         <receiver android:name=".Broadcaster.ExportDataReceiver" />
-        <receiver android:name=".Broadcaster.BroadcastCallToPostpone"
+        <receiver
+            android:name=".Broadcaster.BroadcastCallToPostpone"
             android:enabled="true" />
-        <receiver android:name=".Broadcaster.CallReceiver"
-            android:enabled="true"  />
-        <receiver android:name=".Broadcaster.BroadcastNewClient"
-            android:enabled="true"  />
-        <receiver android:name=".Broadcaster.BroadcastHistoryClient"
-            android:enabled="true"/>
-        <receiver android:name=".Broadcaster.BroadcasterCallbackClient"
-            android:enabled="true"/>
-
+        <receiver
+            android:name=".Broadcaster.CallReceiver"
+            android:enabled="true" />
+        <receiver
+            android:name=".Broadcaster.BroadcastNewClient"
+            android:enabled="true" />
+        <receiver
+            android:name=".Broadcaster.BroadcastHistoryClient"
+            android:enabled="true" />
+        <receiver
+            android:name=".Broadcaster.BroadcasterCallbackClient"
+            android:enabled="true" />
     </application>
 
 </manifest>

@@ -44,7 +44,7 @@ import static org.solovyev.android.checkout.ProductTypes.SUBSCRIPTION;
 
 public class SubscriptionsActivity extends AppCompatActivity {
 
-    static String TAG = "logd";
+    static String TAG = "ImportLog";
 
     private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month", "telephony.subscription.6month");
 

@@ -1,6 +1,5 @@
 package ru.itceiling.telephony;
 
-
 import android.app.Application;
 
 import org.solovyev.android.checkout.Billing;
@@ -47,4 +46,5 @@ public class App extends Application {
     public Billing getBilling() {
         return mBilling;
     }
+
 }

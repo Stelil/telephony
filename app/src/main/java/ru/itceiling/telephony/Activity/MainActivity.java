@@ -9,18 +9,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
@@ -37,20 +33,23 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.simple.JSONObject;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 
-import ru.itceiling.telephony.Broadcaster.BroadcastHistoryClient;
-import ru.itceiling.telephony.Broadcaster.BroadcastNewClient;
-import ru.itceiling.telephony.Broadcaster.BroadcasterCallbackClient;
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
+import ru.itceiling.telephony.CSVReader;
+import ru.itceiling.telephony.CSVWriter;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.AnalyticsFragment;
 import ru.itceiling.telephony.Fragments.CallLogFragment;
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private static String mLastState = "";
     private String date1, date2 = "";
     int callStatus = 0;
-    private String TAG = "callReceiver";
+    private static String TAG = "callReceiver";
     private MediaRecorder mediaRecorder;
     private MediaPlayer mediaPlayer;
     private String fileName;
@@ -146,6 +145,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bubble();
+
+        //test();
     }
 
     void bubble() {
@@ -170,14 +171,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void bubbleCount() {
-
         SharedPreferences SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
         String user_id = SP.getString("", "");
 
         int count = 0;
         String sqlQuewy = "SELECT count(_id) "
                 + "FROM rgzbn_gm_ceiling_callback " +
-                "WHERE manager_id = ? and substr(date_time,1,10) = ?";
+                "WHERE manager_id = ? and substr(date_time,1,10) <= ?";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id, HelperClass.nowDate().substring(0, 10)});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -186,19 +186,18 @@ public class MainActivity extends AppCompatActivity {
         }
         c.close();
 
-        Log.d(TAG, "bubbleCount: " + count);
-
         if (count > 0) {
             b.setText(String.valueOf(count));
         } else {
             b.setVisibility(View.GONE);
         }
 
+        String as_client = HelperClass.associated_client(this, user_id);
         count = 0;
         sqlQuewy = "SELECT count(_id) "
                 + "FROM rgzbn_gm_ceiling_clients " +
-                "WHERE dealer_id = ? and deleted_by_user <> 1";
-        c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+                "WHERE dealer_id = ? and deleted_by_user <> 1 and _id <> ?";
+        c = db.rawQuery(sqlQuewy, new String[]{dealer_id, as_client});
         if (c != null) {
             if (c.moveToFirst()) {
                 count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
@@ -231,15 +230,19 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.recall:
+                    bubbleCount();
                     loadFragment(CallbackListFragment.newInstance());
                     return true;
                 case R.id.clients:
+                    bubbleCount();
                     loadFragment(ClientsListFragment.newInstance());
                     return true;
                 case R.id.call_log:
+                    bubbleCount();
                     loadFragment(CallLogFragment.newInstance());
                     return true;
                 case R.id.analytics:
+                    bubbleCount();
                     loadFragment(AnalyticsFragment.newInstance());
                     return true;
             }
@@ -264,6 +267,10 @@ public class MainActivity extends AppCompatActivity {
             item = menu.getItem(2);
             item.setVisible(false);
         }
+        MenuItem item = menu.getItem(3);
+        item.setVisible(false);
+        item = menu.getItem(4);
+        item.setVisible(false);
 
         return true;
     }
@@ -324,8 +331,146 @@ public class MainActivity extends AppCompatActivity {
                 intent = new Intent(this, ManagerActivity.class);
                 startActivity(intent);
                 break;
+            case R.id.exportDataCSV:
+                alertDialog();
+                break;
+            case R.id.importDataCSV:
+                importDB();
+                break;
         }
         return false;
+    }
+
+    void alertDialog() {
+        LayoutInflater li = LayoutInflater.from(this);
+        View promptsView = li.inflate(R.layout.alert_file_name, null);
+        AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(this);
+        mDialogBuilder.setView(promptsView);
+        final EditText nameFile = (EditText) promptsView.findViewById(R.id.nameFile);
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(promptsView)
+                .setTitle("Название файла")
+                .setPositiveButton(android.R.string.ok, null)
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button button = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String name = nameFile.getText().toString();
+                        if (name.length() > 0) {
+                            exportDB(name);
+                            dialog.dismiss();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Введите название", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+        });
+        dialog.show();
+    }
+
+    private void exportDB(String nameFile) {
+
+        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
+        if (!exportDir.exists()) {
+            exportDir.mkdirs();
+        }
+
+        File file = new File(exportDir, nameFile + ".csv");
+        try {
+            file.createNewFile();
+            CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
+            String sqlQuery = "SELECT cl.client_name AS `Имя клиента`, " +
+                    "GROUP_CONCAT(DISTINCT clc.phone) AS `Номер`, " +
+                    "GROUP_CONCAT(DISTINCT cldc.contact) AS `Почта`, " +
+                    "stat.title AS `Статус`, " +
+                    "us.name AS `Менеджер` ," +
+                    "cl.created AS `Создан` " +
+                    "FROM `rgzbn_gm_ceiling_clients` AS cl " +
+                    "LEFT JOIN `rgzbn_gm_ceiling_clients_contacts` AS clc " +
+                    "ON clc.client_id = cl._id " +
+                    "LEFT JOIN `rgzbn_gm_ceiling_clients_dop_contacts` AS cldc " +
+                    "ON cldc.client_id = cl._id " +
+                    "LEFT JOIN `rgzbn_gm_ceiling_clients_statuses_map` AS statm " +
+                    "ON statm.client_id = cl._id " +
+                    "LEFT JOIN `rgzbn_gm_ceiling_clients_statuses` AS stat " +
+                    "ON stat._id = statm._id " +
+                    "LEFT JOIN `rgzbn_users` AS us " +
+                    "ON us._id = cl.manager_id " +
+                    "WHERE cl.dealer_id = ? " +
+                    "GROUP BY cl._id " +
+                    "ORDER BY cl._id ";
+            Cursor curCSV = db.rawQuery(sqlQuery, new String[]{dealer_id});
+            csvWrite.writeNext(curCSV.getColumnNames());
+            while (curCSV.moveToNext()) {
+                //Which column you want to exprort
+                String arrStr[] = {curCSV.getString(0), curCSV.getString(1), curCSV.getString(2),
+                        curCSV.getString(3), curCSV.getString(4), curCSV.getString(5)};
+                csvWrite.writeNext(arrStr);
+            }
+            csvWrite.close();
+            curCSV.close();
+            Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
+
+        } catch (Exception sqlEx) {
+            Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static final int requestcode = 1;
+
+    private void importDB() {
+        /*
+        Intent fileintent = new Intent(Intent.ACTION_GET_CONTENT);
+        fileintent.setType("file/*.csv");
+        try {
+            startActivityForResult(fileintent, requestcode);
+        } catch (ActivityNotFoundException e) {
+
+        }*/
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/csv");
+        startActivityForResult(Intent.createChooser(intent, "Open CSV"), requestcode);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case requestcode:
+                if (resultCode == RESULT_OK) {
+                    proImportCSV(new File(data.getData().getPath()));
+                }
+                break;
+        }
+    }
+
+    private void proImportCSV(File from) {
+        try {
+            ContentValues cv = new ContentValues();
+            CSVReader dataRead = new CSVReader(new FileReader(from));
+
+            String[] vv = null;
+            while ((vv = dataRead.readNext()) != null) {
+                Log.d(TAG, "proImportCSV: " + vv[0]);
+                Log.d(TAG, "proImportCSV: " + vv[1]);
+                Log.d(TAG, "proImportCSV: " + vv[2]);
+                Log.d(TAG, "proImportCSV: " + vv[3]);
+                Log.d(TAG, "proImportCSV: " + vv[4]);
+                Log.d(TAG, "proImportCSV: " + vv[5]);
+            }
+            dataRead.close();
+        } catch (Exception e) {
+            Log.e(TAG, e.toString());
+        }
     }
 
     @Override
@@ -341,7 +486,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume: ");
 
         if (getIntent().getStringExtra("phone") == null) {
         } else {
@@ -387,9 +531,15 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.READ_PHONE_STATE,
                             Manifest.permission.READ_CALL_LOG,
                             Manifest.permission.INTERNET,
-                            Manifest.permission.READ_CONTACTS},
+                            Manifest.permission.READ_CONTACTS,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE},
                     1);
         }
+
+
+
+        Log.d(TAG, "onStart: ");
     }
 
     void alertDialogPermission() {
@@ -426,4 +576,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
+
 }

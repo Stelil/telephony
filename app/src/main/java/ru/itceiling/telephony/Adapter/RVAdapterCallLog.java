@@ -82,11 +82,20 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
 
     @Override
     public void onBindViewHolder(CallLogViewHolder callbackViewHolder, int i) {
-        if (callLogList.get(i).type.length() < 20){
+        /*if (callLogList.get(i).type.length() < 20){
             relCard.setBackgroundResource(R.drawable.card_red_corner);
         } else {
             relCard.setBackgroundResource(R.drawable.card_green_corner);
+        }*/
+
+        if (callLogList.get(i).type.equals("Входящий звонок") ||
+                callLogList.get(i).type.equals("Исходящий звонок")) {
+            relCard.setBackgroundResource(R.drawable.card_green_corner);
+        } else {
+            relCard.setBackgroundResource(R.drawable.card_red_corner);
         }
+        callbackViewHolder.callbackName.setText(callLogList.get(i).name);
+        callbackViewHolder.callbackPhone.setText(callLogList.get(i).phone);
         callbackViewHolder.callbackName.setText(callLogList.get(i).name);
         callbackViewHolder.callbackPhone.setText(callLogList.get(i).phone);
         callbackViewHolder.callbackDate.setText(callLogList.get(i).date_time);
