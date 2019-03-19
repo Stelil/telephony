@@ -2,12 +2,13 @@ package ru.itceiling.telephony;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 5;
     public static final String DATABASE_NAME = "dbTelephony";
 
     private Context mContext;
@@ -235,7 +236,6 @@ public class DBHelper extends SQLiteOpenHelper {
             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, values, "_id = ?",
                     new String[]{"1"});
         }
-
 
     }
 }

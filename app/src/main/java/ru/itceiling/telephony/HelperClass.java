@@ -435,7 +435,7 @@ public class HelperClass {
             byte[] messageDigest = md.digest(input.getBytes());
             BigInteger no = new BigInteger(1, messageDigest);
             String hashtext = no.toString(16);
-            while (hashtext.length() < 32) {
+            while (hashtext.length() < 128) {
                 hashtext = "0" + hashtext;
             }
             return hashtext;

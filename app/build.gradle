@@ -16,8 +16,8 @@ android {
         applicationId "ru.itceiling.telephony"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 34
-        versionName "1.44"
+        versionCode 37
+        versionName "1.441"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
@@ -86,6 +86,7 @@ dependencies {
     implementation 'org.solovyev.android:checkout:1.2.1'
     implementation 'com.jakewharton:butterknife:8.4.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
+    implementation group: 'net.sf.supercsv', name: 'super-csv', version: '2.4.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

@@ -200,7 +200,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }
         });
         prBar();
-        //subs = true;
+        subs = true;
 
         mCheckout.createPurchaseFlow(new PurchaseListener());
 
@@ -495,7 +495,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    //mProgressDialog.dismiss();
+                    mProgressDialog.dismiss();
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "Проверьте подключение к интернету, или возможны работы на сервере", Toast.LENGTH_SHORT);
                     toast.show();
@@ -785,12 +785,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
         jsonObjectAuth2.put("data", HelperClass.publicKey(public_key, String.valueOf(jsonObjectAuth)));
 
         parametersAuth.put("data", String.valueOf(jsonObjectAuth2));
-        Log.d(TAG, "registrationButton: " + parametersAuth);
-        //mProgressDialog = new ProgressDialog(AuthorizationActivity.this);
-        //mProgressDialog.setMessage("Проверяем...");
-        //mProgressDialog.setIndeterminate(false);
-        //mProgressDialog.setCancelable(false);
-        //mProgressDialog.show();
 
         SharedPreferences SP = getSharedPreferences("link", MODE_PRIVATE);
         SharedPreferences.Editor ed = SP.edit();
@@ -843,8 +837,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                     }
 
                     try {
-
-                        Log.d(TAG, "onResponse: " + newRes);
                         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         final SimpleDateFormat dateFormatDD = new SimpleDateFormat("dd");
                         jsonObject[0] = new JSONObject(newRes);
@@ -1828,6 +1820,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
+                    Log.d(TAG, "onErrorResponse: sub " + error);
                 }
             }) {
                 @Override

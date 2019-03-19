@@ -39,17 +39,31 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.simple.JSONObject;
+import org.supercsv.cellprocessor.Optional;
+import org.supercsv.cellprocessor.constraint.NotNull;
+import org.supercsv.cellprocessor.constraint.UniqueHashCode;
+import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.io.ICsvBeanWriter;
+import org.supercsv.prefs.CsvPreference;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
-import ru.itceiling.telephony.CSVReader;
 import ru.itceiling.telephony.CSVWriter;
+import ru.itceiling.telephony.ClientCSV;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.AnalyticsFragment;
 import ru.itceiling.telephony.Fragments.CallLogFragment;
@@ -90,6 +104,11 @@ public class MainActivity extends AppCompatActivity {
 
     View badgeCallback;
     View badgeClient;
+
+    File myExternalFile = null;
+    private String filename = "SampleFile.txt";
+    private String filepath = "Внутренняя память";
+    String myData = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +166,8 @@ public class MainActivity extends AppCompatActivity {
         bubble();
 
         //test();
+
+        myExternalFile = new File(getExternalFilesDir(filepath), filename);
     }
 
     void bubble() {
@@ -267,10 +288,10 @@ public class MainActivity extends AppCompatActivity {
             item = menu.getItem(2);
             item.setVisible(false);
         }
-        MenuItem item = menu.getItem(3);
-        item.setVisible(false);
-        item = menu.getItem(4);
-        item.setVisible(false);
+        //MenuItem item = menu.getItem(3);
+        //item.setVisible(false);
+        //item = menu.getItem(4);
+        //item.setVisible(false);
 
         return true;
     }
@@ -346,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
         View promptsView = li.inflate(R.layout.alert_file_name, null);
         AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(this);
         mDialogBuilder.setView(promptsView);
-        final EditText nameFile = (EditText) promptsView.findViewById(R.id.nameFile);
+        final EditText nameFile = promptsView.findViewById(R.id.nameFile);
 
         final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(promptsView)
@@ -376,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void exportDB(String nameFile) {
+    private void exportDBB(String nameFile) {
 
         File exportDir = new File(Environment.getExternalStorageDirectory(), "");
         if (!exportDir.exists()) {
@@ -418,28 +439,105 @@ public class MainActivity extends AppCompatActivity {
             csvWrite.close();
             curCSV.close();
             Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
-
         } catch (Exception sqlEx) {
             Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
         }
     }
 
-    public static final int requestcode = 1;
 
-    private void importDB() {
-        /*
-        Intent fileintent = new Intent(Intent.ACTION_GET_CONTENT);
-        fileintent.setType("file/*.csv");
+    private void exportDB(String nameFile) {
+
+        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
+        if (!exportDir.exists()) {
+            exportDir.mkdirs();
+        }
+
+        File file = new File(exportDir, nameFile + ".csv");
         try {
-            startActivityForResult(fileintent, requestcode);
-        } catch (ActivityNotFoundException e) {
+            file.createNewFile();
+            // CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
+            List<ClientCSV> clientCSVS = generateData();
 
-        }*/
+            StringWriter writer = new StringWriter();
+            CsvPreference customPreference = new CsvPreference.Builder('"', '|', "\r\n").build();
+            // создаем CsvBeanWriter со стандартными настройками (кодировка, переносы строк, разделители и т.д.)
+            ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(new FileWriter(file, true), customPreference);
+            String[] header = new String[]{"name", "number", "mail", "status", "manager", "create"};
+            // создаем заголовок
+            csvBeanWriter.writeHeader(header);
+            for (ClientCSV clientCSV : clientCSVS) {
+                csvBeanWriter.write(clientCSV, header, getProcessors());
+            }
+            csvBeanWriter.close();
+            System.out.println(writer.toString());
+            Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
+        } catch (Exception sqlEx) {
+            Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "exportDB: " + sqlEx);
+        }
+    }
 
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+    private List<ClientCSV> generateData() {
+        List<ClientCSV> clientCSVS = new ArrayList<>();
+        String sqlQuery = "SELECT cl.client_name AS `Имя клиента`, " +
+                "GROUP_CONCAT(DISTINCT clc.phone) AS `Номер`, " +
+                "GROUP_CONCAT(DISTINCT cldc.contact) AS `Почта`, " +
+                "stat.title AS `Статус`, " +
+                "us.name AS `Менеджер` ," +
+                "cl.created AS `Создан` " +
+                "FROM `rgzbn_gm_ceiling_clients` AS cl " +
+                "LEFT JOIN `rgzbn_gm_ceiling_clients_contacts` AS clc " +
+                "ON clc.client_id = cl._id " +
+                "LEFT JOIN `rgzbn_gm_ceiling_clients_dop_contacts` AS cldc " +
+                "ON cldc.client_id = cl._id " +
+                "LEFT JOIN `rgzbn_gm_ceiling_clients_statuses_map` AS statm " +
+                "ON statm.client_id = cl._id " +
+                "LEFT JOIN `rgzbn_gm_ceiling_clients_statuses` AS stat " +
+                "ON stat._id = statm._id " +
+                "LEFT JOIN `rgzbn_users` AS us " +
+                "ON us._id = cl.manager_id " +
+                "WHERE cl.dealer_id = ? " +
+                "GROUP BY cl._id " +
+                "ORDER BY cl._id ";
+        Cursor curCSV = db.rawQuery(sqlQuery, new String[]{dealer_id});
+        //csvWrite.writeNext(curCSV.getColumnNames());
+        if (curCSV != null) {
+            if (curCSV.moveToFirst()) {
+                do {
+                    String name = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(0)));
+                    String phone = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(1)));
+                    String mail = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(2)));
+                    String status = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(3)));
+                    String manager = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(4)));
+                    String create = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(5)));
+                    ClientCSV clientCSV = new ClientCSV(name, phone, mail, status, manager, create);
+                    clientCSVS.add(clientCSV);
+                } while (curCSV.moveToNext());
+            }
+        }
+        curCSV.close();
+        return clientCSVS;
+    }
+
+    private static CellProcessor[] getProcessors() {
+        return new CellProcessor[]{
+                new Optional(),
+                new Optional(),
+                new Optional(),
+                new Optional(),
+                new Optional(),
+                new Optional()
+        };
+    }
+
+
+    public static final int requestcode = 42;
+
+    public void importDB() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/csv");
-        startActivityForResult(Intent.createChooser(intent, "Open CSV"), requestcode);
+        intent.setType("*/*");
+        startActivityForResult(intent, requestcode);
     }
 
     @Override
@@ -447,29 +545,57 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case requestcode:
                 if (resultCode == RESULT_OK) {
-                    proImportCSV(new File(data.getData().getPath()));
+
+                    Uri uri = data.getData();
+                    String path = uri.getPath();
+                    Log.d(TAG, "onActivityResult: " + path);
+                    path = path.substring(path.indexOf(":") + 1);
+                    Log.d(TAG, "onActivityResult: " + path);
+                    //proImportCSV(new File(uri.getPath()));
+                    proImportCSV(path);
                 }
                 break;
         }
     }
 
-    private void proImportCSV(File from) {
-        try {
-            ContentValues cv = new ContentValues();
-            CSVReader dataRead = new CSVReader(new FileReader(from));
-
-            String[] vv = null;
-            while ((vv = dataRead.readNext()) != null) {
-                Log.d(TAG, "proImportCSV: " + vv[0]);
-                Log.d(TAG, "proImportCSV: " + vv[1]);
-                Log.d(TAG, "proImportCSV: " + vv[2]);
-                Log.d(TAG, "proImportCSV: " + vv[3]);
-                Log.d(TAG, "proImportCSV: " + vv[4]);
-                Log.d(TAG, "proImportCSV: " + vv[5]);
+    private void proImportCSV(String from) {
+        /*try {
+            CSVReader reader = new CSVReader(new FileReader(from));
+            String[] nextLine;
+            while ((nextLine = reader.readNext()) != null) {
+                // nextLine[] is an array of values from the line
+                Log.d(TAG, "proImportCSV: " + nextLine[0] + " " + nextLine[1]);
             }
-            dataRead.close();
-        } catch (Exception e) {
-            Log.e(TAG, e.toString());
+        } catch (IOException e) {
+            Log.d(TAG, "proImportCSV: " + e);
+        }*/
+
+        File myFile = new File(Environment.getExternalStorageDirectory().toString() + "/" + from);
+        try {
+            FileInputStream inputStream = new FileInputStream(myFile);
+            /*
+             * Буфферезируем данные из выходного потока файла
+             */
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            /*
+             * Класс для создания строк из последовательностей символов
+             */
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            try {
+                /*
+                 * Производим построчное считывание данных из файла в конструктор строки,
+                 * Псоле того, как данные закончились, производим вывод текста в TextView
+                 */
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line);
+                }
+                Log.d(TAG, "proImportCSV: " + stringBuilder);
+            } catch (IOException e) {
+                Log.d(TAG, "proImportCSV: IOException " + e);
+            }
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "proImportCSV: FileNotFoundException " + e);
         }
     }
 
@@ -536,7 +662,6 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.READ_EXTERNAL_STORAGE},
                     1);
         }
-
 
 
         Log.d(TAG, "onStart: ");
