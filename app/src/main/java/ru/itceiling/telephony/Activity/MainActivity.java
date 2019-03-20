@@ -43,7 +43,9 @@ import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.constraint.UniqueHashCode;
 import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.io.CsvBeanReader;
 import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.io.ICsvBeanReader;
 import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
@@ -51,6 +53,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -352,9 +355,11 @@ public class MainActivity extends AppCompatActivity {
                 intent = new Intent(this, ManagerActivity.class);
                 startActivity(intent);
                 break;
+
             case R.id.exportDataCSV:
                 alertDialog();
                 break;
+
             case R.id.importDataCSV:
                 importDB();
                 break;
@@ -444,7 +449,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void exportDB(String nameFile) {
 
         File exportDir = new File(Environment.getExternalStorageDirectory(), "");
@@ -455,21 +459,15 @@ public class MainActivity extends AppCompatActivity {
         File file = new File(exportDir, nameFile + ".csv");
         try {
             file.createNewFile();
-            // CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
             List<ClientCSV> clientCSVS = generateData();
-
-            StringWriter writer = new StringWriter();
-            CsvPreference customPreference = new CsvPreference.Builder('"', '|', "\r\n").build();
-            // создаем CsvBeanWriter со стандартными настройками (кодировка, переносы строк, разделители и т.д.)
-            ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(new FileWriter(file, true), customPreference);
+            ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(new FileWriter(file), CsvPreference.STANDARD_PREFERENCE);
             String[] header = new String[]{"name", "number", "mail", "status", "manager", "create"};
-            // создаем заголовок
             csvBeanWriter.writeHeader(header);
             for (ClientCSV clientCSV : clientCSVS) {
                 csvBeanWriter.write(clientCSV, header, getProcessors());
             }
             csvBeanWriter.close();
-            System.out.println(writer.toString());
+
             Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
         } catch (Exception sqlEx) {
             Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
@@ -500,17 +498,22 @@ public class MainActivity extends AppCompatActivity {
                 "GROUP BY cl._id " +
                 "ORDER BY cl._id ";
         Cursor curCSV = db.rawQuery(sqlQuery, new String[]{dealer_id});
-        //csvWrite.writeNext(curCSV.getColumnNames());
         if (curCSV != null) {
             if (curCSV.moveToFirst()) {
                 do {
+                    ClientCSV clientCSV = new ClientCSV();
                     String name = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(0)));
+                    clientCSV.setName(name);
                     String phone = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(1)));
+                    clientCSV.setNumber(phone);
                     String mail = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(2)));
+                    clientCSV.setMail(mail);
                     String status = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(3)));
+                    clientCSV.setStatus(status);
                     String manager = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(4)));
+                    clientCSV.setManager(manager);
                     String create = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(5)));
-                    ClientCSV clientCSV = new ClientCSV(name, phone, mail, status, manager, create);
+                    clientCSV.setCreate(create);
                     clientCSVS.add(clientCSV);
                 } while (curCSV.moveToNext());
             }
@@ -529,7 +532,6 @@ public class MainActivity extends AppCompatActivity {
                 new Optional()
         };
     }
-
 
     public static final int requestcode = 42;
 
@@ -551,7 +553,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "onActivityResult: " + path);
                     path = path.substring(path.indexOf(":") + 1);
                     Log.d(TAG, "onActivityResult: " + path);
-                    //proImportCSV(new File(uri.getPath()));
                     proImportCSV(path);
                 }
                 break;
@@ -570,23 +571,13 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "proImportCSV: " + e);
         }*/
 
-        File myFile = new File(Environment.getExternalStorageDirectory().toString() + "/" + from);
+        /*File myFile = new File(Environment.getExternalStorageDirectory().toString() + "/" + from);
         try {
             FileInputStream inputStream = new FileInputStream(myFile);
-            /*
-             * Буфферезируем данные из выходного потока файла
-             */
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            /*
-             * Класс для создания строк из последовательностей символов
-             */
             StringBuilder stringBuilder = new StringBuilder();
             String line;
             try {
-                /*
-                 * Производим построчное считывание данных из файла в конструктор строки,
-                 * Псоле того, как данные закончились, производим вывод текста в TextView
-                 */
                 while ((line = bufferedReader.readLine()) != null) {
                     stringBuilder.append(line);
                 }
@@ -596,7 +587,43 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (FileNotFoundException e) {
             Log.d(TAG, "proImportCSV: FileNotFoundException " + e);
+        }*/
+
+        List<ClientCSV> clientCSVS = new ArrayList<>();
+        ICsvBeanReader csvBeanReader = null;
+        try {
+            csvBeanReader = new CsvBeanReader(new FileReader(
+                    Environment.getExternalStorageDirectory().toString() + "/" + from),
+                    CsvPreference.STANDARD_PREFERENCE);
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "proImportCSV: " + e);
         }
+
+        // указываем как будем мапить
+        String[] mapping = new String[]{"name", "number", "mail", "status", "manager", "create"};
+
+        try {
+            // получаем обработчики
+            CellProcessor[] procs = getProcessors();
+            ClientCSV clientCSV;
+            // обходим весь csv файлик до конца
+            while ((clientCSV = csvBeanReader.read(ClientCSV.class, mapping, procs)) != null) {
+                clientCSVS.add(clientCSV);
+            }
+            csvBeanReader.close();
+
+            createClientCSV(clientCSVS);
+
+        } catch (Exception e) {
+            Log.d(TAG, "proImportCSV: " + e);
+        }
+    }
+
+    static void createClientCSV(List<ClientCSV> clientCSVS){
+        Log.d(TAG, "createClientCSV: " + clientCSVS.get(1).getName() + " " + clientCSVS.get(1).getNumber() + " " +
+                clientCSVS.get(1).getMail() + " " + clientCSVS.get(1).getStatus() + " " + clientCSVS.get(1).getManager() + " " +
+                clientCSVS.get(1).getCreate() + " ");
+
     }
 
     @Override
