@@ -119,6 +119,15 @@ public class HelperClass {
         return str2;
     }
 
+    public static boolean phoneCheck(String phone) {
+        boolean bool = false;
+        Log.d(TAG, "phoneCheck: " + phone.length() + " " + phone.charAt(0));
+        if (phone.length() == 11 && phone.charAt(0) == '7') {
+            bool = true;
+        }
+        return bool;
+    }
+
     public static void addHistory(String text, Context context, String id_client) {
 
         DBHelper dbHelper = new DBHelper(context);

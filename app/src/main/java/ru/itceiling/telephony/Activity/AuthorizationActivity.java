@@ -1372,7 +1372,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
-                                        + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                                        + "FROM rgzbn_gm_ceiling_clients_dop_contacts" +
                                         " WHERE _id = ?";
                                 Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
                                 if (c != null) {

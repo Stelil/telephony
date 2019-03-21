@@ -183,17 +183,12 @@ public class ImportDataReceiver extends BroadcastReceiver {
                         int count = 0;
                         try {
 
-                            Log.d(TAG, "onResponse: " + newRes);
-
                             try {
                                 jsonObject = new JSONObject(newRes);
                                 String b = jsonObject.getString("b");
                                 String l = jsonObject.getString("l");
                                 String period = jsonObject.getString("period");
-
-                                Log.d(TAG, "onResponse: " + b + " " + l);
                                 if (b.equals("0") && l.equals("t")) {
-                                    Log.d(TAG, "onResponse: then");
                                     alertDialog();
                                 }
                             } catch (Exception e) {
@@ -332,7 +327,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                     values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                     String sqlQuewy = "SELECT * "
-                                            + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                                            + "FROM rgzbn_gm_ceiling_clients_dop_contacts" +
                                             " WHERE _id = ?";
                                     Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
                                     if (c != null) {

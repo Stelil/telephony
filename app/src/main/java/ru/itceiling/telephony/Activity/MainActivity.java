@@ -2,6 +2,7 @@ package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,6 +15,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -35,13 +37,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.simple.JSONObject;
 import org.supercsv.cellprocessor.Optional;
-import org.supercsv.cellprocessor.constraint.NotNull;
-import org.supercsv.cellprocessor.constraint.UniqueHashCode;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvBeanReader;
 import org.supercsv.io.CsvBeanWriter;
@@ -49,15 +50,17 @@ import org.supercsv.io.ICsvBeanReader;
 import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +68,6 @@ import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
-import ru.itceiling.telephony.CSVWriter;
 import ru.itceiling.telephony.ClientCSV;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.AnalyticsFragment;
@@ -82,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     DBHelper dbHelper;
     SQLiteDatabase db;
 
-    private static String dealer_id;
+    private static String dealer_id, user_id;
     private String phoneNumber = "";
     private static String mLastState = "";
     private String date1, date2 = "";
@@ -127,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
+
+        SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
+        user_id = SP.getString("", "");
 
         navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -357,17 +362,17 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.exportDataCSV:
-                alertDialog();
+                alertDialogExport();
                 break;
 
             case R.id.importDataCSV:
-                importDB();
+                alertDialogImport();
                 break;
         }
         return false;
     }
 
-    void alertDialog() {
+    void alertDialogExport() {
         LayoutInflater li = LayoutInflater.from(this);
         View promptsView = li.inflate(R.layout.alert_file_name, null);
         AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(this);
@@ -402,51 +407,21 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void exportDBB(String nameFile) {
-
-        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
-        if (!exportDir.exists()) {
-            exportDir.mkdirs();
-        }
-
-        File file = new File(exportDir, nameFile + ".csv");
-        try {
-            file.createNewFile();
-            CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
-            String sqlQuery = "SELECT cl.client_name AS `Имя клиента`, " +
-                    "GROUP_CONCAT(DISTINCT clc.phone) AS `Номер`, " +
-                    "GROUP_CONCAT(DISTINCT cldc.contact) AS `Почта`, " +
-                    "stat.title AS `Статус`, " +
-                    "us.name AS `Менеджер` ," +
-                    "cl.created AS `Создан` " +
-                    "FROM `rgzbn_gm_ceiling_clients` AS cl " +
-                    "LEFT JOIN `rgzbn_gm_ceiling_clients_contacts` AS clc " +
-                    "ON clc.client_id = cl._id " +
-                    "LEFT JOIN `rgzbn_gm_ceiling_clients_dop_contacts` AS cldc " +
-                    "ON cldc.client_id = cl._id " +
-                    "LEFT JOIN `rgzbn_gm_ceiling_clients_statuses_map` AS statm " +
-                    "ON statm.client_id = cl._id " +
-                    "LEFT JOIN `rgzbn_gm_ceiling_clients_statuses` AS stat " +
-                    "ON stat._id = statm._id " +
-                    "LEFT JOIN `rgzbn_users` AS us " +
-                    "ON us._id = cl.manager_id " +
-                    "WHERE cl.dealer_id = ? " +
-                    "GROUP BY cl._id " +
-                    "ORDER BY cl._id ";
-            Cursor curCSV = db.rawQuery(sqlQuery, new String[]{dealer_id});
-            csvWrite.writeNext(curCSV.getColumnNames());
-            while (curCSV.moveToNext()) {
-                //Which column you want to exprort
-                String arrStr[] = {curCSV.getString(0), curCSV.getString(1), curCSV.getString(2),
-                        curCSV.getString(3), curCSV.getString(4), curCSV.getString(5)};
-                csvWrite.writeNext(arrStr);
+    void alertDialogImport() {
+        AlertDialog.Builder ad;
+        ad = new AlertDialog.Builder(this);
+        ad.setTitle("Выберите действие");  // заголовок
+        ad.setPositiveButton("Импортировать CSV", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                importDB();
             }
-            csvWrite.close();
-            curCSV.close();
-            Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
-        } catch (Exception sqlEx) {
-            Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
-        }
+        });
+        ad.setNegativeButton("Пример CSV", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                exportDBExample();
+            }
+        });
+        ad.show();
     }
 
     private void exportDB(String nameFile) {
@@ -459,9 +434,41 @@ public class MainActivity extends AppCompatActivity {
         File file = new File(exportDir, nameFile + ".csv");
         try {
             file.createNewFile();
+            Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(file), "windows-1251"));
             List<ClientCSV> clientCSVS = generateData();
-            ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(new FileWriter(file), CsvPreference.STANDARD_PREFERENCE);
-            String[] header = new String[]{"name", "number", "mail", "status", "manager", "create"};
+            ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(writer,
+                    CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE);
+            String[] header = new String[]{"Name", "Number", "Mail", "Status", "Manager", "Create"};
+            csvBeanWriter.writeHeader(header);
+            for (ClientCSV clientCSV : clientCSVS) {
+                csvBeanWriter.write(clientCSV, header, getProcessorsExport());
+            }
+            csvBeanWriter.close();
+
+            Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
+        } catch (Exception sqlEx) {
+            Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "exportDB: " + sqlEx);
+        }
+    }
+
+    private void exportDBExample() {
+
+        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
+        if (!exportDir.exists()) {
+            exportDir.mkdirs();
+        }
+
+        File file = new File(exportDir, "ExampleCSV.csv");
+        try {
+            file.createNewFile();
+            Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(file), "windows-1251"));
+            List<ClientCSV> clientCSVS = generateDataExample();
+            ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(writer,
+                    CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE);
+            String[] header = new String[]{"Name", "Number", "Mail"};
             csvBeanWriter.writeHeader(header);
             for (ClientCSV clientCSV : clientCSVS) {
                 csvBeanWriter.write(clientCSV, header, getProcessors());
@@ -522,14 +529,45 @@ public class MainActivity extends AppCompatActivity {
         return clientCSVS;
     }
 
-    private static CellProcessor[] getProcessors() {
+    private List<ClientCSV> generateDataExample() {
+        List<ClientCSV> clientCSVS = new ArrayList<>();
+        ClientCSV clientCSV = new ClientCSV();
+        String name = "Имя может содержать любые символы";
+        clientCSV.setName(name);
+        String phone = "Номер должен начинаться с 7, и иметь 11 символов. Если несколько номеров, разделите их запятой";
+        clientCSV.setNumber(phone);
+        String mail = "Email ";
+        clientCSV.setMail(mail);
+        clientCSVS.add(clientCSV);
+
+        clientCSVS = new ArrayList<>();
+        name = "Иван Пупкин";
+        clientCSV.setName(name);
+        phone = "79028371942, 79210727389";
+        clientCSV.setNumber(phone);
+        mail = "ivanpupkin@mail.ru";
+        clientCSV.setMail(mail);
+        clientCSVS.add(clientCSV);
+
+        return clientCSVS;
+    }
+
+    private static CellProcessor[] getProcessorsExport() {
         return new CellProcessor[]{
                 new Optional(),
                 new Optional(),
                 new Optional(),
                 new Optional(),
                 new Optional(),
-                new Optional()
+                new Optional(),
+        };
+    }
+
+    private static CellProcessor[] getProcessors() {
+        return new CellProcessor[]{
+                new Optional(),
+                new Optional(),
+                new Optional(),
         };
     }
 
@@ -550,57 +588,31 @@ public class MainActivity extends AppCompatActivity {
 
                     Uri uri = data.getData();
                     String path = uri.getPath();
-                    Log.d(TAG, "onActivityResult: " + path);
                     path = path.substring(path.indexOf(":") + 1);
-                    Log.d(TAG, "onActivityResult: " + path);
-                    proImportCSV(path);
+                    String expansion = path.substring(path.length() - 4);
+                    if (expansion.equals(".csv")) {
+                        proImportCSV(path);
+                    } else {
+                        Toast.makeText(this, "Неверный формат файла. Расширение файла долно быть csv", Toast.LENGTH_LONG).show();
+                    }
                 }
                 break;
         }
     }
 
     private void proImportCSV(String from) {
-        /*try {
-            CSVReader reader = new CSVReader(new FileReader(from));
-            String[] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                // nextLine[] is an array of values from the line
-                Log.d(TAG, "proImportCSV: " + nextLine[0] + " " + nextLine[1]);
-            }
-        } catch (IOException e) {
-            Log.d(TAG, "proImportCSV: " + e);
-        }*/
-
-        /*File myFile = new File(Environment.getExternalStorageDirectory().toString() + "/" + from);
-        try {
-            FileInputStream inputStream = new FileInputStream(myFile);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            try {
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(line);
-                }
-                Log.d(TAG, "proImportCSV: " + stringBuilder);
-            } catch (IOException e) {
-                Log.d(TAG, "proImportCSV: IOException " + e);
-            }
-        } catch (FileNotFoundException e) {
-            Log.d(TAG, "proImportCSV: FileNotFoundException " + e);
-        }*/
 
         List<ClientCSV> clientCSVS = new ArrayList<>();
         ICsvBeanReader csvBeanReader = null;
         try {
-            csvBeanReader = new CsvBeanReader(new FileReader(
-                    Environment.getExternalStorageDirectory().toString() + "/" + from),
-                    CsvPreference.STANDARD_PREFERENCE);
-        } catch (FileNotFoundException e) {
-            Log.d(TAG, "proImportCSV: " + e);
+            csvBeanReader = new CsvBeanReader(new InputStreamReader(
+                    new FileInputStream(Environment.getExternalStorageDirectory().toString() + "/" + from), "windows-1251"),
+                    CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE);
+        } catch (Exception e) {
         }
 
         // указываем как будем мапить
-        String[] mapping = new String[]{"name", "number", "mail", "status", "manager", "create"};
+        String[] mapping = new String[]{"Name", "Number", "Mail"};
 
         try {
             // получаем обработчики
@@ -612,17 +624,146 @@ public class MainActivity extends AppCompatActivity {
             }
             csvBeanReader.close();
 
-            createClientCSV(clientCSVS);
+            new ClientTask().execute(clientCSVS);
 
+            Toast.makeText(this, "Импорт завершён завершён", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Log.d(TAG, "proImportCSV: " + e);
+            Log.d(TAG, "proImportCSV:2 " + e);
         }
     }
 
-    static void createClientCSV(List<ClientCSV> clientCSVS){
-        Log.d(TAG, "createClientCSV: " + clientCSVS.get(1).getName() + " " + clientCSVS.get(1).getNumber() + " " +
-                clientCSVS.get(1).getMail() + " " + clientCSVS.get(1).getStatus() + " " + clientCSVS.get(1).getManager() + " " +
-                clientCSVS.get(1).getCreate() + " ");
+    class ClientTask extends AsyncTask<List<ClientCSV>, Void, Void> {
+
+        @Override
+        protected Void doInBackground(List<ClientCSV>... lists) {
+            createClientCSV(lists[0]);
+            return null;
+        }
+
+    }
+
+    void createClientCSV(List<ClientCSV> clientCSVS) {
+        for (int i = 1; clientCSVS.size() > i; i++) {
+            try {
+                if (clientCSVS.get(i).getName().length() > 0) {
+                    String name = clientCSVS.get(i).getName();
+                    String number = clientCSVS.get(i).getNumber();
+                    String mail = clientCSVS.get(i).getMail();
+                    String delimetr = ",";
+
+                    Log.d(TAG, "createClientCSV: " + name + " " + number + " " + mail);
+
+                    //client
+                    int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
+                            this, user_id);
+                    String nowDate = HelperClass.nowDate();
+                    ContentValues values = new ContentValues();
+                    values.put(DBHelper.KEY_ID, maxIdClient);
+                    values.put(DBHelper.KEY_CLIENT_NAME, name);
+                    values.put(DBHelper.KEY_TYPE_ID, "1");
+                    values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                    values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                    values.put(DBHelper.KEY_CREATED, nowDate);
+                    values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                    values.put(DBHelper.KEY_API_PHONE_ID, "null");
+                    values.put(DBHelper.KEY_DELETED_BY_USER, 0);
+                    db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
+
+                    HelperClass.addExportData(
+                            this,
+                            maxIdClient,
+                            "rgzbn_gm_ceiling_clients",
+                            "send");
+
+                    HelperClass.addHistory("Новый клиент", this, String.valueOf(maxIdClient));
+
+                    // phone
+                    if (number.indexOf(',') == -1) {
+                        if (HelperClass.phoneCheck(number)) {
+                            int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
+                                    this, user_id);
+                            values = new ContentValues();
+                            values.put(DBHelper.KEY_ID, maxIdContacts);
+                            values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                            values.put(DBHelper.KEY_PHONE, number);
+                            values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+                            HelperClass.addExportData(
+                                    this,
+                                    maxIdContacts,
+                                    "rgzbn_gm_ceiling_clients_contacts",
+                                    "send");
+                        }
+                    } else {
+                        String[] numbers = number.split(delimetr);
+                        for (int n = 0; numbers.length > n; n++) {
+                            numbers[n] = numbers[n].replaceAll(" ", "");
+                            if (HelperClass.phoneCheck(numbers[n])) {
+                                int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
+                                        this, user_id);
+                                values = new ContentValues();
+                                values.put(DBHelper.KEY_ID, maxIdContacts);
+                                values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                values.put(DBHelper.KEY_PHONE, numbers[n]);
+                                values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+                                HelperClass.addExportData(
+                                        this,
+                                        maxIdContacts,
+                                        "rgzbn_gm_ceiling_clients_contacts",
+                                        "send");
+                            }
+                        }
+                    }
+
+                    //mail
+                    if (mail.indexOf(',') == -1) {
+                        if (HelperClass.validateMail(mail)) {
+                            int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_dop_contacts",
+                                    this, user_id);
+                            values = new ContentValues();
+                            values.put(DBHelper.KEY_ID, maxId);
+                            values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                            values.put(DBHelper.KEY_TYPE_ID, "1");
+                            values.put(DBHelper.KEY_CONTACT, mail);
+                            values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+                            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, null, values);
+                            HelperClass.addExportData(
+                                    this,
+                                    maxId,
+                                    "rgzbn_gm_ceiling_clients_dop_contacts",
+                                    "send");
+                        }
+                    } else {
+                        String[] mails = mail.split(delimetr);
+                        for (int m = 0; mails.length > m; m++) {
+                            mails[m] = mails[m].replaceAll(" ", "");
+                            if (HelperClass.validateMail(mails[m])) {
+                                int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_dop_contacts",
+                                        this, user_id);
+                                values = new ContentValues();
+                                values.put(DBHelper.KEY_ID, maxId);
+                                values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                values.put(DBHelper.KEY_TYPE_ID, "1");
+                                values.put(DBHelper.KEY_CONTACT, mails[m]);
+                                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+                                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, null, values);
+                                HelperClass.addExportData(
+                                        this,
+                                        maxId,
+                                        "rgzbn_gm_ceiling_clients_dop_contacts",
+                                        "send");
+                            }
+                        }
+                    }
+
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "createClientCSV: " + e);
+            }
+        }
 
     }
 
