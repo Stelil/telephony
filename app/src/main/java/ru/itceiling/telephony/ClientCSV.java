@@ -6,6 +6,7 @@ public class ClientCSV {
             mail,
             status,
             manager,
+            comment,
             create;
 
     public String getName() {
@@ -54,5 +55,13 @@ public class ClientCSV {
 
     public void setCreate(String create) {
         this.create = create;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

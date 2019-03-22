@@ -163,9 +163,8 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
 
         int count = 0;
         String sqlQuewy = "SELECT count(_id) "
-                + "FROM rgzbn_gm_ceiling_callback " +
-                "WHERE manager_id = ?";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id});
+                + "FROM rgzbn_gm_ceiling_callback ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
         if (c != null) {
             if (c.moveToFirst()) {
                 count = c.getInt(c.getColumnIndex(c.getColumnName(0)));

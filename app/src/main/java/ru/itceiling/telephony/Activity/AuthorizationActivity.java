@@ -712,14 +712,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                         Date date1 = dateFormat.parse(period_start_date);
                                         Date date2 = dateFormat.parse(datetime);
                                         Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                        long d1 = 0;
-                                        long d2 = 0;
-                                        if (period.equals("2 week")) {
-                                            d1 = date1.getTime();
-                                            d2 = date2.getTime();
-                                            long d3 = dateDD.getTime();
-                                            d1 = d1 + d3;
-                                        }
+                                        long d1 = date1.getTime();
+                                        long d2 = date2.getTime();
+                                        long d3 = dateDD.getTime();
+                                        d1 = d1 + d3;
                                         if (d1 - d2 > 0) {
                                             importData();
                                         } else {
@@ -971,14 +967,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                                     Date date1 = dateFormat.parse(period_start_date);
                                                                     Date date2 = dateFormat.parse(datetime);
                                                                     Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                                                    long d1 = 0;
-                                                                    long d2 = 0;
-                                                                    if (period.equals("2 week")) {
-                                                                        d1 = date1.getTime();
-                                                                        d2 = date2.getTime();
-                                                                        long d3 = dateDD.getTime();
-                                                                        d1 = d1 + d3;
-                                                                    }
+                                                                    long d1 = date1.getTime();
+                                                                    long d2 = date2.getTime();
+                                                                    long d3 = dateDD.getTime();
+                                                                    d1 = d1 + d3;
                                                                     if (d1 - d2 > 0) {
                                                                         importData();
                                                                     } else {
@@ -1020,14 +1012,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                                     Date date1 = dateFormat.parse(period_start_date);
                                                                     Date date2 = dateFormat.parse(datetime);
                                                                     Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                                                    long d1 = 0;
-                                                                    long d2 = 0;
-                                                                    if (period.equals("2 week")) {
-                                                                        d1 = date1.getTime();
-                                                                        d2 = date2.getTime();
-                                                                        long d3 = dateDD.getTime();
-                                                                        d1 = d1 + d3;
-                                                                    }
+                                                                    long d1 = date1.getTime();
+                                                                    long d2 = date2.getTime();
+                                                                    long d3 = dateDD.getTime();
+                                                                    d1 = d1 + d3;
                                                                     if (d1 - d2 > 0) {
                                                                         importData();
                                                                     } else {
@@ -1076,14 +1064,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                     Date date1 = dateFormat.parse(period_start_date);
                                     Date date2 = dateFormat.parse(datetime);
                                     Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                    long d1 = 0;
-                                    long d2 = 0;
-                                    if (period.equals("2 week")) {
-                                        d1 = date1.getTime();
-                                        d2 = date2.getTime();
-                                        long d3 = dateDD.getTime();
-                                        d1 = d1 + d3;
-                                    }
+                                    long d1 = date1.getTime();
+                                    long d2 = date2.getTime();
+                                    long d3 = dateDD.getTime();
+                                    d1 = d1 + d3;
                                     if (d1 - d2 > 0) {
                                         importData();
                                     } else {

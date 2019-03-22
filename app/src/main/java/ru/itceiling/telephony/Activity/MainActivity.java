@@ -1,7 +1,12 @@
 package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -27,7 +32,9 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -206,8 +213,8 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         String sqlQuewy = "SELECT count(_id) "
                 + "FROM rgzbn_gm_ceiling_callback " +
-                "WHERE manager_id = ? and substr(date_time,1,10) <= ?";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id, HelperClass.nowDate().substring(0, 10)});
+                "WHERE substr(date_time,1,10) <= ?";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{HelperClass.nowDate().substring(0, 10)});
         if (c != null) {
             if (c.moveToFirst()) {
                 count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
@@ -446,7 +453,8 @@ public class MainActivity extends AppCompatActivity {
             }
             csvBeanWriter.close();
 
-            Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Экспорт завершён. Файл находится в корне телефона", Toast.LENGTH_LONG).show();
+
         } catch (Exception sqlEx) {
             Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
             Log.d(TAG, "exportDB: " + sqlEx);
@@ -460,7 +468,8 @@ public class MainActivity extends AppCompatActivity {
             exportDir.mkdirs();
         }
 
-        File file = new File(exportDir, "ExampleCSV.csv");
+        String fileName = "ExampleCSV.csv";
+        File file = new File(exportDir, fileName);
         try {
             file.createNewFile();
             Writer writer = new BufferedWriter(new OutputStreamWriter(
@@ -468,14 +477,14 @@ public class MainActivity extends AppCompatActivity {
             List<ClientCSV> clientCSVS = generateDataExample();
             ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(writer,
                     CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE);
-            String[] header = new String[]{"Name", "Number", "Mail"};
+            String[] header = new String[]{"Name", "Number", "Mail", "Comment"};
             csvBeanWriter.writeHeader(header);
             for (ClientCSV clientCSV : clientCSVS) {
                 csvBeanWriter.write(clientCSV, header, getProcessors());
             }
             csvBeanWriter.close();
 
-            Toast.makeText(this, "Экспорт завершён", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Экспорт завершён. Файл находится в корне телефона", Toast.LENGTH_LONG).show();
         } catch (Exception sqlEx) {
             Toast.makeText(this, "Произошла какая-та ошибка... \n" + sqlEx, Toast.LENGTH_SHORT).show();
             Log.d(TAG, "exportDB: " + sqlEx);
@@ -536,17 +545,26 @@ public class MainActivity extends AppCompatActivity {
         clientCSV.setName(name);
         String phone = "Номер должен начинаться с 7, и иметь 11 символов. Если несколько номеров, разделите их запятой";
         clientCSV.setNumber(phone);
-        String mail = "Email ";
+        String mail = "Формат соответствует стандартной почте. Если несколько почт, разделите их запятой ";
         clientCSV.setMail(mail);
+        String comment = "Комментарий может содержать всё что угодно. Он пойдёт в историю к пользователю";
+        clientCSV.setComment(comment);
         clientCSVS.add(clientCSV);
 
-        clientCSVS = new ArrayList<>();
+        clientCSV = new ClientCSV();
         name = "Иван Пупкин";
         clientCSV.setName(name);
         phone = "79028371942, 79210727389";
         clientCSV.setNumber(phone);
         mail = "ivanpupkin@mail.ru";
         clientCSV.setMail(mail);
+        comment = "Новый пользователь";
+        clientCSV.setComment(comment);
+        clientCSVS.add(clientCSV);
+
+        clientCSV = new ClientCSV();
+        name = "Сотрите 2,3 и 4 строку, и начните заносить данные";
+        clientCSV.setName(name);
         clientCSVS.add(clientCSV);
 
         return clientCSVS;
@@ -565,6 +583,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static CellProcessor[] getProcessors() {
         return new CellProcessor[]{
+                new Optional(),
                 new Optional(),
                 new Optional(),
                 new Optional(),
@@ -588,6 +607,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Uri uri = data.getData();
                     String path = uri.getPath();
+                    Log.d(TAG, "onActivityResult: " + path);
                     path = path.substring(path.indexOf(":") + 1);
                     String expansion = path.substring(path.length() - 4);
                     if (expansion.equals(".csv")) {
@@ -612,7 +632,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // указываем как будем мапить
-        String[] mapping = new String[]{"Name", "Number", "Mail"};
+        String[] mapping = new String[]{"Name", "Number", "Mail", "Comment"};
 
         try {
             // получаем обработчики
@@ -639,20 +659,48 @@ public class MainActivity extends AppCompatActivity {
             createClientCSV(lists[0]);
             return null;
         }
-
     }
 
     void createClientCSV(List<ClientCSV> clientCSVS) {
         for (int i = 1; clientCSVS.size() > i; i++) {
-            try {
-                if (clientCSVS.get(i).getName().length() > 0) {
-                    String name = clientCSVS.get(i).getName();
-                    String number = clientCSVS.get(i).getNumber();
-                    String mail = clientCSVS.get(i).getMail();
-                    String delimetr = ",";
+            //try {
+            if (clientCSVS.get(i).getName().length() > 0) {
+                String name = clientCSVS.get(i).getName();
+                String number = clientCSVS.get(i).getNumber();
+                String mail = clientCSVS.get(i).getMail();
+                String comment = clientCSVS.get(i).getComment();
+                String delimetr = ",";
 
-                    Log.d(TAG, "createClientCSV: " + name + " " + number + " " + mail);
+                Log.d(TAG, "createClientCSV: " + name + " " + number + " " + mail + " " + comment);
 
+                String numberSQL = "";
+                if (number.indexOf(',') == -1) {
+                    if (HelperClass.phoneCheck(number)) {
+                        numberSQL = number;
+                    }
+                } else {
+                    String[] numbers = number.split(delimetr);
+                    numbers[0] = numbers[0].replaceAll(" ", "");
+                    if (HelperClass.phoneCheck(numbers[0])) {
+                        numberSQL = numbers[0];
+                    }
+                }
+
+                int id = 0;
+                String sqlQuewy = "SELECT cc.client_id"
+                        + " FROM rgzbn_gm_ceiling_clients_contacts as cc" +
+                        " INNER JOIN rgzbn_gm_ceiling_clients AS c" +
+                        " ON c._id = cc.client_id " +
+                        " WHERE cc.phone = ? AND c.deleted_by_user <> 1";
+                Cursor c = db.rawQuery(sqlQuewy, new String[]{numberSQL});
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                    }
+                }
+                c.close();
+
+                if (id == 0) {
                     //client
                     int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
                             this, user_id);
@@ -759,10 +807,36 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
+                    if (comment.length() > 0) {
+                        HelperClass.addHistory(comment, MainActivity.this, String.valueOf(maxIdClient));
+                    }
+
+                } else {
+
+                    String text = "";
+                    if (name != null && !name.equals("null")) {
+                        text += "Имя клиента: " + name + "\n";
+                    }
+
+                    if (number != null && !number.equals("null")) {
+                        text += "Номер клиента: " + number + "\n";
+                    }
+
+                    if (mail != null && !mail.equals("null")) {
+                        text += "Почта клиента: " + mail + "\n";
+                    }
+
+                    if (comment != null && !comment.equals("null")) {
+                        text += "Комментарий: " + comment;
+                    }
+
+                    HelperClass.addHistory(text, MainActivity.this, String.valueOf(id));
                 }
-            } catch (Exception e) {
-                Log.d(TAG, "createClientCSV: " + e);
             }
+
+            //} catch (Exception e) {
+            //    Log.d(TAG, "createClientCSV: " + e);
+            //}
         }
 
     }
