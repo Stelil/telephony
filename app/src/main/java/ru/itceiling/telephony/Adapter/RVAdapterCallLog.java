@@ -2,6 +2,7 @@ package ru.itceiling.telephony.Adapter;
 
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,8 +89,10 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
             relCard.setBackgroundResource(R.drawable.card_green_corner);
         }*/
 
+        Log.d("logd", "onBindViewHolder: " + callLogList.get(i).type);
+
         if (callLogList.get(i).type.equals("Входящий звонок") ||
-                callLogList.get(i).type.equals("Исходящий звонок")) {
+                callLogList.get(i).type.equals("Исходящий дозвон")) {
             relCard.setBackgroundResource(R.drawable.card_green_corner);
         } else {
             relCard.setBackgroundResource(R.drawable.card_red_corner);

@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -280,13 +281,12 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 "GROUP BY client_id " +
                 ") AS ls " +
                 "ON sm._id = ls.max_id " +
-                "AND sm.change_time >= ? " +
-                "AND sm.change_time <= ? " +
+                "AND sm.change_time between ? and ? " +
                 "WHERE (s.dealer_id = ? " +
                 "OR s.dealer_id = ?) " +
                 "GROUP BY s._id " +
                 "ORDER BY s._id ";
-        c = db.rawQuery(sqlQuewy, new String[]{date1 + "00:00:00", date2 + "23:59:59", dealer_id, "null"});
+        c = db.rawQuery(sqlQuewy, new String[]{date1 + " 00:00:00", date2 + " 23:59:59", dealer_id, "null"});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
@@ -298,7 +298,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                         arrayStatusCount[index] = c.getInt(c.getColumnIndex(c.getColumnName(1)));
                         arrayId[index] = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     }
-
                     index++;
                 } while (c.moveToNext());
             }
@@ -353,7 +352,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                     .setNegativeButton("Скрыть", null)
                     .create();
 
-            Button addClient = promptsView.findViewById(R.id.AddClient);
+            FloatingActionButton addClient = promptsView.findViewById(R.id.fab);
             addClient.setVisibility(View.GONE);
 
             if (text == 0) {
@@ -944,10 +943,9 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         String sqlQuewy = "select status, count(status) " +
                 "from rgzbn_gm_ceiling_calls_status_history " +
                 "where manager_id = ? " +
-                "AND change_time >= ? " +
-                "AND change_time <= ? " +
+                "AND change_time between ? and ? " +
                 "group by status";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(managerId), date1 + "00:00:00", date2 + "23:59:59"});
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(managerId), date1 + " 00:00:00", date2 + " 23:59:59"});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
@@ -1051,8 +1049,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         String sqlQuewy = "select status, count(status) " +
                 "from rgzbn_gm_ceiling_calls_status_history " +
                 "where manager_id = ? " +
-                "AND substr(change_time, 0, 11) >= ? " +
-                "AND substr(change_time, 0, 11) <= ? " +
+                "AND substr(change_time, 0, 11) between ? and ? " +
                 "group by status";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(managerId), date1, date2});
         if (c != null) {
