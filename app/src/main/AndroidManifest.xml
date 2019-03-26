@@ -32,7 +32,7 @@
         tools:replace="android:icon, android:theme">
 
         <activity
-            android:name=".Activity.AuthorizationActivity"
+            android:name=".activity.AuthorizationActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -41,62 +41,62 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Activity.MainActivity"
+            android:name=".activity.MainActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.ClientActivity"
+            android:name=".activity.ClientActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
-            android:name=".Activity.ClientsListActivity"
+            android:name=".activity.ClientsListActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.CallbackListActivity"
+            android:name=".activity.CallbackListActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.SettingsActivity"
+            android:name=".activity.SettingsActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.AnalyticsActivity"
+            android:name=".activity.AnalyticsActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.VerifyPhoneActivity"
+            android:name=".activity.VerifyPhoneActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.ManagerActivity"
+            android:name=".activity.ManagerActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.ClientBrowserActivity"
+            android:name=".activity.ClientBrowserActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activity.PhoneBookActivity"
+            android:name=".activity.PhoneBookActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".SubscriptionsActivity"
             android:screenOrientation="portrait" />
 
         <receiver
-            android:name=".Broadcaster.CallbackReceiver"
+            android:name=".broadcaster.CallbackReceiver"
             android:enabled="true" />
-        <receiver android:name=".Broadcaster.ImportDataReceiver" />
-        <receiver android:name=".Broadcaster.ExportDataReceiver" />
+        <receiver android:name=".broadcaster.ImportDataReceiver" />
+        <receiver android:name=".broadcaster.ExportDataReceiver" />
         <receiver
-            android:name=".Broadcaster.BroadcastCallToPostpone"
-            android:enabled="true" />
-        <receiver
-            android:name=".Broadcaster.CallReceiver"
+            android:name=".broadcaster.BroadcastCallToPostpone"
             android:enabled="true" />
         <receiver
-            android:name=".Broadcaster.BroadcastNewClient"
+            android:name=".broadcaster.CallReceiver"
             android:enabled="true" />
         <receiver
-            android:name=".Broadcaster.BroadcastHistoryClient"
+            android:name=".broadcaster.BroadcastNewClient"
             android:enabled="true" />
         <receiver
-            android:name=".Broadcaster.BroadcasterCallbackClient"
+            android:name=".broadcaster.BroadcastHistoryClient"
             android:enabled="true" />
         <receiver
-            android:name=".Broadcaster.SmsBroadcaster"
+            android:name=".broadcaster.BroadcasterCallbackClient"
+            android:enabled="true" />
+        <receiver
+            android:name=".broadcaster.SmsBroadcaster"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
