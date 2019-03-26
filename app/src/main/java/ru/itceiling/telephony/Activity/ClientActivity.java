@@ -101,6 +101,8 @@ public class ClientActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate: " + id_client);
 
+        Log.d(TAG, "onCreate: " + getIntent().getStringExtra("check"));
+
         nameClient = findViewById(R.id.nameClient);
         nameClient.setOnLongClickListener(new View.OnLongClickListener() {
             @Override

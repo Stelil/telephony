@@ -290,6 +290,10 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
                                     "client_id = ?",
                                     new String[]{String.valueOf(id)});
 
+                            db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY,
+                                    "client_id = ?",
+                                    new String[]{String.valueOf(id)});
+
                             callLogs.remove(pos);
                             adapter.notifyItemRemoved(pos);
                             break;

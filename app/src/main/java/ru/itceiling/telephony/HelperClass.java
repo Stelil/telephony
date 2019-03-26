@@ -21,6 +21,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
+
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -36,6 +38,7 @@ import java.util.Base64;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -144,6 +147,7 @@ public class HelperClass {
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
         values.put(DBHelper.KEY_DATE_TIME, date);
         values.put(DBHelper.KEY_TEXT, text);
+        values.put(DBHelper.KEY_TYPE_ID, "null");
         values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
 
@@ -152,10 +156,9 @@ public class HelperClass {
                 max_id,
                 "rgzbn_gm_ceiling_client_history",
                 "send");
-
     }
 
-    public static void addHistory(String text, Context context, String id_client, boolean bool) {
+    public static void addHistory(String text, Context context, String id_client, int type) {
 
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -171,16 +174,15 @@ public class HelperClass {
         values.put(DBHelper.KEY_CLIENT_ID, id_client);
         values.put(DBHelper.KEY_DATE_TIME, date);
         values.put(DBHelper.KEY_TEXT, text);
+        values.put(DBHelper.KEY_TYPE_ID, type);
         values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
 
-        if (bool) {
-            HelperClass.addExportData(
-                    context,
-                    max_id,
-                    "rgzbn_gm_ceiling_client_history",
-                    "send");
-        }
+        HelperClass.addExportData(
+                context,
+                max_id,
+                "rgzbn_gm_ceiling_client_history",
+                "send");
 
     }
 
@@ -452,7 +454,6 @@ public class HelperClass {
             throw new RuntimeException(e);
         }
     }
-
 
     public static String generateSecret(Context context) throws NoSuchAlgorithmException {
         String md5;

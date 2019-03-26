@@ -1,13 +1,7 @@
 package ru.itceiling.telephony.Activity;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
@@ -32,10 +27,9 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,7 +38,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,21 +53,19 @@ import org.supercsv.prefs.CsvPreference;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import ru.itceiling.telephony.Broadcaster.CallReceiver;
 import ru.itceiling.telephony.Broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.Broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.Broadcaster.ImportDataReceiver;
+import ru.itceiling.telephony.Broadcaster.SmsBroadcaster;
 import ru.itceiling.telephony.ClientCSV;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.Fragments.AnalyticsFragment;
@@ -88,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
     public CallReceiver callRecv;
     public CallbackReceiver callbackReceiver;
+    public SmsBroadcaster smsBroadcaster;
     DBHelper dbHelper;
     SQLiteDatabase db;
 
@@ -180,9 +172,70 @@ public class MainActivity extends AppCompatActivity {
 
         bubble();
 
+        /*String sqlQuewy = "SELECT h._id " +
+                "FROM rgzbn_gm_ceiling_client_history AS h " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients AS c " +
+                "ON c._id = h.client_id " +
+                "WHERE c._id IS NULL";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, "_id=?", new String[]{id});
+                } while (c.moveToNext());
+            }
+        }
+        c.close();*/
         //test();
 
+        //getSMSDetails();
+
         myExternalFile = new File(getExternalFilesDir(filepath), filename);
+    }
+
+    private void getSMSDetails() {
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append("*********SMS History*************** :");
+        Uri uri = Uri.parse("content://sms");
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            for (int i = 0; i < cursor.getCount(); i++) {
+                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"))
+                        .toString();
+                String number = cursor.getString(cursor.getColumnIndexOrThrow("address"))
+                        .toString();
+                String date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
+                        .toString();
+                Date smsDayTime = new Date(Long.valueOf(date));
+                String type = cursor.getString(cursor.getColumnIndexOrThrow("type"))
+                        .toString();
+                String typeOfSMS = null;
+                switch (Integer.parseInt(type)) {
+                    case 1:
+                        typeOfSMS = "INBOX";
+                        break;
+
+                    case 2:
+                        typeOfSMS = "SENT";
+                        break;
+
+                    case 3:
+                        typeOfSMS = "DRAFT";
+                        break;
+                }
+
+                stringBuffer.append("\nPhone Number:--- " + number + " \nMessage Type:--- "
+                        + typeOfSMS + " \nMessage Date:--- " + smsDayTime
+                        + " \nMessage Body:--- " + body);
+                stringBuffer.append("\n----------------------------------");
+                cursor.moveToNext();
+            }
+            Log.d(TAG, "getSMSDetails: " + stringBuffer);
+        }
+        cursor.close();
+
     }
 
     void bubble() {
@@ -887,6 +940,12 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
         filter.addAction(Intent.EXTRA_PHONE_NUMBER);
         registerReceiver(callRecv, filter);
+
+        //smsBroadcaster = new SmsBroadcaster();
+        //IntentFilter filterSms = new IntentFilter();
+        //filterSms.addAction("android.provider.Telephony.SMS_RECEIVED");
+        //registerReceiver(smsBroadcaster, filterSms);
+
     }
 
     private void registerCallbackReceiver() {

@@ -1112,8 +1112,8 @@ public class ExportDataReceiver extends BroadcastReceiver {
         final SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         Log.d(TAG, "-------------------------- DELETE ------------------------");
-        JSONObject jsonObjectDeleteTable = new JSONObject();
-        JSONArray jsonArray = new JSONArray();
+        //JSONObject jsonObjectDeleteTable = new JSONObject();
+        //JSONArray jsonArray = new JSONArray();
         JSONArray jsonArrayDeleteTable = new JSONArray();
         String sqlQuewy = "SELECT id_old, name_table "
                 + "FROM history_send_to_server " +
@@ -1124,12 +1124,16 @@ public class ExportDataReceiver extends BroadcastReceiver {
             if (cursor.moveToFirst()) {
                 try {
                     do {
+                        JSONObject jsonObjectDeleteTable = new JSONObject();
                         String id_old = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(0)));
                         String name_table = cursor.getString(cursor.getColumnIndex(cursor.getColumnName(1)));
-                        jsonObjectDeleteTable.put("table_name", name_table);
                         JSONObject jsonObject = new JSONObject();
+                        JSONArray jsonArray = new JSONArray();
+
+                        jsonObjectDeleteTable.put("table_name", name_table);
                         jsonObject.put("id", id_old);
                         jsonArray.put(jsonObject);
+
                         jsonObjectDeleteTable.put("rows", jsonArray);
                         jsonArrayDeleteTable.put(jsonObjectDeleteTable);
                     } while (cursor.moveToNext());
@@ -1887,21 +1891,22 @@ public class ExportDataReceiver extends BroadcastReceiver {
 
                             Log.d(TAG, "onResponse: delet " + newRes);
 
-                            if (newRes != null && newRes.equals("")) {
+                            if (newRes != null && !newRes.equals("null")) {
                                 SQLiteDatabase db;
                                 db = dbHelper.getWritableDatabase();
-                                newRes = newRes.substring(1, newRes.length() - 1);
                                 try {
                                     jsonObject = new JSONObject(newRes);
-                                    String delete_id = jsonObject.getString("ids");
-                                    String table = jsonObject.getString("table");
-
-                                    ContentValues values = new ContentValues();
-                                    values.put(DBHelper.KEY_SYNC, "1");
-                                    db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
-                                            "id_old = ? and type=? and sync=? and name_table=? and id_new=?",
-                                            new String[]{String.valueOf(delete_id), "delete", "0", table, "0"});
-
+                                    JSONArray arr = jsonObject.getJSONArray("delete");
+                                    for (int i = 0; arr.length() > i; i++) {
+                                        org.json.JSONObject del = arr.getJSONObject(i);
+                                        String delete_id = del.getString("ids");
+                                        String table = del.getString("table");
+                                        ContentValues values = new ContentValues();
+                                        values.put(DBHelper.KEY_SYNC, "1");
+                                        db.update(DBHelper.HISTORY_SEND_TO_SERVER, values,
+                                                "id_old = ? and type=? and sync=? and name_table=? and id_new=?",
+                                                new String[]{String.valueOf(delete_id), "delete", "0", table, "0"});
+                                    }
                                 } catch (Exception e) {
                                     Log.d(TAG, String.valueOf(e));
                                 }

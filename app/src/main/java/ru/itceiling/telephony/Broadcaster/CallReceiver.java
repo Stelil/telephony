@@ -1,15 +1,19 @@
 package ru.itceiling.telephony.Broadcaster;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
+import android.provider.CallLog;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -275,7 +279,7 @@ public class CallReceiver extends BroadcastReceiver {
 
         Date one = null, two = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        //int[] call = getCallDetails();
+        int[] call = getCallDetails();
 
         int client_id = 0;
         sqlQuewy = "SELECT client_id "
@@ -289,6 +293,7 @@ public class CallReceiver extends BroadcastReceiver {
         }
         c.close();
 
+        /*
         Log.d(TAG, "addHistoryClientCall: " + date1);
         Log.d(TAG, "addHistoryClientCall: " + date2);
         try {
@@ -313,6 +318,8 @@ public class CallReceiver extends BroadcastReceiver {
         } catch (Exception e) {
             Log.d(TAG, "addHistoryClientCall: error " + e);
         }
+        */
+
         /*
         try {
             if (call[1] <= json.getInt("CheckTimeCall")) {
@@ -338,9 +345,7 @@ public class CallReceiver extends BroadcastReceiver {
             }
         } catch (Exception e) {
             Log.d(TAG, "addHistoryClientCall: error " + e);
-        }
-*/
-
+        }*/
 
     }
 
@@ -373,7 +378,6 @@ public class CallReceiver extends BroadcastReceiver {
         }
     }
 
-    /*
     static private int[] getCallDetails() {
         int[] call = new int[2];
         call[0] = 0;
@@ -402,5 +406,5 @@ public class CallReceiver extends BroadcastReceiver {
         }
         return call;
     }
-    */
+
 }

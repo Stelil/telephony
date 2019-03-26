@@ -1782,7 +1782,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
             return null;
         }
-
     }
 
     class UpdateSubscription extends AsyncTask<Void, Void, Void> {

@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "dbTelephony";
 
     private Context mContext;
@@ -98,6 +98,10 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String KEY_DATE = "date";
     public static final String KEY_DATE_SYNC = "date_sync";
 
+    public static final String TABLE_RGZBN_CEILING_MESSENGER_TYPES = "rgzbn_gm_ceiling_messenger_types";
+
+    public static final String TABLE_RGZBN_CEILING_MESSENGER_TYPES_MAP = "rgzbn_gm_ceiling_messenger_types_map";
+    public static final String KEY_HISTORY_ID = "history_id";
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -118,7 +122,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 "client_id INTEGER, type_id INTEGER, contact TEXT, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_client_history (_id INTEGER, " +
-                "client_id INTEGER, date_time TEXT, text TEXT, change_time TEXT)");
+                "client_id INTEGER, date_time TEXT, text TEXT, change_time TEXT, type_id INTEGER)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_callback (_id INTEGER, " +
                 "client_id INTEGER, date_time TEXT, comment TEXT, manager_id INTEGER, notify INTEGER, change_time TEXT)");
@@ -152,6 +156,11 @@ public class DBHelper extends SQLiteOpenHelper {
                 "status TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_user_usergroup_map (_id INTEGER, user_id TEXT, group_id TEXT, " +
+                "change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_messenger_types (_id INTEGER, title TEXT, change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_messenger_types_map (_id INTEGER, type_id INTEGER, history_id INTEGER, " +
                 "change_time TEXT)");
 
         ContentValues values = new ContentValues();
@@ -235,6 +244,11 @@ public class DBHelper extends SQLiteOpenHelper {
             values.put(DBHelper.KEY_TITLE, "Недозвон");
             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS, values, "_id = ?",
                     new String[]{"1"});
+        }
+
+        if (oldVersion < 6) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_messenger_types (_id INTEGER, title TEXT, change_time TEXT)");
+            db.execSQL("ALTER TABLE rgzbn_gm_ceiling_client_history ADD type_id INTEGER;");
         }
 
     }

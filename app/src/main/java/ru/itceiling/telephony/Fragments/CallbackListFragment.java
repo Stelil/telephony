@@ -243,7 +243,7 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
                     "or clients_c.phone like '%" + query + "%' " +
                     "or callback.comment like '%" + query + "%' " +
                     "group by callback._id " +
-                    "order by DATE desc, TIME";
+                    "order by c_date desc, c_time";
         }
         c = db.rawQuery(sqlQuery, new String[]{date});
         if (c != null) {
