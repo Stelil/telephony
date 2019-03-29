@@ -938,12 +938,6 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
         filter.addAction(Intent.EXTRA_PHONE_NUMBER);
         registerReceiver(callRecv, filter);
-
-        //smsBroadcaster = new SmsBroadcaster();
-        //IntentFilter filterSms = new IntentFilter();
-        //filterSms.addAction("android.provider.Telephony.SMS_RECEIVED");
-        //registerReceiver(smsBroadcaster, filterSms);
-
     }
 
     private void registerCallbackReceiver() {
@@ -965,7 +959,8 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.INTERNET,
                             Manifest.permission.READ_CONTACTS,
                             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.READ_EXTERNAL_STORAGE},
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_SMS},
                     1);
         }
 

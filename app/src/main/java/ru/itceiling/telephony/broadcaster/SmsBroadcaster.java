@@ -35,8 +35,8 @@ public class SmsBroadcaster extends BroadcastReceiver {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Bundle data = intent.getExtras();
 
-        String sender = null;
-        String message = null;
+        String sender = "";
+        String message = "";
 
         Object[] pdus = (Object[]) data.get("pdus");
         for (int i = 0; i < pdus.length; i++) {

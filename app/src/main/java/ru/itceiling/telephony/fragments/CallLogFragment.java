@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.activity.MainActivity;
 import ru.itceiling.telephony.adapter.RVAdapterCallLog;
@@ -81,79 +83,49 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
     private void listCallLog() {
         callLogs = new ArrayList<>();
 
-        String sqlQuewy = "SELECT _id, client_id, status, change_time, call_length "
-                + "FROM rgzbn_gm_ceiling_calls_status_history " +
-                "where manager_id = ? " +
-                "order by change_time desc";
+        String sqlQuewy = "SELECT sh.client_id, " +
+                "cl.client_name, " +
+                "cc.phone, " +
+                "sh.change_time, " +
+                "sh.status, " +
+                "cs.title, " +
+                "sh.call_length " +
+                "FROM rgzbn_gm_ceiling_calls_status_history AS sh " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients AS cl " +
+                "ON sh.client_id = cl._id " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients_contacts AS cc " +
+                "ON sh.client_id = cc.client_id " +
+                "LEFT JOIN rgzbn_gm_ceiling_calls_status AS cs  " +
+                "ON sh.status = cs._id " +
+                "WHERE sh.manager_id = ? " +
+                "GROUP BY sh.change_time " +
+                "ORDER BY sh.change_time DESC";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{user_id});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
-                    String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    Integer client_id = c.getInt(c.getColumnIndex(c.getColumnName(1)));
-                    String status = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                    Integer client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                    String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    String phone = c.getString(c.getColumnIndex(c.getColumnName(2)));
                     String date_time = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                    String call_length = c.getString(c.getColumnIndex(c.getColumnName(4)));
+                    Integer status = c.getInt(c.getColumnIndex(c.getColumnName(4)));
+                    String title = c.getString(c.getColumnIndex(c.getColumnName(5)));
+                    String call_length = c.getString(c.getColumnIndex(c.getColumnName(6)));
 
-                    String client_name = "";
-                    sqlQuewy = "SELECT client_name "
-                            + "FROM rgzbn_gm_ceiling_clients" +
-                            " WHERE _id = ? ";
-                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(client_id)});
-                    if (cc != null) {
-                        if (cc.moveToFirst()) {
-                            do {
-                                client_name = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                            } while (cc.moveToNext());
+                    try {
+                        if (!call_length.equals("0") && !call_length.equals("null")) {
+                            title = title + "(" + HelperClass.editTimeCall(call_length) + ")";
                         }
+                    } catch (Exception e) {
+                        Log.d(TAG, "listCallLog: " + e);
                     }
-                    cc.close();
-
-                    String client_phone = "";
-                    sqlQuewy = "SELECT phone "
-                            + "   FROM rgzbn_gm_ceiling_clients_contacts" +
-                            "    WHERE client_id = ?";
-                    cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(client_id)});
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            client_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                        }
-                    }
-                    cc.close();
-
-                    String type = "";
-                    sqlQuewy = "SELECT title "
-                            + "FROM rgzbn_gm_ceiling_calls_status " +
-                            "WHERE _id = ?";
-                    cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status)});
-                    if (cc != null) {
-                        if (cc.moveToLast()) {
-                            /*if (status.equals("1") || status.equals("0")) {
-                                type = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                            } else {
-                                type = cc.getString(cc.getColumnIndex(cc.getColumnName(0))) +
-                                        "\n(Длина: " + HelperClass.editTimeCall(call_length) + ")";
-                            }*/
-                            switch (cc.getString(cc.getColumnIndex(cc.getColumnName(0)))) {
-                                case "Исходящий недозвон":
-                                    type = "Недозвон";
-                                    break;
-                                case "Входящий звонок":
-                                    type = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    break;
-                                case "Исходящий дозвон":
-                                    type = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    break;
-                            }
-                        }
-                    }
-                    cc.close();
 
                     callLogs.add(new CallLog(client_id,
                             client_name,
-                            client_phone,
+                            phone,
                             date_time.substring(0, date_time.length() - 3),
-                            type
+                            title,
+                            status
                     ));
 
                 } while (c.moveToNext());

@@ -168,9 +168,11 @@ public class ImportDataReceiver extends BroadcastReceiver {
                         String hash = jsonObject.getString("hash");
                         newRes = HelperClass.decrypt(hash, data, ctx);
                     } catch (JSONException e) {
-                        Log.d(TAG, "onResponse:imp dec "+e);
+                        Log.d(TAG, "onResponse:imp dec " + e);
                         newRes = "null";
                     }
+
+                    Log.d(TAG, "onResponse: " + newRes);
 
                     if (newRes != null && !newRes.equals("null")) {
                         int count = 0;
@@ -229,7 +231,8 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                     if (c != null) {
                                         if (c.moveToFirst()) {
                                             do {
-                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id});
+                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values,
+                                                        "_id = ?", new String[]{id});
                                                 count++;
                                                 Date change = ft.parse(change_time);
                                                 if (change_max.getTime() < change.getTime()) {
@@ -739,6 +742,50 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                 Log.d(TAG, "onResponse: rgzbn_users " + e);
                             }
 
+                            try {
+                                JSONArray messenger_types = jsonObject.getJSONArray("rgzbn_gm_ceiling_messenger_types");
+                                for (int i = 0; i < messenger_types.length(); i++) {
+
+                                    values = new ContentValues();
+                                    org.json.JSONObject user_v = messenger_types.getJSONObject(i);
+
+                                    count = 0;
+                                    String id = user_v.getString("id");
+                                    String title = user_v.getString("title");
+                                    String change_time = user_v.getString("change_time");
+
+                                    values.put(DBHelper.KEY_ID, id);
+                                    values.put(DBHelper.KEY_TITLE, title);
+
+                                    String sqlQuewy = "SELECT * "
+                                            + "FROM rgzbn_gm_ceiling_messenger_types" +
+                                            " WHERE _id = ?";
+                                    Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+                                    if (c != null) {
+                                        if (c.moveToFirst()) {
+                                            do {
+                                                db.update(DBHelper.TABLE_RGZBN_CEILING_MESSENGER_TYPES, values,
+                                                        "_id = ?", new String[]{id});
+                                                count++;
+                                                Date change = ft.parse(change_time);
+                                                if (change_max.getTime() < change.getTime()) {
+                                                    change_max = change;
+                                                }
+                                            } while (c.moveToNext());
+                                        } else {
+                                            values.put(DBHelper.KEY_ID, id);
+                                            db.insert(DBHelper.TABLE_RGZBN_CEILING_MESSENGER_TYPES, null, values);
+                                            Date change = ft.parse(change_time);
+                                            if (change_max.getTime() < change.getTime()) {
+                                                change_max = change;
+                                            }
+                                        }
+                                    }
+                                    c.close();
+                                }
+                            }catch (Exception e){
+                                Log.d(TAG, "onResponse: " + e);
+                            }
                             SimpleDateFormat out_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
                             values = new ContentValues();

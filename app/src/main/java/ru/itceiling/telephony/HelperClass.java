@@ -186,6 +186,35 @@ public class HelperClass {
 
     }
 
+    public static void addHistory(String text, Context context, String id_client, boolean bool) {
+
+        DBHelper dbHelper = new DBHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        SharedPreferences SPI = context.getSharedPreferences("user_id", MODE_PRIVATE);
+        String user_id = SPI.getString("", "");
+
+        int max_id = lastIdTable("rgzbn_gm_ceiling_client_history", context, user_id);
+
+        String date = HelperClass.nowDate();
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID, max_id);
+        values.put(DBHelper.KEY_CLIENT_ID, id_client);
+        values.put(DBHelper.KEY_DATE_TIME, date);
+        values.put(DBHelper.KEY_TEXT, text);
+        values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, null, values);
+
+        if (bool) {
+            HelperClass.addExportData(
+                    context,
+                    max_id,
+                    "rgzbn_gm_ceiling_client_history",
+                    "send");
+        }
+
+    }
+
     public static void addCallback(String comment, Context context, String id_client, String callDate, String user_id) {
 
         DBHelper dbHelper = new DBHelper(context);

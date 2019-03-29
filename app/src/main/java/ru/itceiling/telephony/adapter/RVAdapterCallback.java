@@ -62,6 +62,7 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
     public RVAdapterCallback(List<Callback> callbacks, RecyclerViewClickListener itemListener) {
         this.callbacks = callbacks;
         this.itemListener = itemListener;
+        setHasStableIds(true);
     }
 
     @Override

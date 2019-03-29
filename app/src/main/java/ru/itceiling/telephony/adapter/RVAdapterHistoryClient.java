@@ -1,6 +1,7 @@
 package ru.itceiling.telephony.adapter;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -35,12 +36,13 @@ public class RVAdapterHistoryClient extends RecyclerView.Adapter<RVAdapterHistor
         }
     }
 
-    private Activity activity;
+    private Context context;
     String TAG = "logd";
 
-    public RVAdapterHistoryClient(List<HistoryClient> historyClients, Activity activity) {
+    public RVAdapterHistoryClient(List<HistoryClient> historyClients, Context context) {
         this.historyClients = historyClients;
-        this.activity = activity;
+        this.context = context;
+        setHasStableIds(true);
     }
 
     @Override
@@ -62,7 +64,7 @@ public class RVAdapterHistoryClient extends RecyclerView.Adapter<RVAdapterHistor
         Drawable bd = null;
         switch (historyClients.get(i).getTypeMessage()) {
             case 1:
-                bd = activity.getResources().getDrawable(R.drawable.ic_message);
+                bd = context.getResources().getDrawable(R.drawable.ic_message);
                 personViewHolder.typeMessage.setImageDrawable(bd);
                 break;
             default:

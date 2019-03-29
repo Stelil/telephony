@@ -148,9 +148,6 @@ public class ManagerActivity extends AppCompatActivity {
                                     "rgzbn_users_manager",
                                     "send",
                                     data);
-
-
-
                         } else {
                             Toast.makeText(getApplicationContext(), "Проверьте введенные данные", Toast.LENGTH_LONG).show();
                         }

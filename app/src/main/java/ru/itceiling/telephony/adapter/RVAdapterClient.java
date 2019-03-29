@@ -50,6 +50,7 @@ public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.Person
     public RVAdapterClient(List<Person> persons, RecyclerViewClickListener itemListener){
         this.persons = persons;
         this.itemListener = itemListener;
+        setHasStableIds(true);
     }
 
     @Override

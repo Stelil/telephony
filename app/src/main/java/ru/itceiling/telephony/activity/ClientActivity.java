@@ -370,12 +370,17 @@ public class ClientActivity extends AppCompatActivity {
                     String text = c.getString(c.getColumnIndex(c.getColumnName(1)));
                     int type = c.getInt(c.getColumnIndex(c.getColumnName(2)));
 
+                    if (date_time.length() == 19) {
+                        date_time = date_time.substring(0, date_time.length() - 3);
+                    }
+
                     historyClients.add(new HistoryClient(date_time, text, type));
 
                 } while (c.moveToNext());
             }
         }
         c.close();
+
 
         adapter = new RVAdapterHistoryClient(historyClients, this);
         try {
@@ -388,25 +393,7 @@ public class ClientActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.d(TAG, "ListClients error: " + e);
         }
-
-        /*BindDictionary<AdapterList> dict = new BindDictionary<>();
-
-        dict.addStringField(R.id.textDateTime, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getOne();
-            }
-        });
-        dict.addStringField(R.id.textComment, new StringExtractor<AdapterList>() {
-            @Override
-            public String getStringValue(AdapterList nc, int position) {
-                return nc.getTwo();
-            }
-        });
-
-        adapter = new FunDapter(this, client_mas, R.layout.layout_client_history_list, dict);
-        listHistoryClient.setAdapter(adapter);*/
-
+        listHistoryClient.scrollToPosition(adapter.getItemCount() - 1);
     }
 
     private void phonesClient() {
@@ -577,8 +564,8 @@ public class ClientActivity extends AppCompatActivity {
                                                         String id_phone = "";
                                                         String sqlQuewy = "SELECT _id "
                                                                 + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                                                                " WHERE phone = ? ";
-                                                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
+                                                                " WHERE phone = ? and client_id = ?";
+                                                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString(), id_client});
                                                         if (cc != null) {
                                                             if (cc.moveToFirst()) {
                                                                 id_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
@@ -798,8 +785,8 @@ public class ClientActivity extends AppCompatActivity {
                                                         String id_phone = "";
                                                         String sqlQuewy = "SELECT _id "
                                                                 + "FROM rgzbn_gm_ceiling_clients_dop_contacts" +
-                                                                " WHERE contact = ? ";
-                                                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString()});
+                                                                " WHERE contact = ? and client_id = ? ";
+                                                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString(), id_client});
                                                         if (cc != null) {
                                                             if (cc.moveToFirst()) {
                                                                 id_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));

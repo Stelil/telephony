@@ -100,9 +100,6 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_RGZBN_CEILING_MESSENGER_TYPES = "rgzbn_gm_ceiling_messenger_types";
 
-    public static final String TABLE_RGZBN_CEILING_MESSENGER_TYPES_MAP = "rgzbn_gm_ceiling_messenger_types_map";
-    public static final String KEY_HISTORY_ID = "history_id";
-
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.mContext = context;
@@ -159,9 +156,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 "change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_messenger_types (_id INTEGER, title TEXT, change_time TEXT)");
-
-        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_messenger_types_map (_id INTEGER, type_id INTEGER, history_id INTEGER, " +
-                "change_time TEXT)");
 
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, 0);

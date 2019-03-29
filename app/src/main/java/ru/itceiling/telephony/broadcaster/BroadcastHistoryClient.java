@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PixelFormat;
 import android.os.Build;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -16,16 +18,16 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
-import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.HistoryClient;
 import ru.itceiling.telephony.R;
+import ru.itceiling.telephony.activity.ClientActivity;
+import ru.itceiling.telephony.adapter.RVAdapterHistoryClient;
 
 import static android.content.Context.WINDOW_SERVICE;
 
@@ -35,6 +37,9 @@ public class BroadcastHistoryClient extends BroadcastReceiver {
     String TAG = "logd";
     static private DBHelper dbHelper;
     static private SQLiteDatabase db;
+    private List<HistoryClient> historyClients = new ArrayList<>();
+    private RVAdapterHistoryClient adapter;
+    private RecyclerView listHistoryClient;
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
@@ -45,50 +50,48 @@ public class BroadcastHistoryClient extends BroadcastReceiver {
         dbHelper = new DBHelper(context);
         db = dbHelper.getWritableDatabase();
 
-        ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
-        HashMap<String, String> history;
-        String sqlQuewy = "SELECT date_time, text "
-                + "FROM rgzbn_gm_ceiling_client_history" +
-                " WHERE client_id = ? " +
-                "order by date_time";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    history = new HashMap<>();
-                    history.put("date_time", c.getString(c.getColumnIndex(c.getColumnName(0))));
-                    history.put("text", c.getString(c.getColumnIndex(c.getColumnName(1))));
-                    arrayList.add(history);
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
-        String client_name = "";
-        sqlQuewy = "SELECT client_name "
-                + "FROM rgzbn_gm_ceiling_clients" +
-                " WHERE _id = ? and deleted_by_user = ?";
-        c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id), "0"});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    client_name = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
         windowManager = (WindowManager) context.getSystemService(WINDOW_SERVICE);
         view = LayoutInflater.from(context).inflate(R.layout.history_client, null);
 
-        TextView nameClient = view.findViewById(R.id.nameClient);
-        nameClient.setText(nameClient.getText() + " " + client_name);
+        listHistoryClient = view.findViewById(R.id.listHistoryClient);
+        LinearLayoutManager llm = new LinearLayoutManager(context);
+        listHistoryClient.setLayoutManager(llm);
+        listHistoryClient.setHasFixedSize(true);
+        listHistoryClient.setNestedScrollingEnabled(true);
 
-        ListView listView = view.findViewById(R.id.listHistoryClient);
-        SimpleAdapter adapter = new SimpleAdapter(context, arrayList, android.R.layout.simple_list_item_2,
-                new String[]{"date_time", "text"},
-                new int[]{android.R.id.text1, android.R.id.text2});
-        listView.setAdapter(adapter);
+        String name = "";
+        String sqlQuewy = "SELECT ch.date_time, ch.text, ch.type_id, c.client_name "
+                + "FROM rgzbn_gm_ceiling_client_history as ch " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients as c " +
+                "ON c._id = ch.client_id " +
+                "where ch.client_id = ? " +
+                "order by ch.date_time";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                name = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                do {
+                    String date_time = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    String text = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    int type = c.getInt(c.getColumnIndex(c.getColumnName(2)));
+
+                    if (date_time.length() == 19) {
+                        date_time = date_time.substring(0, date_time.length() - 3);
+                    }
+
+                    historyClients.add(new HistoryClient(date_time, text, type));
+
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        TextView nameClient = view.findViewById(R.id.nameClient);
+        nameClient.setText(nameClient.getText() + " " + name);
+
+        adapter = new RVAdapterHistoryClient(historyClients, context);
+        listHistoryClient.setAdapter(adapter);
+        listHistoryClient.scrollToPosition(adapter.getItemCount() - 1);
 
         Button closeView = view.findViewById(R.id.closeView);
         closeView.setOnClickListener(new View.OnClickListener() {

@@ -1437,11 +1437,13 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 String client_id = client_history.getString("client_id");
                                 String date_time = client_history.getString("date_time");
                                 String text = client_history.getString("text");
+                                String type_id = client_history.getString("type_id");
                                 String change_time = client_history.getString("change_time");
 
                                 values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                 values.put(DBHelper.KEY_DATE_TIME, date_time);
                                 values.put(DBHelper.KEY_TEXT, text);
+                                values.put(DBHelper.KEY_TYPE_ID, type_id);
                                 values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                 String sqlQuewy = "SELECT * "
@@ -1729,6 +1731,48 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                     } else {
                                         values.put(DBHelper.KEY_ID, id);
                                         db.insert(DBHelper.TABLE_USERS, null, values);
+                                        Date change = ft.parse(change_time);
+                                        if (change_max.getTime() < change.getTime()) {
+                                            change_max = change;
+                                        }
+                                    }
+                                }
+                                c.close();
+                            }
+
+
+                            JSONArray messenger_types = jsonObject.getJSONArray("rgzbn_gm_ceiling_messenger_types");
+                            for (int i = 0; i < messenger_types.length(); i++) {
+
+                                values = new ContentValues();
+                                org.json.JSONObject user_v = messenger_types.getJSONObject(i);
+
+                                count = 0;
+                                String id = user_v.getString("id");
+                                String title = user_v.getString("title");
+                                String change_time = user_v.getString("change_time");
+
+                                values.put(DBHelper.KEY_ID, id);
+                                values.put(DBHelper.KEY_TITLE, title);
+
+                                String sqlQuewy = "SELECT * "
+                                        + "FROM rgzbn_gm_ceiling_messenger_types" +
+                                        " WHERE _id = ?";
+                                Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+                                if (c != null) {
+                                    if (c.moveToFirst()) {
+                                        do {
+                                            db.update(DBHelper.TABLE_RGZBN_CEILING_MESSENGER_TYPES, values,
+                                                    "_id = ?", new String[]{id});
+                                            count++;
+                                            Date change = ft.parse(change_time);
+                                            if (change_max.getTime() < change.getTime()) {
+                                                change_max = change;
+                                            }
+                                        } while (c.moveToNext());
+                                    } else {
+                                        values.put(DBHelper.KEY_ID, id);
+                                        db.insert(DBHelper.TABLE_RGZBN_CEILING_MESSENGER_TYPES, null, values);
                                         Date change = ft.parse(change_time);
                                         if (change_max.getTime() < change.getTime()) {
                                             change_max = change;

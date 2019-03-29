@@ -6,13 +6,15 @@ public class CallLog {
     public String phone;
     public String date_time;
     public String type;
+    public int callStatus;
 
-    public CallLog(Integer id, String name, String phone, String date_time, String type) {
+    public CallLog(Integer id, String name, String phone, String date_time, String type, int callStatus) {
         this.id = id;
         this.name = name;
         this.phone = phone;
         this.date_time = date_time;
         this.type = type;
+        this.callStatus = callStatus;
     }
 
     public Integer getId() {
@@ -53,5 +55,21 @@ public class CallLog {
 
     public void setStatus(String type) {
         this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public int getCallStatus() {
+        return callStatus;
+    }
+
+    public void setCallStatus(int callStatus) {
+        this.callStatus = callStatus;
     }
 }

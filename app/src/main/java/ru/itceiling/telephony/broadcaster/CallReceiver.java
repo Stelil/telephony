@@ -23,7 +23,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -66,6 +65,7 @@ public class CallReceiver extends BroadcastReceiver {
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             //получаем исходящий номер
 
+            Log.d(TAG, "onReceive: input call");
             TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             telephony.listen(new PhoneStateListener() {
                 @Override
@@ -75,60 +75,44 @@ public class CallReceiver extends BroadcastReceiver {
                 }
             }, PhoneStateListener.LISTEN_CALL_STATE);
 
+            phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
             callStatus = 2;
+            historyClient();
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
+            Log.d(TAG, "onReceive: output call");
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
-            //if (!phone_state.equals(mLastState)) {
-            mLastState = phone_state;
-            if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                //телефон звонит, получаем входящий номер
-                callStatus = 3;
-                phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                if (phoneNumber.length() > 5) {
+            if (!phone_state.equals(mLastState)) {
+
+                try {
+                    if (!intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER).equals(null)) {
+                        phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, "onReceive: " + e);
+                }
+
+                mLastState = phone_state;
+                if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                    //телефон звонит, получаем входящий номер
+                    callStatus = 3;
                     historyClient();
-                }
-                try {
-                    date1 = dateFormat.parse(HelperClass.nowDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-                //телефон находится в режиме звонка (набор номера / разговор)
-                try {
-                    date1 = dateFormat.parse(HelperClass.nowDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                //recordCall();
-            } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                // телефон находиться в ждущем режиме.
-                // Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
-                phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                try {
-                    date2 = dateFormat.parse(HelperClass.nowDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                if (date2.equals("")) {
-                } else {
-                    //timeDifference();
-                }
-                if (phoneNumber.length() > 5) {
+                } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+                    //телефон находится в режиме звонка (набор номера / разговор)
+                    //recordCall();
+                } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                    // телефон находиться в ждущем режиме.
+                    // Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
+
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
                     newClient();
-                }
-
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                Log.d(TAG, "onReceive: " + phoneNumber);
-                if (phoneNumber.length() > 5) {
                     addHistoryClientCall();
                 }
             }
-            //}
         }
 
     }
@@ -185,17 +169,16 @@ public class CallReceiver extends BroadcastReceiver {
     }
 
     private void newClient() {
+        Log.d(TAG, "newClient: " + phoneNumber);
 
         phoneNumber = HelperClass.phoneEdit(phoneNumber);
-
-        Log.d(TAG, "newClient: " + phoneNumber);
 
         int id = 0;
         String sqlQuewy = "SELECT cc.client_id"
                 + " FROM rgzbn_gm_ceiling_clients_contacts as cc" +
                 " INNER JOIN rgzbn_gm_ceiling_clients AS c" +
                 " ON c._id = cc.client_id " +
-                " WHERE cc.phone = ? AND c.deleted_by_user <> 1";
+                " WHERE cc.phone = ? ";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -287,46 +270,14 @@ public class CallReceiver extends BroadcastReceiver {
                 " WHERE phone = ? ";
         c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
         if (c != null) {
-            if (c.moveToFirst()) {
+            if (c.moveToLast()) {
                 client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
             }
         }
         c.close();
 
-        /*
-        Log.d(TAG, "addHistoryClientCall: " + date1);
-        Log.d(TAG, "addHistoryClientCall: " + date2);
         try {
-            if (((date2.getTime() - date1.getTime()) / 1000) <= 10) {
-                String text = "Hедозвон";
-                HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
-                HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
-            } else {
-                switch (callStatus) {
-                    case 2:
-                        String text = "Исходящий звонок";
-                        HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
-                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, 0, bool);
-                        break;
-                    case 3:
-                        text = "Входящий звонок";
-                        HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
-                        HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, 0, bool);
-                        break;
-                }
-            }
-        } catch (Exception e) {
-            Log.d(TAG, "addHistoryClientCall: error " + e);
-        }
-        */
-
-        /*
-        try {
-            if (call[1] <= json.getInt("CheckTimeCall")) {
-                String text = "Hедозвон";
-                HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
-                HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
-            } else if (call[0] == 3) {
+            if (call[1] <= json.getInt("CheckTimeCall") || call[0] == 3 || call[0] == 5) {
                 String text = "Hедозвон";
                 HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
                 HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
@@ -345,8 +296,7 @@ public class CallReceiver extends BroadcastReceiver {
             }
         } catch (Exception e) {
             Log.d(TAG, "addHistoryClientCall: error " + e);
-        }*/
-
+        }
     }
 
     private void historyClient() {
@@ -370,8 +320,8 @@ public class CallReceiver extends BroadcastReceiver {
         }
         c.close();
 
+        Log.d(TAG, "historyClient: " + id);
         if (id != 0) {
-
             Intent intent = new Intent(ctx, BroadcastHistoryClient.class);
             intent.putExtra("id", String.valueOf(id));
             ctx.sendBroadcast(intent);

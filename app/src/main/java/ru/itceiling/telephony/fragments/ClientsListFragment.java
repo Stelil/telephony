@@ -302,6 +302,72 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                                     "rgzbn_gm_ceiling_clients",
                                     "send");
 
+                            int idOldClient = 0;
+                            String sqlQuewy = "SELECT c.client_id " +
+                                    "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
+                                    "WHERE c.phone = ?";
+                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{phone});
+                            if (cc != null) {
+                                if (cc.moveToLast()) {
+                                    idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+
+                                    values = new ContentValues();
+                                    values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                    db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, values, "client_id = ? ",
+                                            new String[]{String.valueOf(idOldClient)});
+
+                                    int idCallsStatusHistory = 0;
+                                    sqlQuewy = "SELECT _id "
+                                            + "   FROM rgzbn_gm_ceiling_calls_status_history" +
+                                            "    WHERE client_id = ? ";
+                                    cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
+                                    if (cc != null) {
+                                        if (cc.moveToLast()) {
+                                            idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                                        }
+                                    }
+                                    cc.close();
+
+                                    HelperClass.addExportData(
+                                            context,
+                                            idCallsStatusHistory,
+                                            "rgzbn_gm_ceiling_calls_status_history",
+                                            "send");
+
+                                    values = new ContentValues();
+                                    values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                    db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, values, "client_id = ? ",
+                                            new String[]{String.valueOf(idOldClient)});
+
+                                    int idClientHistory = 0;
+                                    sqlQuewy = "SELECT _id "
+                                            + "   FROM rgzbn_gm_ceiling_client_history" +
+                                            "    WHERE client_id = ? ";
+                                    cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
+                                    if (cc != null) {
+                                        if (cc.moveToLast()) {
+                                            idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                                        }
+                                    }
+                                    cc.close();
+
+                                    HelperClass.addExportData(
+                                            context,
+                                            idClientHistory,
+                                            "rgzbn_gm_ceiling_client_history",
+                                            "send");
+
+                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
+                                            "_id = ?",
+                                            new String[]{String.valueOf(idOldClient)});
+
+                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
+                                            "client_id = ?",
+                                            new String[]{String.valueOf(idOldClient)});
+                                }
+                            }
+                            cc.close();
+
                             HelperClass.addHistory("Новый клиент", getActivity(), String.valueOf(maxIdClient));
 
                             int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
@@ -337,11 +403,11 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             }
 
                             String nameManager = "-";
-                            String sqlQuewy = "SELECT name "
+                            sqlQuewy = "SELECT name "
                                     + "   FROM rgzbn_users" +
                                     "    WHERE _id = ? " +
                                     "order by _id";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{user_id});
+                            cc = db.rawQuery(sqlQuewy, new String[]{user_id});
                             if (cc != null) {
                                 if (cc.moveToLast()) {
                                     nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
@@ -350,32 +416,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             cc.close();
 
                             Log.d(TAG, "phone: " + phone);
-
-                            int idOldClient = 0;
-                            sqlQuewy = "SELECT h.client_id " +
-                                    "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
-                                    "INNER JOIN rgzbn_gm_ceiling_calls_status_history AS h " +
-                                    "ON c.client_id = h.client_id " +
-                                    "WHERE c.phone = ?";
-                            cc = db.rawQuery(sqlQuewy, new String[]{phone});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-
-                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY,
-                                            "client_id = ?",
-                                            new String[]{String.valueOf(idOldClient)});
-
-                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
-                                            "_id = ?",
-                                            new String[]{String.valueOf(idOldClient)});
-
-                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
-                                            "client_id = ?",
-                                            new String[]{String.valueOf(idOldClient)});
-                                }
-                            }
-                            cc.close();
 
                             persons.add(0, new Person(name, phone, nameManager, "#000000",
                                     " ", "Необработанный", Integer.valueOf(maxIdClient)));
@@ -524,9 +564,59 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             if (cc.moveToLast()) {
                 idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
 
-                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY,
+                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
+                        "_id = ?",
+                        new String[]{String.valueOf(idOldClient)});
+
+                db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
                         "client_id = ?",
                         new String[]{String.valueOf(idOldClient)});
+
+                ContentValues values = new ContentValues();
+                values.put(DBHelper.KEY_CLIENT_ID, id);
+                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, values, "client_id = ? ",
+                        new String[]{String.valueOf(idOldClient)});
+
+                int idCallsStatusHistory = 0;
+                sqlQuewy = "SELECT _id "
+                        + "   FROM rgzbn_gm_ceiling_calls_status_history" +
+                        "    WHERE client_id = ? ";
+                cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
+                if (cc != null) {
+                    if (cc.moveToLast()) {
+                        idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                    }
+                }
+                cc.close();
+
+                HelperClass.addExportData(
+                        getActivity(),
+                        idCallsStatusHistory,
+                        "rgzbn_gm_ceiling_calls_status_history",
+                        "send");
+
+                values = new ContentValues();
+                values.put(DBHelper.KEY_CLIENT_ID, id);
+                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, values, "client_id = ? ",
+                        new String[]{String.valueOf(idOldClient)});
+
+                int idClientHistory = 0;
+                sqlQuewy = "SELECT _id "
+                        + "   FROM rgzbn_gm_ceiling_client_history" +
+                        "    WHERE client_id = ? ";
+                cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
+                if (cc != null) {
+                    if (cc.moveToLast()) {
+                        idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                    }
+                }
+                cc.close();
+
+                HelperClass.addExportData(
+                        getActivity(),
+                        idClientHistory,
+                        "rgzbn_gm_ceiling_client_history",
+                        "send");
 
                 db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
                         "_id = ?",

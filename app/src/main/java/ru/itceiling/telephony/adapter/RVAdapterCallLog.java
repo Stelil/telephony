@@ -1,5 +1,6 @@
 package ru.itceiling.telephony.adapter;
 
+import android.graphics.Color;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -65,6 +66,7 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
     public RVAdapterCallLog(List<CallLog> callLogList, RecyclerViewClickListener itemListener) {
         this.callLogList = callLogList;
         this.itemListener = itemListener;
+        setHasStableIds(true);
     }
 
     @Override
@@ -80,34 +82,23 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
         return pvh;
     }
 
+    String TAG = "callLog";
+
     @Override
     public void onBindViewHolder(CallLogViewHolder callbackViewHolder, int i) {
-        /*if (callLogList.get(i).type.length() < 20){
+        if (callLogList.get(i).getCallStatus() == 1) {
             relCard.setBackgroundResource(R.drawable.card_red_corner);
         } else {
             relCard.setBackgroundResource(R.drawable.card_green_corner);
-        }*/
-
-        Log.d("logd", "onBindViewHolder: " + callLogList.get(i).type);
-
-        if (callLogList.get(i).type.equals("Входящий звонок") ||
-                callLogList.get(i).type.equals("Исходящий дозвон")) {
-            relCard.setBackgroundResource(R.drawable.card_green_corner);
-        } else {
-            relCard.setBackgroundResource(R.drawable.card_red_corner);
         }
-        callbackViewHolder.callbackName.setText(callLogList.get(i).name);
-        callbackViewHolder.callbackPhone.setText(callLogList.get(i).phone);
-        callbackViewHolder.callbackName.setText(callLogList.get(i).name);
-        callbackViewHolder.callbackPhone.setText(callLogList.get(i).phone);
-        callbackViewHolder.callbackDate.setText(callLogList.get(i).date_time);
-        callbackViewHolder.callbackType.setText(callLogList.get(i).type);
+        callbackViewHolder.callbackName.setText(callLogList.get(i).getName());
+        callbackViewHolder.callbackPhone.setText(callLogList.get(i).getPhone());
+        callbackViewHolder.callbackDate.setText(callLogList.get(i).getDate_time());
+        callbackViewHolder.callbackType.setText(callLogList.get(i).getType());
     }
 
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
     }
-
-
 }

@@ -977,15 +977,15 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
             PieGraph pg = new PieGraph(getActivity());
             pg.setLayoutParams(pieGraphParams);
             PieSlice slice = new PieSlice();
-            slice.setColor(Color.parseColor("#99CC00"));
+            slice.setColor(Color.parseColor("#ff0000"));
             slice.setValue(countFirstStatus);
             pg.addSlice(slice);
             slice = new PieSlice();
-            slice.setColor(Color.parseColor("#FFBB33"));
+            slice.setColor(Color.parseColor("#005400"));
             slice.setValue(countSecondStatus);
             pg.addSlice(slice);
             slice = new PieSlice();
-            slice.setColor(Color.parseColor("#AA66CC"));
+            slice.setColor(Color.parseColor("#3cb371"));
             slice.setValue(countThirdStatus);
             pg.addSlice(slice);
             linearLayout.addView(pg);
@@ -997,7 +997,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 textPieColor.setLayoutParams(tableTextColor);
                 textPieColor.setText("Недозвон");
                 textPieColor.setTextSize(15);
-                textPieColor.setTextColor(Color.parseColor("#99CC00"));
+                textPieColor.setTextColor(Color.parseColor("#ff0000"));
                 linearLayoutNote.addView(textPieColor);
             }
             if (countSecondStatus > 0) {
@@ -1005,7 +1005,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 textPieColor.setLayoutParams(tableTextColor);
                 textPieColor.setText("Входящие");
                 textPieColor.setTextSize(15);
-                textPieColor.setTextColor(Color.parseColor("#FFBB33"));
+                textPieColor.setTextColor(Color.parseColor("#005400"));
                 linearLayoutNote.addView(textPieColor);
             }
             if (countThirdStatus > 0) {
@@ -1013,7 +1013,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                 textPieColor.setLayoutParams(tableTextColor);
                 textPieColor.setText("Исходящие");
                 textPieColor.setTextSize(15);
-                textPieColor.setTextColor(Color.parseColor("#AA66CC"));
+                textPieColor.setTextColor(Color.parseColor("#3cb371"));
                 linearLayoutNote.addView(textPieColor);
             }
             linearLayout.addView(linearLayoutNote);
@@ -1190,7 +1190,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    Log.d(TAG, "come newRes " + newRes);
 
                     int length = arrayId.length + listManager.size() * 2 + 1;
                     String[] array = new String[length];
