@@ -1,5 +1,6 @@
 package ru.itceiling.telephony.broadcaster;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.text.Html;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,9 +33,12 @@ import static android.content.Context.WINDOW_SERVICE;
 public class BroadcasterCallbackClient extends BroadcastReceiver {
     private WindowManager windowManager;
     private View view;
+    String TAG = "callbackClient";
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
+        Log.d(TAG, "onReceive: ");
+
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
@@ -45,9 +50,9 @@ public class BroadcasterCallbackClient extends BroadcastReceiver {
         String date_time = "";
         String sqlQuewy = "SELECT c.client_name, cc.phone, cal.comment, cal.date_time " +
                 "FROM rgzbn_gm_ceiling_clients AS c " +
-                "INNER JOIN rgzbn_gm_ceiling_clients_contacts AS cc " +
+                "LEFT JOIN rgzbn_gm_ceiling_clients_contacts AS cc " +
                 "ON c._id = cc.client_id " +
-                "INNER JOIN rgzbn_gm_ceiling_callback AS cal " +
+                "LEFT JOIN rgzbn_gm_ceiling_callback AS cal " +
                 "ON cal.client_id = c._id " +
                 "WHERE c._id = ? " +
                 "ORDER BY cal.date_time DESC";
@@ -67,8 +72,8 @@ public class BroadcasterCallbackClient extends BroadcastReceiver {
         view = LayoutInflater.from(context).inflate(R.layout.callback_service, null);
 
         String message = "<b>ФИО клиента:</b> " + client_name +
-                "<br><b>Время перезвона:</b> " + date_time.substring(11, date_time.length() - 3) +
-                "<br><b>Комментарий:</b> " + comment;
+                "<br><b>Комментарий:</b> " + comment +
+                "<br><b>Время перезвона:</b> " + date_time.substring(0, date_time.length() - 3);
         TextView dataClient = view.findViewById(R.id.dataClient);
         dataClient.setText(Html.fromHtml(message));
 
@@ -192,9 +197,11 @@ public class BroadcasterCallbackClient extends BroadcastReceiver {
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
 
+    @SuppressLint("InvalidWakeLockTag")
     public void turnOnScreen() {
         // turn on screen
-        mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "tag");
+        mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK |
+                PowerManager.ACQUIRE_CAUSES_WAKEUP, "tag");
         mWakeLock.acquire();
     }
 

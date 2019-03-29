@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import ru.itceiling.telephony.broadcaster.BroadcasterCallbackClient;
 import ru.itceiling.telephony.broadcaster.CallReceiver;
 import ru.itceiling.telephony.broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
@@ -185,55 +186,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         c.close();*/
-        //test();
-
-        //getSMSDetails();
 
         myExternalFile = new File(getExternalFilesDir(filepath), filename);
-    }
-
-    private void getSMSDetails() {
-        StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append("*********SMS History*************** :");
-        Uri uri = Uri.parse("content://sms");
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-
-        if (cursor.moveToFirst()) {
-            for (int i = 0; i < cursor.getCount(); i++) {
-                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"))
-                        .toString();
-                String number = cursor.getString(cursor.getColumnIndexOrThrow("address"))
-                        .toString();
-                String date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
-                        .toString();
-                Date smsDayTime = new Date(Long.valueOf(date));
-                String type = cursor.getString(cursor.getColumnIndexOrThrow("type"))
-                        .toString();
-                String typeOfSMS = null;
-                switch (Integer.parseInt(type)) {
-                    case 1:
-                        typeOfSMS = "INBOX";
-                        break;
-
-                    case 2:
-                        typeOfSMS = "SENT";
-                        break;
-
-                    case 3:
-                        typeOfSMS = "DRAFT";
-                        break;
-                }
-
-                stringBuffer.append("\nPhone Number:--- " + number + " \nMessage Type:--- "
-                        + typeOfSMS + " \nMessage Date:--- " + smsDayTime
-                        + " \nMessage Body:--- " + body);
-                stringBuffer.append("\n----------------------------------");
-                cursor.moveToNext();
-            }
-            Log.d(TAG, "getSMSDetails: " + stringBuffer);
-        }
-        cursor.close();
-
     }
 
     void bubble() {

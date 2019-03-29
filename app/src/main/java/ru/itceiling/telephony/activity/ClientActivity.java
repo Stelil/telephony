@@ -136,12 +136,6 @@ public class ClientActivity extends AppCompatActivity {
 
         editCommentClient = findViewById(R.id.editCommentClient);
 
-        check = getIntent().getStringExtra("check");
-        if (check.equals("true")) {
-            btnEditCallback = findViewById(R.id.btnEditCallback);
-            btnEditCallback.setVisibility(View.VISIBLE);
-        }
-
         layoutPhonesClient = findViewById(R.id.layoutPhonesClient);
         layoutEmailClient = findViewById(R.id.layoutEmailClient);
 
@@ -170,6 +164,26 @@ public class ClientActivity extends AppCompatActivity {
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         exportDataReceiver.CancelAlarm(this);
+
+        int countCallback = 0;
+        String sqlQuewy = "SELECT count(_id) "
+                + "FROM rgzbn_gm_ceiling_callback" +
+                " WHERE client_id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{id_client});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                countCallback = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+            }
+        }
+        c.close();
+
+        if (countCallback > 0) {
+            Button btnNewCallback = findViewById(R.id.btnNewCallback);
+            btnNewCallback.setVisibility(View.GONE);
+        } else {
+            btnEditCallback = findViewById(R.id.btnEditCallback);
+            btnEditCallback.setVisibility(View.GONE);
+        }
     }
 
     public void onButtonEditCallback(View view) {

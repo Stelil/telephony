@@ -2,6 +2,7 @@ package ru.itceiling.telephony.adapter;
 
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,12 +29,12 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
 
         CallbackViewHolder(View itemView) {
             super(itemView);
-            cv = (CardView) itemView.findViewById(R.id.cv);
-            callbackName = (TextView) itemView.findViewById(R.id.callback_name);
-            callbackPhone = (TextView) itemView.findViewById(R.id.callback_phone);
-            callbackDate = (TextView) itemView.findViewById(R.id.callback_time);
-            callbackComment = (TextView) itemView.findViewById(R.id.callback_comment);
-            callbackManager = (TextView) itemView.findViewById(R.id.callback_manager);
+            cv = itemView.findViewById(R.id.cv);
+            callbackName = itemView.findViewById(R.id.callback_name);
+            callbackPhone = itemView.findViewById(R.id.callback_phone);
+            callbackDate = itemView.findViewById(R.id.callback_time);
+            callbackComment = itemView.findViewById(R.id.callback_comment);
+            callbackManager = itemView.findViewById(R.id.callback_manager);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -60,6 +61,7 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
     }
 
     public RVAdapterCallback(List<Callback> callbacks, RecyclerViewClickListener itemListener) {
+        Log.d("logd", "RVAdapterCallback: " + callbacks.size());
         this.callbacks = callbacks;
         this.itemListener = itemListener;
         setHasStableIds(true);
@@ -74,17 +76,16 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
     public CallbackViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.callback_card, viewGroup, false);
         CallbackViewHolder pvh = new CallbackViewHolder(v);
-
         return pvh;
     }
 
     @Override
     public void onBindViewHolder(CallbackViewHolder callbackViewHolder, int i) {
-        callbackViewHolder.callbackName.setText(callbacks.get(i).name);
-        callbackViewHolder.callbackPhone.setText(callbacks.get(i).phone);
-        callbackViewHolder.callbackDate.setText(callbacks.get(i).date);
-        callbackViewHolder.callbackComment.setText(callbacks.get(i).comment);
-        callbackViewHolder.callbackManager.setText(callbacks.get(i).manager);
+        callbackViewHolder.callbackName.setText(callbacks.get(i).getName());
+        callbackViewHolder.callbackPhone.setText(callbacks.get(i).getPhone());
+        callbackViewHolder.callbackDate.setText(callbacks.get(i).getDate());
+        callbackViewHolder.callbackComment.setText(callbacks.get(i).getComment());
+        callbackViewHolder.callbackManager.setText(callbacks.get(i).getManager());
     }
 
     @Override

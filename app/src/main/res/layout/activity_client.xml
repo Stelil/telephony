@@ -217,12 +217,12 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/layoutManager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:id="@+id/layoutManager">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="match_parent"
@@ -313,10 +313,10 @@
                 android:background="@drawable/rounded_button"
                 android:onClick="onButtonEditCallback"
                 android:text="Изменить время звонка"
-                android:textColor="#fff"
-                android:visibility="gone" />
+                android:textColor="#fff" />
 
             <Button
+                android:id="@+id/btnNewCallback"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_margin="5dp"
@@ -383,9 +383,9 @@
                     android:layout_height="30dp"
                     android:layout_gravity="center"
                     android:background="@drawable/without_corners_text"
+                    android:onClick="btnEditAddCallback"
                     android:scaleType="fitCenter"
-                    android:src="@raw/check_fat"
-                    android:onClick="btnEditAddCallback"/>
+                    android:src="@raw/check_fat" />
             </LinearLayout>
 
         </LinearLayout>
@@ -394,8 +394,8 @@
             android:id="@+id/linearNewCall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:layout_marginTop="5dp"
+            android:orientation="vertical"
             android:visibility="gone">
 
             <TextView
@@ -446,9 +446,9 @@
                     android:layout_height="30dp"
                     android:layout_gravity="center"
                     android:background="@drawable/without_corners_text"
+                    android:onClick="btnAddCallback"
                     android:scaleType="fitCenter"
-                    android:src="@raw/check_fat"
-                    android:onClick="btnAddCallback"/>
+                    android:src="@raw/check_fat" />
             </LinearLayout>
         </LinearLayout>
 
@@ -474,7 +474,7 @@
                 android:layout_marginTop="5dp"
                 android:layout_weight="1"
                 android:paddingLeft="6dp"
-                android:paddingRight="5dp"/>
+                android:paddingRight="5dp" />
 
             <View
                 android:layout_width="wrap_content"
