@@ -64,7 +64,6 @@ public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.Ca
         Log.d("logd", "RVAdapterCallback: " + callbacks.size());
         this.callbacks = callbacks;
         this.itemListener = itemListener;
-        setHasStableIds(true);
     }
 
     @Override

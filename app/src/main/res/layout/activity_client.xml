@@ -189,6 +189,46 @@
                 android:layout_weight="3"
                 android:gravity="left"
                 android:paddingLeft="6dp"
+                android:text="Ярлыки"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtLabelOfClient"
+                style="@style/text_style_spisok"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:inputType="number" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_button"
+                android:onClick="onButtonEditLabelOfClient"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:text="Изменить"
+                android:textColor="#fff" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:gravity="left"
+                android:paddingLeft="6dp"
                 android:text="Статус"
                 android:textColor="#000"
                 android:textStyle="bold" />

@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 6;
+    public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "dbTelephony";
 
     private Context mContext;
@@ -100,6 +100,12 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_RGZBN_CEILING_MESSENGER_TYPES = "rgzbn_gm_ceiling_messenger_types";
 
+    public static final String TABLE_RGZBN_CEILING_CLIENTS_LABELS = "rgzbn_gm_ceiling_clients_labels";
+    public static final String KEY_COLOR_CODE = "color_code";
+
+    public static final String TABLE_RGZBN_CEILING_CLIENTS_LABELS_HISTORY = "rgzbn_gm_ceiling_clients_labels_history";
+    public static final String KEY_LABEL_ID = "label_id";
+
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.mContext = context;
@@ -110,7 +116,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients (_id INTEGER, " +
                 "client_name TEXT, client_data_id INTEGER, type_id INTEGER, dealer_id INTEGER, manager_id INTEGER, " +
-                "created TEXT, sex TEXT, deleted_by_user INTEGER, api_phone_id INTEGER, change_time TEXT)");
+                "created TEXT, sex TEXT, deleted_by_user INTEGER, api_phone_id INTEGER, label_id INTEGER, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_contacts (_id INTEGER, " +
                 "client_id INTEGER, phone TEXT, change_time TEXT)");
@@ -156,6 +162,14 @@ public class DBHelper extends SQLiteOpenHelper {
                 "change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_messenger_types (_id INTEGER, title TEXT, change_time TEXT)");
+
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_labels (_id INTEGER, title TEXT, color_code TEXT, " +
+                "dealer_id INTEGER, change_time TEXT)");
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_labels_history (_id INTEGER, client_id INTEGER, " +
+                "label_id INTEGER, change_time TEXT)");
+
 
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, 0);
@@ -230,7 +244,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
 
         if (oldVersion < 3) { // 13.02
-            db.execSQL("ALTER TABLE rgzbn_users ADD settings TEXT;");
+            db.execSQL("ALTER TABLE rgzbn_users ADD settings TEXT");
         }
 
         if (oldVersion < 4) { // 27.02
@@ -242,7 +256,17 @@ public class DBHelper extends SQLiteOpenHelper {
 
         if (oldVersion < 6) {
             db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_messenger_types (_id INTEGER, title TEXT, change_time TEXT)");
-            db.execSQL("ALTER TABLE rgzbn_gm_ceiling_client_history ADD type_id INTEGER;");
+            db.execSQL("ALTER TABLE rgzbn_gm_ceiling_client_history ADD type_id INTEGER");
+        }
+
+        if (oldVersion < 7) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_labels (_id INTEGER, title TEXT, color_code TEXT, " +
+                    "dealer_id INTEGER, change_time TEXT)");
+
+            db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_labels_history (_id INTEGER, client_id INTEGER, " +
+                    "label_id INTEGER, change_time TEXT)");
+
+            db.execSQL("ALTER TABLE rgzbn_gm_ceiling_clients ADD label_id INTEGER");
         }
 
     }

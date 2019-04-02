@@ -1,11 +1,13 @@
 package ru.itceiling.telephony.adapter;
 
+import android.graphics.Color;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
@@ -13,33 +15,23 @@ import java.util.List;
 import ru.itceiling.telephony.Person;
 import ru.itceiling.telephony.R;
 
-public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.PersonViewHolder>{
+public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.PersonViewHolder> {
 
     public static List<Person> persons;
     private static RecyclerViewClickListener itemListener;
 
-    public static class PersonViewHolder extends RecyclerView.ViewHolder{
+    public static class PersonViewHolder extends RecyclerView.ViewHolder {
         CardView cv;
-        TextView personName;
-        TextView personPhone;
-        TextView personLabel;
-        TextView personStatus;
-        TextView personManager;
 
         PersonViewHolder(View itemView) {
             super(itemView);
-            cv = (CardView)itemView.findViewById(R.id.cv);
-            personName = (TextView)itemView.findViewById(R.id.person_name);
-            personPhone = (TextView)itemView.findViewById(R.id.person_phone);
-            personLabel = (TextView)itemView.findViewById(R.id.person_label);
-            personStatus = (TextView)itemView.findViewById(R.id.person_status);
-            personManager = (TextView)itemView.findViewById(R.id.person_manager);
+            cv = (CardView) itemView.findViewById(R.id.cv);
 
-            itemView.setOnClickListener(new View.OnClickListener(){
+            itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     int pos = getAdapterPosition();
-                    if(pos != RecyclerView.NO_POSITION){
+                    if (pos != RecyclerView.NO_POSITION) {
                         itemListener.recyclerViewListClicked(v, pos);
                     }
                 }
@@ -47,10 +39,9 @@ public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.Person
         }
     }
 
-    public RVAdapterClient(List<Person> persons, RecyclerViewClickListener itemListener){
+    public RVAdapterClient(List<Person> persons, RecyclerViewClickListener itemListener) {
         this.persons = persons;
         this.itemListener = itemListener;
-        setHasStableIds(true);
     }
 
     @Override
@@ -62,17 +53,24 @@ public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.Person
     public PersonViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.client_card, viewGroup, false);
         PersonViewHolder pvh = new PersonViewHolder(v);
-
         return pvh;
     }
 
     @Override
     public void onBindViewHolder(PersonViewHolder personViewHolder, int i) {
-        personViewHolder.personName.setText(persons.get(i).name);
-        personViewHolder.personPhone.setText(persons.get(i).phone);
-        personViewHolder.personLabel.setText(persons.get(i).label);
-        personViewHolder.personStatus.setText(persons.get(i).status);
-        personViewHolder.personManager.setText(persons.get(i).manager);
+        CardView cardView = personViewHolder.cv;
+        TextView personName = (TextView) cardView.findViewById(R.id.person_name);
+        TextView personPhone = (TextView) cardView.findViewById(R.id.person_phone);
+        LinearLayout label = (LinearLayout) cardView.findViewById(R.id.label);
+        TextView personStatus = (TextView) cardView.findViewById(R.id.person_status);
+        TextView personManager = (TextView) cardView.findViewById(R.id.person_manager);
+        int parsedColor = Color.parseColor("#" + persons.get(i).label);
+
+        personName.setText(persons.get(i).name);
+        personPhone.setText(persons.get(i).phone);
+        label.setBackgroundColor(parsedColor);
+        personStatus.setText(persons.get(i).status);
+        personManager.setText(persons.get(i).manager);
     }
 
     @Override

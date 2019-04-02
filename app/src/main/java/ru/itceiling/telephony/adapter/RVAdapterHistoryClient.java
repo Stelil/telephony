@@ -42,7 +42,6 @@ public class RVAdapterHistoryClient extends RecyclerView.Adapter<RVAdapterHistor
     public RVAdapterHistoryClient(List<HistoryClient> historyClients, Context context) {
         this.historyClients = historyClients;
         this.context = context;
-        setHasStableIds(true);
     }
 
     @Override

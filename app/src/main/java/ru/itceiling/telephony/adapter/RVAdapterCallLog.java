@@ -66,7 +66,6 @@ public class RVAdapterCallLog extends RecyclerView.Adapter<RVAdapterCallLog.Call
     public RVAdapterCallLog(List<CallLog> callLogList, RecyclerViewClickListener itemListener) {
         this.callLogList = callLogList;
         this.itemListener = itemListener;
-        setHasStableIds(true);
     }
 
     @Override

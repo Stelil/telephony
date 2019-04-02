@@ -55,6 +55,7 @@ import org.solovyev.android.checkout.ProductTypes;
 import org.solovyev.android.checkout.Purchase;
 import org.solovyev.android.checkout.Sku;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1253,6 +1254,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 String dealer_id = cleint.getString("dealer_id");
                                 String created = cleint.getString("created");
                                 String sex = cleint.getString("sex");
+                                String label_id = cleint.getString("label_id");
                                 String deleted_by_user = cleint.getString("deleted_by_user");
                                 String change_time = cleint.getString("change_time");
 
@@ -1263,6 +1265,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 values.put(DBHelper.KEY_DEALER_ID, dealer_id);
                                 values.put(DBHelper.KEY_CREATED, created);
                                 values.put(DBHelper.KEY_SEX, sex);
+                                values.put(DBHelper.KEY_LABEL_ID, label_id);
                                 values.put(DBHelper.KEY_DELETED_BY_USER, deleted_by_user);
                                 values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
@@ -1740,7 +1743,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 c.close();
                             }
 
-
                             JSONArray messenger_types = jsonObject.getJSONArray("rgzbn_gm_ceiling_messenger_types");
                             for (int i = 0; i < messenger_types.length(); i++) {
 
@@ -1780,6 +1782,106 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                     }
                                 }
                                 c.close();
+                            }
+
+                            try {
+                                JSONArray clients_labels = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_labels");
+                                for (int i = 0; i < clients_labels.length(); i++) {
+
+                                    values = new ContentValues();
+                                    JSONObject user_v = clients_labels.getJSONObject(i);
+
+                                    count = 0;
+                                    String id = user_v.getString("id");
+                                    String title = user_v.getString("title");
+                                    String color_code = user_v.getString("color_code");
+                                    String dealer_id = user_v.getString("dealer_id");
+                                    String change_time = user_v.getString("change_time");
+
+                                    values.put(DBHelper.KEY_ID, id);
+                                    values.put(DBHelper.KEY_TITLE, title);
+                                    values.put(DBHelper.KEY_COLOR_CODE, color_code);
+                                    values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+
+                                    String sqlQuewy = "SELECT * "
+                                            + "FROM rgzbn_gm_ceiling_clients_labels" +
+                                            " WHERE _id = ?";
+                                    Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+                                    if (c != null) {
+                                        if (c.moveToFirst()) {
+                                            do {
+                                                db.update(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS, values,
+                                                        "_id = ?", new String[]{id});
+                                                count++;
+                                                Date change = ft.parse(change_time);
+                                                if (change_max.getTime() < change.getTime()) {
+                                                    change_max = change;
+                                                }
+                                            } while (c.moveToNext());
+                                        } else {
+                                            values.put(DBHelper.KEY_ID, id);
+                                            db.insert(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS, null, values);
+                                            Date change = ft.parse(change_time);
+                                            if (change_max.getTime() < change.getTime()) {
+                                                change_max = change;
+                                            }
+                                        }
+                                    }
+                                    c.close();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                JSONArray clients_labels_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_labels_history");
+                                for (int i = 0; i < clients_labels_history.length(); i++) {
+
+                                    values = new ContentValues();
+                                    JSONObject user_v = clients_labels_history.getJSONObject(i);
+
+                                    count = 0;
+                                    String id = user_v.getString("id");
+                                    String client_id = user_v.getString("client_id");
+                                    String label_id = user_v.getString("label_id");
+                                    String change_time = user_v.getString("change_time");
+
+                                    values.put(DBHelper.KEY_ID, id);
+                                    values.put(DBHelper.KEY_CLIENT_ID, client_id);
+                                    values.put(DBHelper.KEY_LABEL_ID, label_id);
+
+                                    String sqlQuewy = "SELECT * "
+                                            + "FROM rgzbn_gm_ceiling_clients_labels_history" +
+                                            " WHERE _id = ?";
+                                    Cursor c = db.rawQuery(sqlQuewy, new String[]{id});
+                                    if (c != null) {
+                                        if (c.moveToFirst()) {
+                                            do {
+                                                db.update(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS_HISTORY, values,
+                                                        "_id = ?", new String[]{id});
+                                                count++;
+                                                Date change = ft.parse(change_time);
+                                                if (change_max.getTime() < change.getTime()) {
+                                                    change_max = change;
+                                                }
+                                            } while (c.moveToNext());
+                                        } else {
+                                            values.put(DBHelper.KEY_ID, id);
+                                            db.insert(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS_HISTORY, null, values);
+                                            Date change = ft.parse(change_time);
+                                            if (change_max.getTime() < change.getTime()) {
+                                                change_max = change;
+                                            }
+                                        }
+                                    }
+                                    c.close();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (ParseException e) {
+                                e.printStackTrace();
                             }
 
                             SimpleDateFormat out_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

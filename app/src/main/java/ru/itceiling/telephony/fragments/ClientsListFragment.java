@@ -10,7 +10,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.support.design.internal.NavigationMenu;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
@@ -31,6 +31,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.yavski.fabspeeddial.FabSpeedDial;
 import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.adapter.RVAdapterClient;
 import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
@@ -90,15 +91,31 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         db = dbHelper.getWritableDatabase();
 
 
-        final FloatingActionButton fab = view.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        final FabSpeedDial fabSpeedDial = (FabSpeedDial) view.findViewById(R.id.fab_speed_dial);
+        fabSpeedDial.setMenuListener(new FabSpeedDial.MenuListener() {
             @Override
-            public void onClick(View v) {
-                onButtonAddClient(view);
+            public boolean onPrepareMenu(NavigationMenu navigationMenu) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemSelected(MenuItem menuItem) {
+                switch (menuItem.getItemId()) {
+                    case R.id.add_client:
+                        onButtonAddClient(view);
+                        break;
+                    case R.id.label_menu:
+
+                        break;
+                }
+                return true;
+            }
+
+            @Override
+            public void onMenuClosed() {
+
             }
         });
-        fab.hide();
-        fab.show();
 
         recyclerView = view.findViewById(R.id.recyclerViewClients);
         LinearLayoutManager llm = new LinearLayoutManager(getActivity());
@@ -107,27 +124,20 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0 || dy < 0 && fab.isShown()) {
-                    fab.hide();
+                if (dy > 0 || dy < 0 && fabSpeedDial.isShown()) {
+                    fabSpeedDial.hide();
                 }
             }
 
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    fab.show();
+                    fabSpeedDial.show();
                 }
 
                 super.onScrollStateChanged(recyclerView, newState);
             }
         });
-
-        //Button addClient = view.findViewById(R.id.AddClient);
-        //addClient.setOnClickListener(new View.OnClickListener() {
-        //    @Override
-        //    public void onClick(View view) {
-        //    }
-        //});
 
         setHasOptionsMenu(true);
 
@@ -454,7 +464,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
         if (query.equals("")) {
             sqlQuewy = "SELECT cl._id, cl.client_name, " +
-                    "s.title, u.name, c.phone " +
+                    "s.title, u.name, c.phone, cl.label_id " +
                     "FROM rgzbn_gm_ceiling_clients AS cl " +
                     "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
                     "ON cl._id = sm.client_id " +
@@ -471,7 +481,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                     "ORDER BY cl.created DESC";
         } else {
             sqlQuewy = "SELECT cl._id, cl.client_name, " +
-                    "s.title, u.name, c.phone " +
+                    "s.title, u.name, c.phone, cl.label_id " +
                     "FROM rgzbn_gm_ceiling_clients AS cl " +
                     "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
                     "ON cl._id = sm.client_id " +
@@ -511,8 +521,25 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                         phone = c.getString(c.getColumnIndex(c.getColumnName(4)));
                     }
 
+                    String label_id = "";
+                    String label_code = "ffffff";
+                    if (c.getString(c.getColumnIndex(c.getColumnName(5))) != null) {
+                        label_id = c.getString(c.getColumnIndex(c.getColumnName(5)));
+
+                        sqlQuewy = "SELECT color_code "
+                                + "FROM rgzbn_gm_ceiling_clients_labels" +
+                                " WHERE _id = ? ";
+                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{label_id});
+                        if (cc != null) {
+                            if (cc.moveToFirst()) {
+                                label_code = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                            }
+                        }
+                        cc.close();
+                    }
+
                     persons.add(new Person(client_name, phone, nameManager, "#000000",
-                            "", title, Integer.valueOf(id_client)));
+                            label_code, title, Integer.valueOf(id_client)));
                 } while (c.moveToNext());
             }
         }

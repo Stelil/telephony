@@ -72,7 +72,7 @@ public class ClientActivity extends AppCompatActivity {
     private TextView phoneClient;
     private TextView txtStatusOfClient;
     private TextView txtApiPhone;
-    private TextView txtCallback, txtEditCallback, txtManagerOfClient;
+    private TextView txtCallback, txtEditCallback, txtManagerOfClient, txtLabelOfClient;
     private RecyclerView listHistoryClient;
     private ArrayList<HistoryClient> historyClients = new ArrayList<>();
     private EditText editCommentClient, txtEditCallbackComment;
@@ -125,6 +125,7 @@ public class ClientActivity extends AppCompatActivity {
         txtCallback = findViewById(R.id.txtCallback);
         txtEditCallback = findViewById(R.id.txtEditCallback);
         txtEditCallbackComment = findViewById(R.id.txtEditCallbackComment);
+        txtLabelOfClient = findViewById(R.id.txtLabelOfClient);
 
         btnAddVoiceComment = findViewById(R.id.btnAddVoiceComment);
 
@@ -363,6 +364,24 @@ public class ClientActivity extends AppCompatActivity {
             if (c.moveToLast()) {
                 String name = c.getString(c.getColumnIndex(c.getColumnName(0)));
                 txtManagerOfClient.setText(name);
+            }
+        }
+        c.close();
+
+        sqlQuewy = "SELECT cl.title "
+                + "FROM rgzbn_gm_ceiling_clients as c " +
+                "INNER JOIN rgzbn_gm_ceiling_clients_labels AS cl " +
+                "ON cl._id = c.label_id " +
+                " WHERE c._id = ? ";
+        c = db.rawQuery(sqlQuewy, new String[]{id_client});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                try {
+                    String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    txtLabelOfClient.setText(title);
+                }catch (Exception e){
+                    Log.d(TAG, "info label: " + e);
+                }
             }
         }
         c.close();
@@ -852,6 +871,10 @@ public class ClientActivity extends AppCompatActivity {
                 finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onButtonEditLabelOfClient(View view){
+
     }
 
     public void onButtonEditStatusOfClient(View view) {
