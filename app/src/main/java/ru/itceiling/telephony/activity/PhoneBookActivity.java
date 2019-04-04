@@ -28,7 +28,7 @@ import java.util.List;
 import ru.itceiling.telephony.adapter.PhoneBookAdapter;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
-import ru.itceiling.telephony.PhoneBook;
+import ru.itceiling.telephony.data.PhoneBook;
 import ru.itceiling.telephony.R;
 
 public class PhoneBookActivity extends AppCompatActivity {

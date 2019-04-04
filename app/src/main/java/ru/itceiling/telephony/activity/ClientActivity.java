@@ -36,30 +36,23 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.amigold.fundapter.BindDictionary;
-import com.amigold.fundapter.FunDapter;
-import com.amigold.fundapter.extractors.StringExtractor;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
-import ru.itceiling.telephony.HistoryClient;
+import ru.itceiling.telephony.data.HistoryClient;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.UnderlineTextView;
 import ru.itceiling.telephony.adapter.RVAdapterHistoryClient;
-import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 
 public class ClientActivity extends AppCompatActivity {

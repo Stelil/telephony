@@ -1,11 +1,9 @@
 package ru.itceiling.telephony.adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import ru.itceiling.telephony.HistoryClient;
+import ru.itceiling.telephony.data.HistoryClient;
 import ru.itceiling.telephony.R;
 
 public class RVAdapterHistoryClient extends RecyclerView.Adapter<RVAdapterHistoryClient.HistoryViewHolder> {

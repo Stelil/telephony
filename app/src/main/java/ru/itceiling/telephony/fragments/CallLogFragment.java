@@ -25,7 +25,7 @@ import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.activity.MainActivity;
 import ru.itceiling.telephony.adapter.RVAdapterCallLog;
 import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
-import ru.itceiling.telephony.CallLog;
+import ru.itceiling.telephony.data.CallLog;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.R;
 

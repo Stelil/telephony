@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import ru.itceiling.telephony.PhoneBook;
+import ru.itceiling.telephony.data.PhoneBook;
 import ru.itceiling.telephony.R;
 
 public class PhoneBookAdapter extends BaseAdapter {

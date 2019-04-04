@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import ru.itceiling.telephony.Callback;
+import ru.itceiling.telephony.data.Callback;
 import ru.itceiling.telephony.R;
 
 public class RVAdapterCallback extends RecyclerView.Adapter<RVAdapterCallback.CallbackViewHolder> {

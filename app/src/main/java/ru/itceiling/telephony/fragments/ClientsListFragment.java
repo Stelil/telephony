@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.internal.NavigationMenu;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,14 +36,17 @@ import java.util.List;
 import io.github.yavski.fabspeeddial.FabSpeedDial;
 import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.adapter.RVAdapterClient;
+import ru.itceiling.telephony.adapter.RVAdapterLabels;
 import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
-import ru.itceiling.telephony.Person;
+import ru.itceiling.telephony.data.Labels;
+import ru.itceiling.telephony.data.Person;
 import ru.itceiling.telephony.R;
+import yuku.ambilwarna.AmbilWarnaDialog;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -62,8 +67,10 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     private View view;
 
     List<Person> persons;
+    List<Labels> labels;
     RecyclerView recyclerView;
     RVAdapterClient adapter;
+    RVAdapterLabels adapterLabels;
 
     int itemSelected = 0;
 
@@ -105,7 +112,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                         onButtonAddClient(view);
                         break;
                     case R.id.label_menu:
-
+                        labelView();
                         break;
                 }
                 return true;
@@ -224,7 +231,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             }
         }
         c.close();
-
 
         getActivity().setTitle("Клиенты(" + String.valueOf(count) + ")");
     }
@@ -447,11 +453,134 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
     }
 
+    private String currentColor = "000";
+
+    public void labelView() {
+
+        final Context context = getActivity();
+        LayoutInflater li = LayoutInflater.from(context);
+        View promptsView = li.inflate(R.layout.dialog_lable_view, null);
+        AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+        mDialogBuilder.setView(promptsView);
+        final EditText nameLabel = (EditText) promptsView.findViewById(R.id.nameLabel);
+        final Button selectColor = (Button) promptsView.findViewById(R.id.selectColor);
+        final Button addLabel = (Button) promptsView.findViewById(R.id.addLabel);
+
+        final RecyclerView linear_color = promptsView.findViewById(R.id.linear_color);
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        linear_color.setLayoutManager(llm);
+        linear_color.setHasFixedSize(true);
+
+        final boolean[] bool = {false};
+        selectColor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AmbilWarnaDialog dialog = new AmbilWarnaDialog(getActivity(),
+                        Integer.parseInt(currentColor.substring(1), 16), false,
+                        new AmbilWarnaDialog.OnAmbilWarnaListener() {
+                            @Override
+                            public void onOk(AmbilWarnaDialog dialog, int color) {
+                                String hexColor = String.format("#%06X", (0xFFFFFF & color));
+                                selectColor.setBackgroundColor(Color.parseColor(hexColor));
+                                currentColor = hexColor;
+                                bool[0] = true;
+                            }
+
+                            @Override
+                            public void onCancel(AmbilWarnaDialog dialog) {
+
+                            }
+                        });
+                dialog.show();
+            }
+        });
+
+        addLabel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (nameLabel.getText().toString().length() > 0 && bool[0]) {
+                    String title = nameLabel.getText().toString();
+                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_labels",
+                            getActivity(), user_id);
+                    String nowDate = HelperClass.nowDate();
+
+                    ContentValues values = new ContentValues();
+                    values.put(DBHelper.KEY_ID, maxId);
+                    values.put(DBHelper.KEY_TITLE, title);
+                    values.put(DBHelper.KEY_COLOR_CODE, currentColor.substring(1));
+                    values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                    values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                    db.insert(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS, null, values);
+
+                    HelperClass.addExportData(
+                            context,
+                            maxId,
+                            "rgzbn_gm_ceiling_clients_labels",
+                            "send");
+
+                    Toast.makeText(context, "Ярлык добавлен", Toast.LENGTH_SHORT).show();
+                    nameLabel.setText("");
+
+                    viewLabels(linear_color);
+                } else {
+                    Toast.makeText(context, "Вы что-то не заполнили", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        viewLabels(linear_color);
+
+        final AlertDialog dialog = new AlertDialog.Builder(context)
+                .setView(promptsView)
+                .setTitle("Ярлыки")
+                .setPositiveButton(android.R.string.ok, null)
+                .create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+
+            }
+        });
+        dialog.show();
+    }
+
+    private void viewLabels(RecyclerView recyclerView) {
+        labels.clear();
+        String sqlQuewy = "SELECT title, color_code, _id "
+                + "   FROM rgzbn_gm_ceiling_clients_labels" +
+                "    WHERE dealer_id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    try {
+                        String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                        String color_code = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                        int id = c.getInt(c.getColumnIndex(c.getColumnName(2)));
+
+                        int parsedColor = Color.parseColor("#" + color_code);
+
+                        labels.add(new Labels(id, title, parsedColor));
+
+                    } catch (Exception e) {
+                        Log.d(TAG, "labelView: " + e);
+                    }
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        adapterLabels = new RVAdapterLabels(labels, this);
+        recyclerView.setAdapter(adapterLabels);
+    }
+
     private void ListClients(String query) {
 
         client_mas.clear();
 
         persons = new ArrayList<>();
+        labels = new ArrayList<>();
 
         String sqlQuewy;
         Cursor c;

@@ -1,4 +1,4 @@
-package ru.itceiling.telephony;
+package ru.itceiling.telephony.data;
 
 public class Person {
     public String name;

@@ -12,13 +12,14 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import ru.itceiling.telephony.Person;
+import ru.itceiling.telephony.data.Person;
 import ru.itceiling.telephony.R;
 
 public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.PersonViewHolder> {
 
     public static List<Person> persons;
     private static RecyclerViewClickListener itemListener;
+    static String TAG = "logd";
 
     public static class PersonViewHolder extends RecyclerView.ViewHolder {
         CardView cv;

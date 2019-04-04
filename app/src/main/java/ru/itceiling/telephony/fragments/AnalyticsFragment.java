@@ -57,7 +57,7 @@ import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
-import ru.itceiling.telephony.Person;
+import ru.itceiling.telephony.data.Person;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.UnderlineTextView;
 

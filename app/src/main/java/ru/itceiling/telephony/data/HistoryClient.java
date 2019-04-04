@@ -1,4 +1,4 @@
-package ru.itceiling.telephony;
+package ru.itceiling.telephony.data;
 
 import android.widget.ImageView;
 

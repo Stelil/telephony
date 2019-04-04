@@ -268,6 +268,5 @@ public class DBHelper extends SQLiteOpenHelper {
 
             db.execSQL("ALTER TABLE rgzbn_gm_ceiling_clients ADD label_id INTEGER");
         }
-
     }
 }

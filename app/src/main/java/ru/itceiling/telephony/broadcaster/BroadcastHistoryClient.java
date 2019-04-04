@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.itceiling.telephony.DBHelper;
-import ru.itceiling.telephony.HistoryClient;
+import ru.itceiling.telephony.data.HistoryClient;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.adapter.RVAdapterHistoryClient;
