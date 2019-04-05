@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -49,13 +50,17 @@ import java.util.List;
 
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
+import ru.itceiling.telephony.adapter.RVAdapterLabels;
+import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
 import ru.itceiling.telephony.data.HistoryClient;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.UnderlineTextView;
 import ru.itceiling.telephony.adapter.RVAdapterHistoryClient;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
+import ru.itceiling.telephony.data.Labels;
+import yuku.ambilwarna.AmbilWarnaDialog;
 
-public class ClientActivity extends AppCompatActivity {
+public class ClientActivity extends AppCompatActivity implements RecyclerViewClickListener {
 
     private DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -81,6 +86,9 @@ public class ClientActivity extends AppCompatActivity {
     Calendar dateAndTime = new GregorianCalendar();
 
     private SpeechRecognizer sr;
+
+    RVAdapterLabels adapterLabels;
+    List<Labels> labels;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,6 +186,8 @@ public class ClientActivity extends AppCompatActivity {
             btnEditCallback = findViewById(R.id.btnEditCallback);
             btnEditCallback.setVisibility(View.GONE);
         }
+
+        labels = new ArrayList<>();
     }
 
     public void onButtonEditCallback(View view) {
@@ -361,7 +371,7 @@ public class ClientActivity extends AppCompatActivity {
         }
         c.close();
 
-        sqlQuewy = "SELECT cl.title "
+        sqlQuewy = "SELECT cl.title, cl.color_code "
                 + "FROM rgzbn_gm_ceiling_clients as c " +
                 "INNER JOIN rgzbn_gm_ceiling_clients_labels AS cl " +
                 "ON cl._id = c.label_id " +
@@ -371,8 +381,14 @@ public class ClientActivity extends AppCompatActivity {
             if (c.moveToFirst()) {
                 try {
                     String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    String color_code = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    int parsedColor = Color.parseColor("#" + color_code);
+
                     txtLabelOfClient.setText(title);
-                }catch (Exception e){
+                    GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                            new int[]{0xffffff, parsedColor});
+                    txtLabelOfClient.setBackgroundDrawable(gd);
+                } catch (Exception e) {
                     Log.d(TAG, "info label: " + e);
                 }
             }
@@ -866,7 +882,105 @@ public class ClientActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void onButtonEditLabelOfClient(View view){
+    private String currentColor = "000";
+    AlertDialog dialog;
+
+    public void onButtonEditLabelOfClient(View view) {
+        final Context context = this;
+        LayoutInflater li = LayoutInflater.from(context);
+        View promptsView = li.inflate(R.layout.dialog_lable_view, null);
+        AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
+        mDialogBuilder.setView(promptsView);
+        final LinearLayout header = (LinearLayout) promptsView.findViewById(R.id.header);
+
+        header.setVisibility(View.GONE);
+
+        final RecyclerView linear_color = promptsView.findViewById(R.id.linear_color);
+        LinearLayoutManager llm = new LinearLayoutManager(context);
+        linear_color.setLayoutManager(llm);
+        linear_color.setHasFixedSize(true);
+
+        viewLabels(linear_color);
+
+        dialog = new AlertDialog.Builder(context)
+                .setView(promptsView)
+                .setTitle("Ярлыки")
+                .setPositiveButton(android.R.string.ok, null)
+                .create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+
+            }
+        });
+        dialog.show();
+    }
+
+    private void viewLabels(RecyclerView recyclerView) {
+        labels.clear();
+        String sqlQuewy = "SELECT title, color_code, _id "
+                + "   FROM rgzbn_gm_ceiling_clients_labels" +
+                "    WHERE dealer_id = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    try {
+                        String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                        String color_code = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                        int id = c.getInt(c.getColumnIndex(c.getColumnName(2)));
+
+                        int parsedColor = Color.parseColor("#" + color_code);
+
+                        labels.add(new Labels(id, title, parsedColor));
+
+                    } catch (Exception e) {
+                        Log.d(TAG, "labelView: " + e);
+                    }
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+        adapterLabels = new RVAdapterLabels(labels, this);
+        recyclerView.setAdapter(adapterLabels);
+    }
+
+    @Override
+    public void recyclerViewListClicked(View v, int position) {
+        int idLabel = labels.get(position).id;
+
+        int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_labels_history", this, user_id);
+        ContentValues values = new ContentValues();
+        values.put(DBHelper.KEY_ID, maxId);
+        values.put(DBHelper.KEY_CLIENT_ID, id_client);
+        values.put(DBHelper.KEY_LABEL_ID, idLabel);
+        values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+        db.insert(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS_HISTORY, null, values);
+
+        HelperClass.addExportData(
+                ClientActivity.this,
+                Integer.valueOf(maxId),
+                "rgzbn_gm_ceiling_clients_labels_history",
+                "send");
+
+        values = new ContentValues();
+        values.put(DBHelper.KEY_LABEL_ID, idLabel);
+        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id_client});
+
+        HelperClass.addExportData(
+                ClientActivity.this,
+                Integer.valueOf(id_client),
+                "rgzbn_gm_ceiling_clients",
+                "send");
+
+        dialog.dismiss();
+        info();
+    }
+
+    @Override
+    public void recyclerViewListLongClicked(View v, int id, int pos) {
 
     }
 

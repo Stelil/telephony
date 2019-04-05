@@ -34,7 +34,7 @@ public class RVAdapterLabels extends RecyclerView.Adapter<RVAdapterLabels.LabelV
                 public void onClick(View v) {
                     int pos = getAdapterPosition();
                     if (pos != RecyclerView.NO_POSITION) {
-                        itemListener.recyclerViewListClicked(v, pos);
+                        itemListener.recyclerViewListClicked(null, pos);
                     }
                 }
             });
