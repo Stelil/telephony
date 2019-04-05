@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -193,14 +192,14 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     @Override
     public boolean onQueryTextSubmit(String query) {
 
-        ListClients(query);
+        listClients(query, 0);
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
 
-        ListClients(newText);
+        listClients(newText, 0);
         return false;
     }
 
@@ -250,7 +249,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
         @Override
         protected Void doInBackground(Void... params) {
-            ListClients("");
+            listClients("", 0);
             return null;
         }
 
@@ -454,6 +453,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     }
 
     private String currentColor = "000";
+    boolean boolView = false;
+    AlertDialog dialogLabel;
 
     public void labelView() {
 
@@ -530,19 +531,20 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
         viewLabels(linear_color);
 
-        final AlertDialog dialog = new AlertDialog.Builder(context)
+        dialogLabel = new AlertDialog.Builder(context)
                 .setView(promptsView)
                 .setTitle("Ярлыки")
-                .setPositiveButton(android.R.string.ok, null)
+                .setNegativeButton("Оk",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                boolView = false;
+                                dialog.cancel();
+                            }
+                        })
                 .create();
 
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialogInterface) {
-
-            }
-        });
-        dialog.show();
+        dialogLabel.show();
+        boolView = true;
     }
 
     private void viewLabels(RecyclerView recyclerView) {
@@ -575,7 +577,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         recyclerView.setAdapter(adapterLabels);
     }
 
-    private void ListClients(String query) {
+    private void listClients(String query, int idLabel) {
 
         client_mas.clear();
 
@@ -591,6 +593,11 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             associated_client = "";
         }
 
+        String sqlWhere = "";
+        if (idLabel != 0) {
+            sqlWhere = "and cl.label_id = " + idLabel;
+        }
+
         if (query.equals("")) {
             sqlQuewy = "SELECT cl._id, cl.client_name, " +
                     "s.title, u.name, c.phone, cl.label_id " +
@@ -604,7 +611,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                     "INNER JOIN rgzbn_users AS u " +
                     "ON cl.manager_id = u._id " +
                     "WHERE cl.dealer_id = ? " +
-                    "AND cl._id <> ? " +
+                    sqlWhere +
+                    " AND cl._id <> ? " +
                     "AND cl.deleted_by_user <> 1 " +
                     "GROUP BY cl._id " +
                     "ORDER BY cl.created DESC";
@@ -621,14 +629,14 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                     "INNER JOIN rgzbn_users AS u " +
                     "ON cl.manager_id = u._id " +
                     "WHERE cl.dealer_id = ? " +
-                    "AND cl._id <> ? " +
+                    sqlWhere +
+                    " AND cl._id <> ? " +
                     "AND cl.deleted_by_user <> 1 " +
                     "and cl.client_name like '%" + query + "%' " +
                     "or c.phone like '%" + query + "%' " +
-                    "or s.title like '%" + query + "%' " +
-                    "GROUP BY cl._id " +
-                    "ORDER BY cl.created DESC";
+                    "or s.title like '%" + query + "%' ";
         }
+
         c = db.rawQuery(sqlQuewy, new String[]{dealer_id, associated_client});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -689,22 +697,29 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                 }
             });
         } catch (Exception e) {
-            Log.d(TAG, "ListClients error: " + e);
+            Log.d(TAG, "listClients error: " + e);
         }
 
     }
 
     @Override
     public void recyclerViewListClicked(View v, int pos) {
-        int clickedDataItem = persons.get(pos).getId();
-        if (add == 1) {
-            addPhone(clickedDataItem);
+        if (!boolView) {
+            int clickedDataItem = persons.get(pos).getId();
+            if (add == 1) {
+                addPhone(clickedDataItem);
+            }
+            itemSelected = pos;
+            Intent intent = new Intent(getActivity(), ClientActivity.class);
+            intent.putExtra("id_client", String.valueOf(clickedDataItem));
+            intent.putExtra("check", "false");
+            startActivity(intent);
+        } else {
+            int idLabel = labels.get(pos).getId();
+            listClients("", idLabel);
+            boolView = false;
+            dialogLabel.dismiss();
         }
-        itemSelected = pos;
-        Intent intent = new Intent(getActivity(), ClientActivity.class);
-        intent.putExtra("id_client", String.valueOf(clickedDataItem));
-        intent.putExtra("check", "false");
-        startActivity(intent);
     }
 
     void addPhone(int id) {

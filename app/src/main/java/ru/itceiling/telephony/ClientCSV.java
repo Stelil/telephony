@@ -7,6 +7,7 @@ public class ClientCSV {
             status,
             manager,
             comment,
+            callback,
             create;
 
     public String getName() {
@@ -63,5 +64,13 @@ public class ClientCSV {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getCallback() {
+        return callback;
+    }
+
+    public void setCallback(String callback) {
+        this.callback = callback;
     }
 }

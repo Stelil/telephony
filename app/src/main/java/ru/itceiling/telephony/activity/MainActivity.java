@@ -451,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
             List<ClientCSV> clientCSVS = generateData();
             ICsvBeanWriter csvBeanWriter = new CsvBeanWriter(writer,
                     CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE);
-            String[] header = new String[]{"Name", "Number", "Mail", "Comment", "Status", "Manager", "Create"};
+            String[] header = new String[]{"Name", "Number", "Mail", "Comment", "Callback", "Status", "Manager", "Create"};
             csvBeanWriter.writeHeader(header);
             for (ClientCSV clientCSV : clientCSVS) {
                 csvBeanWriter.write(clientCSV, header, getProcessorsExport());
@@ -504,7 +504,8 @@ public class MainActivity extends AppCompatActivity {
                 "stat.title AS `Статус`, " +
                 "us.name AS `Менеджер` ," +
                 "cl.created AS `Создан`, " +
-                "GROUP_CONCAT(hist.text, '; ') AS `Коммент` " +
+                "GROUP_CONCAT(hist.text, '; ') AS `Коммент`, " +
+                "cal.callback AS `Перезвон` " +
                 "FROM `rgzbn_gm_ceiling_clients` AS cl " +
                 "LEFT JOIN `rgzbn_gm_ceiling_clients_contacts` AS clc " +
                 "ON clc.client_id = cl._id " +
@@ -519,6 +520,10 @@ public class MainActivity extends AppCompatActivity {
                 "ON hist.client_id = cl._id " +
                 "LEFT JOIN `rgzbn_users` AS us " +
                 "ON us._id = cl.manager_id " +
+                "LEFT JOIN (SELECT c.client_id, substr(c.date_time, 1, 16) || ' : ' || c.comment as callback " +
+                "FROM `rgzbn_gm_ceiling_callback` AS c " +
+                "ORDER BY c.date_time DESC) AS cal " +
+                "ON cal.client_id = cl._id " +
                 "WHERE cl.dealer_id = ? " +
                 "GROUP BY cl._id " +
                 "ORDER BY cl._id ";
@@ -535,6 +540,8 @@ public class MainActivity extends AppCompatActivity {
                     clientCSV.setMail(mail);
                     String hist = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(6)));
                     clientCSV.setComment(hist);
+                    String callback = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(7)));
+                    clientCSV.setCallback(callback);
                     String status = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(3)));
                     clientCSV.setStatus(status);
                     String manager = curCSV.getString(curCSV.getColumnIndex(curCSV.getColumnName(4)));
@@ -583,6 +590,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static CellProcessor[] getProcessorsExport() {
         return new CellProcessor[]{
+                new Optional(),
                 new Optional(),
                 new Optional(),
                 new Optional(),
