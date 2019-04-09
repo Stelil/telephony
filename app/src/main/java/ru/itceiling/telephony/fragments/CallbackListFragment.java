@@ -140,7 +140,7 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        listClients(HelperClass.nowDate().substring(0, 10), newText);
+        //listClients(HelperClass.nowDate().substring(0, 10), newText);
         return false;
     }
 

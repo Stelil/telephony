@@ -207,10 +207,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                     }
                                     jsonArray.put(jsonObject);
                                 } while (c.moveToNext());
-                            } else {
-                                db.delete(DBHelper.HISTORY_SEND_TO_SERVER,
-                                        "id_old = ? and name_table = ? and sync = 0 and type = 'send' ",
-                                        new String[]{String.valueOf(id_old), "rgzbn_gm_ceiling_clients"});
                             }
                         }
                         c.close();
@@ -269,7 +265,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                         } catch (Exception e) {
                                         }
                                     }
-                                    //sendUsers += String.valueOf(jsonObjectUsers) + ",";
                                     jsonArray.put(jsonObject);
                                 } while (c.moveToNext());
                             }
@@ -1582,15 +1577,20 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                 db.update(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS, values, "_id = ?", new String[]{old_id});
 
                                 values = new ContentValues();
+                                values.put(DBHelper.KEY_LABEL_ID, new_id);
+                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "label_id = ?",
+                                        new String[]{String.valueOf(old_id)});
+
+                                values = new ContentValues();
+                                values.put(DBHelper.KEY_LABEL_ID, new_id);
+                                db.update(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS_HISTORY, values, "label_id = ?",
+                                        new String[]{String.valueOf(old_id)});
+
+                                values = new ContentValues();
                                 values.put(DBHelper.KEY_ID_NEW, new_id);
                                 values.put(DBHelper.KEY_SYNC, "1");
                                 db.update(DBHelper.HISTORY_SEND_TO_SERVER, values, "id_old = ? and type=? and sync=? and name_table=? and id_new=?",
                                         new String[]{String.valueOf(old_id), "send", "0", "rgzbn_gm_ceiling_clients_labels", "0"});
-
-                                values = new ContentValues();
-                                values.put(DBHelper.KEY_ID, new_id);
-                                db.update(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS, values, "_id = ?",
-                                        new String[]{String.valueOf(old_id)});
 
                                 values = new ContentValues();
                                 values.put(DBHelper.KEY_ID_OLD, old_id);
@@ -1600,10 +1600,6 @@ public class ExportDataReceiver extends BroadcastReceiver {
                                 values.put(DBHelper.KEY_TYPE, "check");
                                 db.insert(DBHelper.HISTORY_SEND_TO_SERVER, null, values);
 
-                                values = new ContentValues();
-                                values.put(DBHelper.KEY_STATUS_ID, new_id);
-                                db.update(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS_HISTORY, values, "label_id = ?",
-                                        new String[]{String.valueOf(old_id)});
                             }
                         } catch (Exception e) {
                             Log.d(TAG, "onResponse: " + e);

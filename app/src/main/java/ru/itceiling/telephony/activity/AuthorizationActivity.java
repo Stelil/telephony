@@ -69,12 +69,12 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 
 import ru.itceiling.telephony.App;
-import ru.itceiling.telephony.broadcaster.CallbackReceiver;
-import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
-import ru.itceiling.telephony.broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
+import ru.itceiling.telephony.broadcaster.CallbackReceiver;
+import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
+import ru.itceiling.telephony.broadcaster.ImportDataReceiver;
 
 import static org.solovyev.android.checkout.ProductTypes.SUBSCRIPTION;
 
@@ -1083,7 +1083,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         Log.d(TAG, "onResponse: sendAuthorization " + e);
                         mProgressDialog.dismiss();
                         Toast toast = Toast.makeText(getApplicationContext(),
-                                newRes, Toast.LENGTH_SHORT);
+                                res , Toast.LENGTH_SHORT);
                         toast.show();
                     }
                 }
@@ -1236,15 +1236,14 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                             Date change_max = ft.parse(change_time_global);
 
+                            count = 0;
                             jsonObject = new JSONObject(newRes);
                             JSONArray rgzbn_gm_ceiling_clients = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients");
-
                             for (int i = 0; i < rgzbn_gm_ceiling_clients.length(); i++) {
-
                                 values = new ContentValues();
                                 org.json.JSONObject cleint = rgzbn_gm_ceiling_clients.getJSONObject(i);
 
-                                count = 0;
+                                count++;
                                 String id = cleint.getString("id");
 
                                 String client_name = cleint.getString("client_name");
@@ -1277,7 +1276,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                     if (c.moveToFirst()) {
                                         do {
                                             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, values, "_id = ?", new String[]{id});
-                                            count++;
                                             Date change = ft.parse(change_time);
                                             if (change_max.getTime() < change.getTime()) {
                                                 change_max = change;
@@ -1295,14 +1293,17 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
+                            Log.d(TAG, "onResponse: rgzbn_gm_ceiling_clients " + count);
 
+                            count = 0;
                             JSONArray rgzbn_gm_ceiling_clients_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_contacts");
+                            Log.d(TAG, "onResponse: " + rgzbn_gm_ceiling_clients_contacts);
                             for (int i = 0; i < rgzbn_gm_ceiling_clients_contacts.length(); i++) {
 
                                 values = new ContentValues();
                                 org.json.JSONObject client_contact = rgzbn_gm_ceiling_clients_contacts.getJSONObject(i);
 
-                                count = 0;
+                                count++;
                                 String id = client_contact.getString("id");
                                 String client_id = client_contact.getString("client_id");
                                 String phone = client_contact.getString("phone");
@@ -1321,7 +1322,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                     if (c.moveToFirst()) {
                                         do {
                                             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, values, "_id = ?", new String[]{id});
-                                            count++;
                                             Date change = ft.parse(change_time);
                                             if (change_max.getTime() < change.getTime()) {
                                                 change_max = change;
@@ -1338,14 +1338,17 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
+                            Log.d(TAG, "onResponse: TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS " + count);
 
+                            count = 0;
                             JSONArray rgzbn_gm_ceiling_clients_dop_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_dop_contacts");
+                            Log.d(TAG, "onResponse: " + rgzbn_gm_ceiling_clients_dop_contacts);
                             for (int i = 0; i < rgzbn_gm_ceiling_clients_dop_contacts.length(); i++) {
 
                                 values = new ContentValues();
                                 org.json.JSONObject client_dop_contact = rgzbn_gm_ceiling_clients_dop_contacts.getJSONObject(i);
 
-                                count = 0;
+                                count++;
                                 String id = client_dop_contact.getString("id");
                                 String client_id = client_dop_contact.getString("client_id");
                                 String type_id = client_dop_contact.getString("type_id");
@@ -1366,7 +1369,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                     if (c.moveToFirst()) {
                                         do {
                                             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, values, "_id = ?", new String[]{id});
-                                            count++;
                                         } while (c.moveToNext());
                                     } else {
                                         values.put(DBHelper.KEY_ID, id);
@@ -1379,14 +1381,17 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
+                            Log.d(TAG, "onResponse: TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS " + count);
 
+                            count = 0;
                             JSONArray rgzbn_gm_ceiling_callback = jsonObject.getJSONArray("rgzbn_gm_ceiling_callback");
+                            Log.d(TAG, "onResponse: " + rgzbn_gm_ceiling_callback);
                             for (int i = 0; i < rgzbn_gm_ceiling_callback.length(); i++) {
 
                                 values = new ContentValues();
                                 org.json.JSONObject callback = rgzbn_gm_ceiling_callback.getJSONObject(i);
 
-                                count = 0;
+                                count++;
                                 String id = callback.getString("id");
                                 String client_id = callback.getString("client_id");
                                 String date_time = callback.getString("date_time");
@@ -1411,7 +1416,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                         do {
                                             db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLBACK, values,
                                                     "_id = ?", new String[]{id});
-                                            count++;
                                             Date change = ft.parse(change_time);
                                             if (change_max.getTime() < change.getTime()) {
                                                 change_max = change;
@@ -1428,8 +1432,10 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
+                            Log.d(TAG, "onResponse: TABLE_RGZBN_GM_CEILING_CALLBACK " + count);
 
                             JSONArray rgzbn_gm_ceiling_client_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_client_history");
+                            Log.d(TAG, "onResponse: " + rgzbn_gm_ceiling_client_history);
                             for (int i = 0; i < rgzbn_gm_ceiling_client_history.length(); i++) {
 
                                 values = new ContentValues();
@@ -1477,6 +1483,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             }
 
                             JSONArray rgzbn_gm_ceiling_calls_status_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_calls_status_history");
+                            Log.d(TAG, "onResponse: " + rgzbn_gm_ceiling_calls_status_history);
                             for (int i = 0; i < rgzbn_gm_ceiling_calls_status_history.length(); i++) {
 
                                 values = new ContentValues();
@@ -1520,6 +1527,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             }
 
                             JSONArray rgzbn_gm_ceiling_calls_status = jsonObject.getJSONArray("rgzbn_gm_ceiling_calls_status");
+                            Log.d(TAG, "onResponse: " + rgzbn_gm_ceiling_calls_status);
                             for (int i = 0; i < rgzbn_gm_ceiling_calls_status.length(); i++) {
 
                                 values = new ContentValues();

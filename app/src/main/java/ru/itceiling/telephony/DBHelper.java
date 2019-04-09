@@ -116,7 +116,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients (_id INTEGER, " +
                 "client_name TEXT, client_data_id INTEGER, type_id INTEGER, dealer_id INTEGER, manager_id INTEGER, " +
-                "created TEXT, sex TEXT, deleted_by_user INTEGER, api_phone_id INTEGER, label_id INTEGER, change_time TEXT)");
+                "created TEXT, sex TEXT, deleted_by_user INTEGER, api_phone_id INTEGER, label_id TEXT, change_time TEXT)");
 
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_contacts (_id INTEGER, " +
                 "client_id INTEGER, phone TEXT, change_time TEXT)");
@@ -266,7 +266,7 @@ public class DBHelper extends SQLiteOpenHelper {
             db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_labels_history (_id INTEGER, client_id INTEGER, " +
                     "label_id INTEGER, change_time TEXT)");
 
-            db.execSQL("ALTER TABLE rgzbn_gm_ceiling_clients ADD label_id INTEGER");
+            db.execSQL("ALTER TABLE rgzbn_gm_ceiling_clients ADD label_id TEXT");
         }
     }
 }

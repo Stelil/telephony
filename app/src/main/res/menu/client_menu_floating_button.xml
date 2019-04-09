@@ -10,4 +10,9 @@
         android:id="@+id/label_menu"
         android:icon="@drawable/ic_label"
         android:title="Ярлыки" />
+
+    <item
+        android:id="@+id/sort"
+        android:icon="@drawable/ic_sort"
+        android:title="Сортировка" />
 </menu>

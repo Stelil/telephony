@@ -65,13 +65,18 @@ public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.Person
         LinearLayout label = (LinearLayout) cardView.findViewById(R.id.label);
         TextView personStatus = (TextView) cardView.findViewById(R.id.person_status);
         TextView personManager = (TextView) cardView.findViewById(R.id.person_manager);
-        int parsedColor = Color.parseColor("#" + persons.get(i).label);
 
         personName.setText(persons.get(i).name);
         personPhone.setText(persons.get(i).phone);
-        label.setBackgroundColor(parsedColor);
         personStatus.setText(persons.get(i).status);
         personManager.setText(persons.get(i).manager);
+
+        try {
+            int parsedColor = Color.parseColor("#" + persons.get(i).label);
+            label.setBackgroundColor(parsedColor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.internal.NavigationMenu;
@@ -27,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -111,7 +113,10 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                         onButtonAddClient(view);
                         break;
                     case R.id.label_menu:
-                        labelView();
+                        labelView(0, "", 0);
+                        break;
+                    case R.id.sort:
+                        alertDialogSort();
                         break;
                 }
                 return true;
@@ -175,6 +180,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             onButtonAddClient(view);
         }
 
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         return view;
     }
 
@@ -185,21 +192,48 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         MenuItem searchItem = menu.findItem(R.id.search);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setOnQueryTextListener(this);
+    }
 
-        super.onCreateOptionsMenu(menu, inflater);
+    private void alertDialogSort() {
+        String[] array = {"По имени", "По менеджеру", "По статусу", "По времени"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Вид сортировки");
+        builder.setItems(array, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                // TODO Auto-generated method stub
+                switch (item) {
+                    case 0:
+                        listClients("", 0, "cl.client_name");
+                        break;
+                    case 1:
+                        listClients("", 0, "u._id");
+                        break;
+                    case 2:
+                        listClients("", 0, "sm.status_id");
+                        break;
+                    case 3:
+                        listClients("", 0, "");
+                        break;
+                }
+            }
+        });
+
+        builder.create();
+        builder.show();
     }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
 
-        listClients(query, 0);
+        listClients(query, 0, "");
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
 
-        listClients(newText, 0);
+        //listClients(newText, 0, "");
         return false;
     }
 
@@ -249,7 +283,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
         @Override
         protected Void doInBackground(Void... params) {
-            listClients("", 0);
+            listClients("", 0, "");
             return null;
         }
 
@@ -309,6 +343,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
                             values.put(DBHelper.KEY_API_PHONE_ID, "null");
                             values.put(DBHelper.KEY_DELETED_BY_USER, 0);
+                            values.put(DBHelper.KEY_LABEL_ID, "null");
                             db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
 
                             HelperClass.addExportData(
@@ -456,7 +491,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     boolean boolView = false;
     AlertDialog dialogLabel;
 
-    public void labelView() {
+    public void labelView(final int id, final String title, Integer colorCode) {
 
         final Context context = getActivity();
         LayoutInflater li = LayoutInflater.from(context);
@@ -465,12 +500,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         mDialogBuilder.setView(promptsView);
         final EditText nameLabel = (EditText) promptsView.findViewById(R.id.nameLabel);
         final Button selectColor = (Button) promptsView.findViewById(R.id.selectColor);
-        final Button addLabel = (Button) promptsView.findViewById(R.id.addLabel);
-
-        final RecyclerView linear_color = promptsView.findViewById(R.id.linear_color);
-        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
-        linear_color.setLayoutManager(llm);
-        linear_color.setHasFixedSize(true);
+        final ImageButton addLabel = (ImageButton) promptsView.findViewById(R.id.addLabel);
 
         final boolean[] bool = {false};
         selectColor.setOnClickListener(new View.OnClickListener() {
@@ -496,52 +526,106 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             }
         });
 
-        addLabel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (nameLabel.getText().toString().length() > 0 && bool[0]) {
-                    String title = nameLabel.getText().toString();
-                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_labels",
-                            getActivity(), user_id);
-                    String nowDate = HelperClass.nowDate();
+        if (id == 0) {
+            final RecyclerView linear_color = promptsView.findViewById(R.id.linear_color);
+            LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+            linear_color.setLayoutManager(llm);
+            linear_color.setHasFixedSize(true);
 
-                    ContentValues values = new ContentValues();
-                    values.put(DBHelper.KEY_ID, maxId);
-                    values.put(DBHelper.KEY_TITLE, title);
-                    values.put(DBHelper.KEY_COLOR_CODE, currentColor.substring(1));
-                    values.put(DBHelper.KEY_DEALER_ID, dealer_id);
-                    values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
-                    db.insert(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS, null, values);
+            addLabel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (nameLabel.getText().toString().length() > 0 && bool[0]) {
+                        String title = nameLabel.getText().toString();
+                        int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_labels",
+                                getActivity(), user_id);
+                        String nowDate = HelperClass.nowDate();
 
-                    HelperClass.addExportData(
-                            context,
-                            maxId,
-                            "rgzbn_gm_ceiling_clients_labels",
-                            "send");
+                        ContentValues values = new ContentValues();
+                        values.put(DBHelper.KEY_ID, maxId);
+                        values.put(DBHelper.KEY_TITLE, title);
+                        values.put(DBHelper.KEY_COLOR_CODE, currentColor.substring(1));
+                        values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                        values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                        db.insert(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS, null, values);
 
-                    Toast.makeText(context, "Ярлык добавлен", Toast.LENGTH_SHORT).show();
-                    nameLabel.setText("");
+                        HelperClass.addExportData(
+                                context,
+                                maxId,
+                                "rgzbn_gm_ceiling_clients_labels",
+                                "send");
 
-                    viewLabels(linear_color);
-                } else {
-                    Toast.makeText(context, "Вы что-то не заполнили", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Ярлык добавлен", Toast.LENGTH_SHORT).show();
+                        nameLabel.setText("");
+
+                        viewLabels(linear_color);
+                    } else {
+                        Toast.makeText(context, "Вы что-то не заполнили", Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        });
+            });
 
-        viewLabels(linear_color);
+            dialogLabel = new AlertDialog.Builder(context)
+                    .setView(promptsView)
+                    .setTitle("Ярлыки")
+                    .setNegativeButton("Назад",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    boolView = false;
+                                    dialogLabel.dismiss();
+                                }
+                            })
+                    .create();
 
-        dialogLabel = new AlertDialog.Builder(context)
-                .setView(promptsView)
-                .setTitle("Ярлыки")
-                .setNegativeButton("Оk",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                boolView = false;
-                                dialog.cancel();
-                            }
-                        })
-                .create();
+            viewLabels(linear_color);
+        } else {
+            bool[0] = true;
+            String hexColor = String.format("#%06X", (0xFFFFFF & colorCode));
+            selectColor.setBackgroundColor(Color.parseColor(hexColor));
+            currentColor = hexColor;
+            nameLabel.setText(title);
+
+            addLabel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (nameLabel.getText().toString().length() > 0 && bool[0]) {
+                        String title = nameLabel.getText().toString();
+                        Log.d(TAG, "onClick: " + title);
+                        Log.d(TAG, "onClick: " + currentColor.substring(1));
+                        ContentValues values = new ContentValues();
+                        values.put(DBHelper.KEY_TITLE, nameLabel.getText().toString());
+                        values.put(DBHelper.KEY_COLOR_CODE, currentColor.substring(1));
+                        db.update(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS,
+                                values,
+                                "_id=?",
+                                new String[]{String.valueOf(id)});
+
+                        HelperClass.addExportData(
+                                context,
+                                id,
+                                "rgzbn_gm_ceiling_clients_labels",
+                                "send");
+
+                        Toast.makeText(context, "Ярлык изменён", Toast.LENGTH_SHORT).show();
+                        labelView(0, "", 0);
+                    } else {
+                        Toast.makeText(context, "Вы что-то не заполнили", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            dialogLabel = new AlertDialog.Builder(context)
+                    .setView(promptsView)
+                    .setTitle("Ярлыки")
+                    .setNegativeButton("Назад",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    boolView = false;
+                                    labelView(0, "", 0);
+                                }
+                            })
+                    .create();
+        }
 
         dialogLabel.show();
         boolView = true;
@@ -577,7 +661,9 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         recyclerView.setAdapter(adapterLabels);
     }
 
-    private void listClients(String query, int idLabel) {
+    String sqlOrderCheck = "";
+
+    private void listClients(String query, int idLabel, String sort) {
 
         client_mas.clear();
 
@@ -598,6 +684,22 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             sqlWhere = "and cl.label_id = " + idLabel;
         }
 
+        String sqlOrder = "";
+        if (sort.equals("")) {
+            sqlOrder = "ORDER BY cl.created DESC";
+            sqlOrderCheck = sqlOrder;
+        } else {
+
+            int index = sqlOrderCheck.indexOf("DESC");
+            if (index == -1) {
+                sqlOrder = "ORDER BY " + sort + " DESC";
+                sqlOrderCheck = sqlOrder;
+            } else {
+                sqlOrder = "ORDER BY " + sort;
+                sqlOrderCheck = sqlOrder;
+            }
+        }
+
         if (query.equals("")) {
             sqlQuewy = "SELECT cl._id, cl.client_name, " +
                     "s.title, u.name, c.phone, cl.label_id " +
@@ -615,7 +717,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                     " AND cl._id <> ? " +
                     "AND cl.deleted_by_user <> 1 " +
                     "GROUP BY cl._id " +
-                    "ORDER BY cl.created DESC";
+                    sqlOrder;
         } else {
             sqlQuewy = "SELECT cl._id, cl.client_name, " +
                     "s.title, u.name, c.phone, cl.label_id " +
@@ -703,7 +805,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     }
 
     @Override
-    public void recyclerViewListClicked(View v, int pos) {
+    public void recyclerViewListClicked(View v, final int pos) {
+        Log.d(TAG, "recyclerViewListClicked: " + boolView);
         if (!boolView) {
             int clickedDataItem = persons.get(pos).getId();
             if (add == 1) {
@@ -715,10 +818,104 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             intent.putExtra("check", "false");
             startActivity(intent);
         } else {
-            int idLabel = labels.get(pos).getId();
-            listClients("", idLabel);
-            boolView = false;
-            dialogLabel.dismiss();
+            String[] array = {"Отсортировать", "Изменить", "Удалить"};
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Выберите действие");
+            builder.setItems(array, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int item) {
+                    // TODO Auto-generated method stub
+                    switch (item) {
+                        case 0:
+                            int idLabel = labels.get(pos).getId();
+                            listClients("", idLabel, "");
+                            boolView = false;
+                            dialogLabel.dismiss();
+                            break;
+                        case 1:
+                            dialogLabel.dismiss();
+                            labelView(labels.get(pos).getId(),
+                                    labels.get(pos).getTitle(),
+                                    labels.get(pos).getColorCode());
+                            break;
+                        case 2:
+                            dialogLabel.dismiss();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            builder.setTitle("Удалить ярлык " + labels.get(pos).getTitle() + " ?")
+                                    .setMessage(null)
+                                    .setIcon(null)
+                                    .setCancelable(false)
+                                    .setPositiveButton("Да",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+
+                                                    db.delete(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS,
+                                                            "_id = ?",
+                                                            new String[]{String.valueOf(labels.get(pos).getId())});
+
+                                                    HelperClass.addExportData(
+                                                            getActivity(),
+                                                            Integer.valueOf(labels.get(pos).getId()),
+                                                            "rgzbn_gm_ceiling_clients_labels",
+                                                            "delete");
+
+                                                    String sqlQuewy = "SELECT _id "
+                                                            + "FROM rgzbn_gm_ceiling_clients_labels_history" +
+                                                            " WHERE label_id = ?";
+                                                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(labels.get(pos).getId())});
+                                                    if (cc != null) {
+                                                        if (cc.moveToFirst()) {
+                                                            do {
+                                                                String idLabel = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+
+                                                                db.delete(DBHelper.TABLE_RGZBN_CEILING_CLIENTS_LABELS_HISTORY,
+                                                                        "_id = ?",
+                                                                        new String[]{idLabel});
+
+                                                                HelperClass.addExportData(
+                                                                        getActivity(),
+                                                                        Integer.valueOf(idLabel),
+                                                                        "rgzbn_gm_ceiling_clients_labels_history",
+                                                                        "delete");
+
+                                                            } while (cc.moveToNext());
+
+                                                        }
+                                                    }
+                                                    cc.close();
+
+                                                    ContentValues values = new ContentValues();
+                                                    values.put(DBHelper.KEY_LABEL_ID, "null");
+                                                    db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
+                                                            values,
+                                                            "label_id=?",
+                                                            new String[]{String.valueOf(labels.get(pos).getId())});
+
+                                                    Toast toast = Toast.makeText(getActivity().getApplicationContext(),
+                                                            "Ярлык удалён ", Toast.LENGTH_SHORT);
+                                                    toast.show();
+                                                    onResume();
+                                                    labelView(0, "", 0);
+                                                }
+                                            })
+                                    .setNegativeButton("Отмена",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    dialog.cancel();
+                                                    labelView(0, "", 0);
+                                                }
+                                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+
+
+                            break;
+                    }
+                }
+            });
+
+            builder.create();
+            builder.show();
         }
     }
 
