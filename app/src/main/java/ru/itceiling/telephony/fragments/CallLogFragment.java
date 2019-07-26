@@ -110,6 +110,7 @@ public class CallLogFragment extends Fragment implements RecyclerViewClickListen
                     String date_time = c.getString(c.getColumnIndex(c.getColumnName(3)));
                     Integer status = c.getInt(c.getColumnIndex(c.getColumnName(4)));
                     String title = c.getString(c.getColumnIndex(c.getColumnName(5)));
+
                     String call_length = c.getString(c.getColumnIndex(c.getColumnName(6)));
 
                     try {

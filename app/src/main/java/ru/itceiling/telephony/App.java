@@ -1,17 +1,20 @@
 package ru.itceiling.telephony;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
+import android.widget.Toast;
 
-import org.solovyev.android.checkout.Billing;
-import org.solovyev.android.checkout.PlayStoreListener;
+import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.VKAccessTokenTracker;
+import com.vk.sdk.VKSdk;
 
-import javax.annotation.Nonnull;
+import ru.itceiling.telephony.activity.SettingsActivity;
 
 public class App extends Application {
 
-
-    @Nonnull
-    private final Billing mBilling = new Billing(this, new Billing.DefaultConfiguration() {
+    /*private final Billing mBilling = new Billing(this, new Billing.DefaultConfiguration() {
         @Nonnull
         @Override
         public String getPublicKey() {
@@ -19,9 +22,8 @@ public class App extends Application {
             //return Encryption.decrypt(s, "se.solovyev@gmail.com");
             return s;
         }
-    });
+    });*/
 
-    @Nonnull
     private static App instance;
 
     public App() {
@@ -35,16 +37,24 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        mBilling.addPlayStoreListener(new PlayStoreListener() {
-            @Override
-            public void onPurchasesChanged() {
-            }
-        });
+
+        vkAccessTokenTracker.startTracking();
+        VKSdk.initialize(this);
     }
 
-    @Nonnull
-    public Billing getBilling() {
-        return mBilling;
-    }
+    Context context;
+
+    VKAccessTokenTracker vkAccessTokenTracker = new VKAccessTokenTracker() {
+        @Override
+        public void onVKAccessTokenChanged(VKAccessToken oldToken, VKAccessToken newToken) {
+            Log.d("logd", "onVKAccessTokenChanged: " + newToken);
+            if (newToken == null) {
+                Toast.makeText(context, "AccessToken invalidated", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(context, SettingsActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }
+        }
+    };
 
 }

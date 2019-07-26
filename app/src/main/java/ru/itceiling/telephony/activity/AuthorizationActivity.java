@@ -41,19 +41,14 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.VKSdk;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.solovyev.android.checkout.ActivityCheckout;
-import org.solovyev.android.checkout.Billing;
-import org.solovyev.android.checkout.BillingRequests;
-import org.solovyev.android.checkout.Checkout;
-import org.solovyev.android.checkout.EmptyRequestListener;
-import org.solovyev.android.checkout.Inventory;
-import org.solovyev.android.checkout.ProductTypes;
-import org.solovyev.android.checkout.Purchase;
-import org.solovyev.android.checkout.Sku;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -66,17 +61,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
-
 import ru.itceiling.telephony.App;
+import ru.itceiling.telephony.AppVK;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.broadcaster.ImportDataReceiver;
-
-import static org.solovyev.android.checkout.ProductTypes.SUBSCRIPTION;
 
 public class AuthorizationActivity extends AppCompatActivity implements View.OnClickListener,
         GoogleApiClient.OnConnectionFailedListener {
@@ -116,8 +108,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
     private TextView mStatusTextView;
     private TextView mDetailTextView;
     private ProgressBar progressBar;
-
-    private ActivityCheckout mCheckout;
 
     private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month", "telephony.subscription.6month");
 
@@ -201,7 +191,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             }
         });
         prBar();
-        subs = true;
+        //subs = true;
 
         mCheckout.createPurchaseFlow(new PurchaseListener());
 
@@ -629,6 +619,18 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                             String period = jsonObject.getString("period");
                             final String datetime = jsonObject.getString("datetime");
 
+                            DateTime period_start = DateTime.parse(period_start_date, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+                            final DateTime datetimeNow = DateTime.parse(datetime, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+                            DateTime period_end_date = null;
+
+                            String[] ar = period.split(" ");
+                            if (period.toLowerCase().contains("month")) {
+                                period_end_date = period_start.plusMonths(Integer.parseInt(ar[0]));
+                            } else if (period.toLowerCase().contains("week")) {
+                                period_end_date = period_start.plusWeeks(Integer.parseInt(ar[0]));
+                            }
+                            final DateTime finalPeriod_end_date = period_end_date;
+
                             SP = getSharedPreferences("dealer_id", MODE_PRIVATE);
                             ed = SP.edit();
                             ed.putString("", dealer_id);
@@ -710,13 +712,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                 AuthorizationActivity.this));
                                         alertWelcome();
                                     } else {
-                                        Date date1 = dateFormat.parse(period_start_date);
-                                        Date date2 = dateFormat.parse(datetime);
-                                        Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                        long d1 = date1.getTime();
-                                        long d2 = date2.getTime();
-                                        long d3 = dateDD.getTime();
-                                        d1 = d1 + d3;
+                                        long d1 = finalPeriod_end_date.getMillis();
+                                        long d2 = datetimeNow.getMillis();
                                         if (d1 - d2 > 0) {
                                             importData();
                                         } else {
@@ -767,7 +764,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
             toast.show();
         } else {
             typeEnter = 2;
-            new GetPublicKey().execute();
+            //new GetPublicKey().execute();
         }
     }
 
@@ -853,6 +850,18 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         final String period_start_date = jsonObject[0].getString("period_start_date");
                         final String period = jsonObject[0].getString("period");
                         final String datetime = jsonObject[0].getString("datetime");
+
+                        DateTime period_start = DateTime.parse(period_start_date, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+                        final DateTime datetimeNow = DateTime.parse(datetime, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+                        DateTime period_end_date = null;
+
+                        String[] ar = period.split(" ");
+                        if (period.toLowerCase().contains("month")) {
+                            period_end_date = period_start.plusMonths(Integer.parseInt(ar[0]));
+                        } else if (period.toLowerCase().contains("week")) {
+                            period_end_date = period_start.plusWeeks(Integer.parseInt(ar[0]));
+                        }
+                        final DateTime finalPeriod_end_date = period_end_date;
 
                         String ob = jsonObject[0].getString("groups");
 
@@ -965,13 +974,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                                             AuthorizationActivity.this));
                                                                     alertWelcome();
                                                                 } else {
-                                                                    Date date1 = dateFormat.parse(period_start_date);
-                                                                    Date date2 = dateFormat.parse(datetime);
-                                                                    Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                                                    long d1 = date1.getTime();
-                                                                    long d2 = date2.getTime();
-                                                                    long d3 = dateDD.getTime();
-                                                                    d1 = d1 + d3;
+                                                                    long d1 = finalPeriod_end_date.getMillis();
+                                                                    long d2 = datetimeNow.getMillis();
                                                                     if (d1 - d2 > 0) {
                                                                         importData();
                                                                     } else {
@@ -1010,13 +1014,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                                                             AuthorizationActivity.this));
                                                                     alertWelcome();
                                                                 } else {
-                                                                    Date date1 = dateFormat.parse(period_start_date);
-                                                                    Date date2 = dateFormat.parse(datetime);
-                                                                    Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                                                    long d1 = date1.getTime();
-                                                                    long d2 = date2.getTime();
-                                                                    long d3 = dateDD.getTime();
-                                                                    d1 = d1 + d3;
+                                                                    long d1 = finalPeriod_end_date.getMillis();
+                                                                    long d2 = datetimeNow.getMillis();
                                                                     if (d1 - d2 > 0) {
                                                                         importData();
                                                                     } else {
@@ -1062,13 +1061,8 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                             AuthorizationActivity.this));
                                     alertWelcome();
                                 } else {
-                                    Date date1 = dateFormat.parse(period_start_date);
-                                    Date date2 = dateFormat.parse(datetime);
-                                    Date dateDD = dateFormatDD.parse(period.substring(0, 1));
-                                    long d1 = date1.getTime();
-                                    long d2 = date2.getTime();
-                                    long d3 = dateDD.getTime();
-                                    d1 = d1 + d3;
+                                    long d1 = finalPeriod_end_date.getMillis();
+                                    long d2 = datetimeNow.getMillis();
                                     if (d1 - d2 > 0) {
                                         importData();
                                     } else {
@@ -1083,7 +1077,7 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                         Log.d(TAG, "onResponse: sendAuthorization " + e);
                         mProgressDialog.dismiss();
                         Toast toast = Toast.makeText(getApplicationContext(),
-                                res , Toast.LENGTH_SHORT);
+                                res, Toast.LENGTH_SHORT);
                         toast.show();
                     }
                 }
@@ -1229,14 +1223,13 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                     Log.d(TAG, "onResponse: " + newRes);
                     if (newRes != null && !newRes.equals("null")) {
-                        int count = 0;
                         try {
                             ContentValues values;
 
                             SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                             Date change_max = ft.parse(change_time_global);
 
-                            count = 0;
+                            int count = 0;
                             jsonObject = new JSONObject(newRes);
                             JSONArray rgzbn_gm_ceiling_clients = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients");
                             for (int i = 0; i < rgzbn_gm_ceiling_clients.length(); i++) {
@@ -1293,7 +1286,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
-                            Log.d(TAG, "onResponse: rgzbn_gm_ceiling_clients " + count);
 
                             count = 0;
                             JSONArray rgzbn_gm_ceiling_clients_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_contacts");
@@ -1338,7 +1330,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
-                            Log.d(TAG, "onResponse: TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS " + count);
 
                             count = 0;
                             JSONArray rgzbn_gm_ceiling_clients_dop_contacts = jsonObject.getJSONArray("rgzbn_gm_ceiling_clients_dop_contacts");
@@ -1381,7 +1372,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
-                            Log.d(TAG, "onResponse: TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS " + count);
 
                             count = 0;
                             JSONArray rgzbn_gm_ceiling_callback = jsonObject.getJSONArray("rgzbn_gm_ceiling_callback");
@@ -1432,7 +1422,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                 }
                                 c.close();
                             }
-                            Log.d(TAG, "onResponse: TABLE_RGZBN_GM_CEILING_CALLBACK " + count);
 
                             JSONArray rgzbn_gm_ceiling_client_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_client_history");
                             Log.d(TAG, "onResponse: " + rgzbn_gm_ceiling_client_history);
@@ -1911,7 +1900,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                     finish();
                     intent = new Intent(AuthorizationActivity.this, MainActivity.class);
                     startActivity(intent);
-
                 }
 
             }, new Response.ErrorListener() {

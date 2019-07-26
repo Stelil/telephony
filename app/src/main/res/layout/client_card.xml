@@ -50,6 +50,12 @@
                         android:gravity="center"
                         android:text="89999999999" />
 
+                    <ImageView
+                        android:id="@+id/person_contact"
+                        android:layout_width="20dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"/>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

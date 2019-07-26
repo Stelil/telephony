@@ -24,7 +24,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
@@ -41,7 +40,7 @@ public class CallReceiver extends BroadcastReceiver {
 
     private static String mLastState = "";
 
-    static private Date date1, date2;
+    static private long date1, date2;
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     static int callStatus = 2;
@@ -53,7 +52,7 @@ public class CallReceiver extends BroadcastReceiver {
 
     static int notifyID = 0;
 
-    static boolean bool = true;
+    static boolean bool = true, boolHis = false;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -66,49 +65,54 @@ public class CallReceiver extends BroadcastReceiver {
             //получаем исходящий номер
 
             Log.d(TAG, "onReceive: input call");
-            TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            telephony.listen(new PhoneStateListener() {
-                @Override
-                public void onCallStateChanged(int state, final String number) {
-                    super.onCallStateChanged(state, number);
-                    phoneNumber = number;
-                }
-            }, PhoneStateListener.LISTEN_CALL_STATE);
+            //TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            //telephony.listen(new PhoneStateListener() {
+            //    @Override
+            //    public void onCallStateChanged(int state, final String number) {
+            //        super.onCallStateChanged(state, number);
+            //        phoneNumber = number;
+            //    }
+            //}, PhoneStateListener.LISTEN_CALL_STATE);
 
             phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
             callStatus = 2;
-            historyClient();
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
-            Log.d(TAG, "onReceive: output call");
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             if (!phone_state.equals(mLastState)) {
 
                 try {
-                    if (!intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER).equals(null)) {
+                    if (!intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER).equals(null) ||
+                            !intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER).equals("")) {
                         phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                     }
                 } catch (Exception e) {
                     Log.d(TAG, "onReceive: " + e);
                 }
-
+                if (!boolHis) {
+                    boolHis = true;
+                    historyClient();
+                }
                 mLastState = phone_state;
                 if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                    Log.d(TAG, "onReceive: EXTRA_STATE_RINGING");
                     //телефон звонит, получаем входящий номер
                     callStatus = 3;
-                    historyClient();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+                    Log.d(TAG, "onReceive: EXTRA_STATE_OFFHOOK");
                     //телефон находится в режиме звонка (набор номера / разговор)
                     //recordCall();
+                    date1 = System.currentTimeMillis();
                 } else if (phone_state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                     // телефон находиться в ждущем режиме.
                     // Это событие наступает по окончанию разговора, когда мы уже знаем номер и факт звонка
-
+                    date2 = System.currentTimeMillis();
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
 
+                    boolHis = false;
                     newClient();
                     addHistoryClientCall();
                 }
@@ -117,7 +121,7 @@ public class CallReceiver extends BroadcastReceiver {
 
     }
 
-    void timeDifference() {
+    /*void timeDifference() {
 
         if (date2.equals("")) {
         } else {
@@ -125,7 +129,7 @@ public class CallReceiver extends BroadcastReceiver {
                 this.mediaRecorder.stop();
             }
         }
-    }
+    }*/
 
     void recordCall() {
         Log.d(TAG, "startRecorging");
@@ -239,11 +243,23 @@ public class CallReceiver extends BroadcastReceiver {
         SharedPreferences SP = ctx.getSharedPreferences("dealer_id", MODE_PRIVATE);
         String dealer_id = SP.getString("", "");
 
+        int client_id = 0;
+        String sqlQuewy = "SELECT client_id "
+                + "FROM rgzbn_gm_ceiling_clients_contacts" +
+                " WHERE phone = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
+        if (c != null) {
+            if (c.moveToLast()) {
+                client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+            }
+        }
+        c.close();
+
         String stringToParse = "";
-        String sqlQuewy = "SELECT settings "
+        sqlQuewy = "SELECT settings "
                 + "FROM rgzbn_users " +
                 "WHERE _id = ? ";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
+        c = db.rawQuery(sqlQuewy, new String[]{dealer_id});
         if (c != null) {
             if (c.moveToFirst()) {
                 do {
@@ -260,21 +276,38 @@ public class CallReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
 
-        Date one = null, two = null;
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        int[] call = getCallDetails();
+        /*if (client_id != 0) {
 
-        int client_id = 0;
-        sqlQuewy = "SELECT client_id "
-                + "FROM rgzbn_gm_ceiling_clients_contacts" +
-                " WHERE phone = ? ";
-        c = db.rawQuery(sqlQuewy, new String[]{phoneNumber});
-        if (c != null) {
-            if (c.moveToLast()) {
-                client_id = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+            long sec = (date2 - date1) / 1000;
+            Log.d(TAG, "addHistoryClientCall: " + sec);
+
+            try {
+                Log.d(TAG, "addHistoryClientCall: " + json.getInt("CheckTimeCall"));
+                if (sec <= json.getInt("CheckTimeCall")) {
+                    String text = "Hедозвон";
+                    HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                    HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
+                } else if (sec >= json.getInt("CheckTimeCall")) {
+                    String text = "";
+                    switch (callStatus) {
+                        case 2:
+                            text = "Исходящий дозвон. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(sec));
+                            break;
+                        case 3:
+                            text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(sec));
+                            break;
+                    }
+                    HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                    HelperClass.addCallsStatusHistory(ctx, client_id, callStatus, (int) sec, bool);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        }
-        c.close();
+
+        }*/
+
+
+        int[] call = getCallDetails();
 
         try {
             if (call[1] <= json.getInt("CheckTimeCall") || call[0] == 3 || call[0] == 5) {

@@ -148,8 +148,9 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
     public void onResume() {
         super.onResume();
 
-        MyTask mt = new MyTask();
-        mt.execute();
+        //MyTask mt = new MyTask();
+        //mt.execute();
+        listClients(txtSelectDay.getText().toString(), "");
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
@@ -298,9 +299,15 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
         }
         c.close();
 
-        try {
-            adapter = new RVAdapterCallback(callbacks, this);
-            if (getActivity() != null) {
+        adapter = new RVAdapterCallback(callbacks, this);
+        recyclerView.setAdapter(adapter);
+        if (itemSelected == 0) {
+            recyclerView.scrollToPosition(itemSelected);
+        } else {
+            recyclerView.scrollToPosition(itemSelected - 1);
+        }
+         /*
+        try {  if (getActivity() != null) {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -314,7 +321,7 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
                 });
             }
         } catch (Exception e) {
-        }
+        }*/
     }
 
     @Override

@@ -1,4 +1,4 @@
-package ru.itceiling.telephony;
+package ru.itceiling.telephony.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,16 +18,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Spinner;
 
-import org.solovyev.android.checkout.ActivityCheckout;
-import org.solovyev.android.checkout.Billing;
-import org.solovyev.android.checkout.BillingRequests;
-import org.solovyev.android.checkout.Checkout;
-import org.solovyev.android.checkout.Inventory;
-import org.solovyev.android.checkout.Purchase;
-import org.solovyev.android.checkout.PurchaseFlow;
-import org.solovyev.android.checkout.RequestListener;
-import org.solovyev.android.checkout.Sku;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,16 +25,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-import static org.solovyev.android.checkout.ProductTypes.SUBSCRIPTION;
+import ru.itceiling.telephony.App;
+import ru.itceiling.telephony.R;
 
 public class SubscriptionsActivity extends AppCompatActivity {
 
-    static String TAG = "ImportLog";
+    /*static String TAG = "ImportLog";
 
     private static final List<String> SKUS = Arrays.asList("telephony.subscription.1month", "telephony.subscription.6month");
 
@@ -449,6 +437,6 @@ public class SubscriptionsActivity extends AppCompatActivity {
             Log.d(TAG, "onError: " + e);
             reloadInventory();
         }
-    }
+    }*/
 
 }

@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 8;
     public static final String DATABASE_NAME = "dbTelephony";
 
     private Context mContext;
@@ -31,6 +31,8 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS = "rgzbn_gm_ceiling_clients_dop_contacts";
     public static final String KEY_CONTACT = "contact";
+
+    public static final String TABLE_RGZBN_GM_CEILING_TYPES_OF_DOP_CONTACTS = "rgzbn_gm_ceiling_types_of_dop_contacts";
 
     public static final String TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY = "rgzbn_gm_ceiling_client_history";
     public static final String KEY_DATE_TIME = "date_time";
@@ -170,6 +172,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_clients_labels_history (_id INTEGER, client_id INTEGER, " +
                 "label_id INTEGER, change_time TEXT)");
 
+        db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_types_of_dop_contacts (_id INTEGER, title TEXT)");
 
         ContentValues values = new ContentValues();
         values.put(DBHelper.KEY_ID, 0);
@@ -230,6 +233,15 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
         db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES, null, values);
 
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 1);
+        values.put(DBHelper.KEY_TITLE, "e-mail");
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_TYPES_OF_DOP_CONTACTS, null, values);
+
+        values = new ContentValues();
+        values.put(DBHelper.KEY_ID, 2);
+        values.put(DBHelper.KEY_TITLE, "vk");
+        db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_TYPES_OF_DOP_CONTACTS, null, values);
     }
 
     @Override
@@ -267,6 +279,10 @@ public class DBHelper extends SQLiteOpenHelper {
                     "label_id INTEGER, change_time TEXT)");
 
             db.execSQL("ALTER TABLE rgzbn_gm_ceiling_clients ADD label_id TEXT");
+        }
+
+        if (oldVersion < 8) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS rgzbn_gm_ceiling_types_of_dop_contacts (_id INTEGER, title TEXT)");
         }
     }
 }

@@ -1,12 +1,8 @@
 package ru.itceiling.telephony;
 
-import android.util.Base64;
-
-import javax.annotation.Nonnull;
-
 final class Encryption {
 
-    @Nonnull
+    /*@Nonnull
     static String decrypt(@Nonnull String message, @Nonnull String salt) {
         return xor(new String(Base64.decode(message, 0)), salt);
     }
@@ -29,8 +25,6 @@ final class Encryption {
             res[i] = (char) (m[i] ^ s[i % sl]);
         }
         return new String(res);
-    }
-
-
+    }*/
 
 }

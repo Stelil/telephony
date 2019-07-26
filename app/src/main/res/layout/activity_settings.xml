@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/layoutSet"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -41,9 +42,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|left"
+        android:minLines="2"
         android:onClick="onButtonPwd"
         android:padding="5dp"
-        android:minLines="2"
         android:text="Поменять пароль"
         android:textColor="#000"
         android:textSize="18dp" />
@@ -53,11 +54,29 @@
         android:layout_height="1dp"
         android:background="#848484" />
 
-    <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    <!--
+    <android.support.v7.widget.RecyclerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbarStyle="insideOverlay"
         android:scrollbars="vertical" />
+        -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="10dp"
+            android:background="@drawable/rounded_button_white"
+            android:onClick="btnVK"
+            app:srcCompat="@drawable/vk" />
+    </LinearLayout>
 
 </LinearLayout>

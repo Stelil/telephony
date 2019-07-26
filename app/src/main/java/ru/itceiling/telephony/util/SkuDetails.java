@@ -7,7 +7,7 @@ import org.json.JSONObject;
  * Represents an in-app product's listing details.
  */
 public class SkuDetails {
-    private final String mItemType;
+    /*private final String mItemType;
     private final String mSku;
     private final String mType;
     private final String mPrice;
@@ -45,5 +45,5 @@ public class SkuDetails {
     @Override
     public String toString() {
         return "SkuDetails:" + mJson;
-    }
+    }*/
 }

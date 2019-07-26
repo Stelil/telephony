@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -65,6 +66,8 @@ public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.Person
         LinearLayout label = (LinearLayout) cardView.findViewById(R.id.label);
         TextView personStatus = (TextView) cardView.findViewById(R.id.person_status);
         TextView personManager = (TextView) cardView.findViewById(R.id.person_manager);
+        ImageView personContact = (ImageView) cardView.findViewById(R.id.person_contact);
+
 
         personName.setText(persons.get(i).name);
         personPhone.setText(persons.get(i).phone);
@@ -76,6 +79,10 @@ public class RVAdapterClient extends RecyclerView.Adapter<RVAdapterClient.Person
             label.setBackgroundColor(parsedColor);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        if (!persons.get(i).getType_contact().equals("0")) {
+            personContact.setImageResource(R.drawable.vk);
         }
     }
 

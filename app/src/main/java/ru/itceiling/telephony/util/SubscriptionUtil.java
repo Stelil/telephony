@@ -1,4 +1,4 @@
-package ru.itceiling.telephony;
+package ru.itceiling.telephony.util;
 
 import android.app.Activity;
 import android.app.Application;
@@ -18,7 +18,7 @@ import ru.itceiling.telephony.util.SkuDetails;
  * Created by hrskrs on 5/5/2016.
  */
 public class SubscriptionUtil extends Application {
-    private static final int REQUEST_CODE = 10001;
+    /*private static final int REQUEST_CODE = 10001;
     private static final String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAk8r2NGH67E3qbNE6nPxZgB09Z4RsbeIS25MwjS0dowuE5XX5Y+xy2sbpFyqC8Ja3VSEr3vbRQqYlSnVhEXY9+WxAnv3VbibSM78o/Ru3eBHwVPIzrTbcPLW84PY/RUYxRm9CIhLr/06WKHmiy8Wd3EpsWb4YFVlZnPe35nho6R9+xHfNbH+8ilqmsLNlyLnerQ7T7mpGXYoWssgOd0wwyKKyN05mopD5jRw1JnmbFa8jomahgg39AJznMyXvaaDGgl9OOGJr2y7v4wU9HGogN+4GovKsQg1NB6fhfiH5c/ci2AfVKLEBOZsA8yTycCIwbAVCqS2cp7u9rATo+WktFQIDAQAB";
 
     private IabHelper iabHelper;
@@ -152,5 +152,5 @@ public class SubscriptionUtil extends Application {
 
     public interface SubscriptionFinishedListener{
         void onSuccess();
-    }
+    }*/
 }

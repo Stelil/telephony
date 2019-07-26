@@ -11,565 +11,578 @@
     android:orientation="vertical"
     android:padding="5dp">
 
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:windowSoftInputMode="adjustResize">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/imageMessanger"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Карточка клиента"
-            android:textColor="#000"
-            android:textStyle="bold" />
-
-        <ru.itceiling.telephony.UnderlineTextView
-            android:id="@+id/nameClient"
-            style="@style/text_style_spisok"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:onClick="onButtonEditNameClient"
-            android:text="Имя"
-            android:textSize="20dp" />
+            android:layout_alignParentRight="true"
+            android:layout_margin="20dp"
+            android:onClick="onBtnMessenger"/>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:paddingLeft="6dp"
-                android:text="Почты клиента"
-                android:textColor="#000"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:id="@+id/layoutEmailClient"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center|left"
-                android:orientation="vertical"
-                android:paddingLeft="10dp" />
-
-            <ImageButton
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="@drawable/without_corners_text"
-                android:onClick="onButtonVisibleEmail"
-                android:scaleType="fitCenter"
-                android:src="@raw/plus" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/linearEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <EditText
-                android:id="@+id/addEmailClient"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/blue_corners_text"
-                android:gravity="center"
-                android:inputType="textEmailAddress"
-                tools:ignore="HardcodedText">
-
-                <requestFocus />
-            </EditText>
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonAddEmail"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:text="Добавить"
-                android:textColor="#fff" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:paddingLeft="6dp"
-                android:text="Телефоны клиента"
-                android:textColor="#000"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:id="@+id/layoutPhonesClient"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center|left"
-                android:orientation="vertical"
-                android:paddingLeft="10dp" />
-
-            <ImageButton
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="@drawable/without_corners_text"
-                android:onClick="onButtonVisiblePhones"
-                android:scaleType="fitCenter"
-                android:src="@raw/plus" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/linearPhones"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <EditText
-                android:id="@+id/addPhoneClient"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/blue_corners_text"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="11"
-                tools:ignore="HardcodedText" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonAddPhone"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:text="Добавить"
-                android:textColor="#fff" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:gravity="left"
-                android:paddingLeft="6dp"
-                android:text="Ярлыки"
-                android:textColor="#000"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtLabelOfClient"
-                style="@style/text_style_spisok"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="2"
-                android:gravity="center"
-                android:inputType="number" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonEditLabelOfClient"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:text="Изменить"
-                android:textColor="#fff" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:gravity="left"
-                android:paddingLeft="6dp"
-                android:text="Статус"
-                android:textColor="#000"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtStatusOfClient"
-                style="@style/text_style_spisok"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="2"
-                android:gravity="center"
-                android:inputType="number" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonEditStatusOfClient"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:text="Изменить"
-                android:textColor="#fff" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/layoutManager"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:gravity="left"
-                android:paddingLeft="6dp"
-                android:text="Менеджер"
-                android:textColor="#000"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtManagerOfClient"
-                style="@style/text_style_spisok"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="2"
-                android:gravity="center"
-                android:inputType="number" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonEditManagerOfClient"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:text="Изменить"
-                android:textColor="#fff" />
-
-        </LinearLayout>
-
-        <!--
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="10dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="left"
-                android:paddingLeft="6dp"
-                android:text="Реклама"
-                android:textColor="#000"
-                android:textStyle="bold"
-                android:layout_weight="2"/>
-
-            <TextView
-                android:id="@+id/txtApiPhone"
-                style="@style/text_style_spisok"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:inputType="number" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonEditApiPhone"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:text="Изменить"
-                android:textColor="#fff" />
-
-        </LinearLayout>
-        -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnEditCallback"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_margin="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonEditCallback"
-                android:text="Изменить время звонка"
-                android:textColor="#fff" />
-
-            <Button
-                android:id="@+id/btnNewCallback"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_margin="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:onClick="onButtonNewCallback"
-                android:text="Назначить время звонка"
-                android:textColor="#fff" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/layoutCallback"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:windowSoftInputMode="adjustResize">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="Изменить время звонка"
+                android:text="Карточка клиента"
                 android:textColor="#000"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <ru.itceiling.telephony.UnderlineTextView
+                android:id="@+id/nameClient"
+                style="@style/text_style_spisok"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/txtEditCallback"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/blue_corners_text"
-                    android:gravity="center|left"
-                    android:onClick="onEditButtonCallback"
-                    android:paddingLeft="5dp"
-                    android:textColor="#000000"
-                    tools:ignore="HardcodedText" />
-
-                <EditText
-                    android:id="@+id/txtEditCallbackComment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/blue_corners_text"
-                    android:gravity="center|left"
-                    android:minHeight="40dp"
-                    android:paddingLeft="5dp"
-                    android:textSize="15dp"
-                    tools:ignore="HardcodedText" />
-
-                <ImageButton
-                    android:id="@+id/btnEditAddCallback"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/without_corners_text"
-                    android:onClick="btnEditAddCallback"
-                    android:scaleType="fitCenter"
-                    android:src="@raw/check_fat" />
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/linearNewCall"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Добавить звонок"
-                android:textColor="#000"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/txtCallback"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/blue_corners_text"
-                    android:gravity="center|left"
-                    android:onClick="onButtonCallback"
-                    android:paddingLeft="5dp"
-                    android:textColor="#000000"
-                    tools:ignore="HardcodedText" />
-
-                <EditText
-                    android:id="@+id/txtCallbackComment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/blue_corners_text"
-                    android:gravity="center|left"
-                    android:minHeight="40dp"
-                    android:paddingLeft="5dp"
-                    android:textSize="15dp"
-                    tools:ignore="HardcodedText" />
-
-                <ImageButton
-                    android:id="@+id/btnAddCallback"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/without_corners_text"
-                    android:onClick="btnAddCallback"
-                    android:scaleType="fitCenter"
-                    android:src="@raw/check_fat" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:text="История клиента"
-            android:textColor="#000"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/blue_corners_text"
-            android:orientation="vertical">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/listHistoryClient"
-                android:layout_width="match_parent"
-                android:layout_height="300dp"
                 android:layout_marginTop="5dp"
-                android:layout_weight="1"
-                android:paddingLeft="6dp"
-                android:paddingRight="5dp" />
-
-            <View
-                android:layout_width="wrap_content"
-                android:layout_height="2dp"
-                android:background="#43358c" />
+                android:layout_gravity="center"
+                android:onClick="onButtonEditNameClient"
+                android:text="Имя"
+                android:textSize="20dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <android.support.v4.widget.NestedScrollView
+                <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:paddingLeft="6dp"
+                    android:text="Почты клиента"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/layoutEmailClient"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center|left"
+                    android:orientation="vertical"
+                    android:paddingLeft="10dp" />
+
+                <ImageButton
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/without_corners_text"
+                    android:onClick="onButtonVisibleEmail"
+                    android:scaleType="fitCenter"
+                    android:src="@raw/plus" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/addEmailClient"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/blue_corners_text"
+                    android:gravity="center"
+                    android:inputType="textEmailAddress"
+                    tools:ignore="HardcodedText">
+
+                    <requestFocus />
+                </EditText>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonAddEmail"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:text="Добавить"
+                    android:textColor="#fff" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:paddingLeft="6dp"
+                    android:text="Телефоны клиента"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/layoutPhonesClient"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center|left"
+                    android:orientation="vertical"
+                    android:paddingLeft="10dp" />
+
+                <ImageButton
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/without_corners_text"
+                    android:onClick="onButtonVisiblePhones"
+                    android:scaleType="fitCenter"
+                    android:src="@raw/plus" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearPhones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/addPhoneClient"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/blue_corners_text"
+                    android:gravity="center"
+                    android:inputType="number"
+                    android:maxLength="11"
+                    tools:ignore="HardcodedText" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonAddPhone"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:text="Добавить"
+                    android:textColor="#fff" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:gravity="left"
+                    android:paddingLeft="6dp"
+                    android:text="Ярлыки"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtLabelOfClient"
+                    style="@style/text_style_spisok"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    android:inputType="number" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonEditLabelOfClient"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:text="Изменить"
+                    android:textColor="#fff" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:gravity="left"
+                    android:paddingLeft="6dp"
+                    android:text="Статус"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtStatusOfClient"
+                    style="@style/text_style_spisok"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    android:inputType="number" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonEditStatusOfClient"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:text="Изменить"
+                    android:textColor="#fff" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutManager"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:gravity="left"
+                    android:paddingLeft="6dp"
+                    android:text="Менеджер"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtManagerOfClient"
+                    style="@style/text_style_spisok"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    android:inputType="number" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonEditManagerOfClient"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:text="Изменить"
+                    android:textColor="#fff" />
+
+            </LinearLayout>
+
+            <!--
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    android:paddingLeft="6dp"
+                    android:text="Реклама"
+                    android:textColor="#000"
+                    android:textStyle="bold"
+                    android:layout_weight="2"/>
+
+                <TextView
+                    android:id="@+id/txtApiPhone"
+                    style="@style/text_style_spisok"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:inputType="number" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonEditApiPhone"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:text="Изменить"
+                    android:textColor="#fff" />
+
+            </LinearLayout>
+            -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnEditCallback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonEditCallback"
+                    android:text="Изменить время звонка"
+                    android:textColor="#fff" />
+
+                <Button
+                    android:id="@+id/btnNewCallback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_button"
+                    android:onClick="onButtonNewCallback"
+                    android:text="Назначить время звонка"
+                    android:textColor="#fff" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutCallback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Изменить время звонка"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/txtEditCallback"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:layout_marginRight="5dp"
+                        android:layout_weight="2"
+                        android:background="@drawable/blue_corners_text"
+                        android:gravity="center|left"
+                        android:onClick="onEditButtonCallback"
+                        android:paddingLeft="5dp"
+                        android:textColor="#000000"
+                        tools:ignore="HardcodedText" />
 
                     <EditText
-                        android:id="@+id/editCommentClient"
+                        android:id="@+id/txtEditCallbackComment"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/without_corners_text"
-                        android:hint="Добавить комментарий"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginRight="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/blue_corners_text"
+                        android:gravity="center|left"
                         android:minHeight="40dp"
-                        android:paddingLeft="6dp"
-                        android:scrollbars="vertical"
+                        android:paddingLeft="5dp"
+                        android:textSize="15dp"
                         tools:ignore="HardcodedText" />
-                </android.support.v4.widget.NestedScrollView>
 
-                <ImageButton
-                    android:id="@+id/btnAddVoiceComment"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center|bottom"
-                    android:layout_marginRight="2dp"
-                    android:background="@drawable/rounded_button"
-                    android:onClick="onButtonAddVoiceComment"
-                    android:padding="6dp"
-                    android:scaleType="fitCenter"
-                    android:visibility="gone"
-                    app:srcCompat="@drawable/ic_settings_voice_black_24dp" />
-
-                <ImageButton
-                    android:id="@+id/btnAddComment"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center|bottom"
-                    android:background="@drawable/rounded_button"
-                    android:onClick="onButtonAddComment"
-                    android:padding="6dp"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_send_24dp" />
+                    <ImageButton
+                        android:id="@+id/btnEditAddCallback"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/without_corners_text"
+                        android:onClick="btnEditAddCallback"
+                        android:scaleType="fitCenter"
+                        android:src="@raw/check_fat" />
+                </LinearLayout>
 
             </LinearLayout>
-        </LinearLayout>
 
-    </LinearLayout>
+            <LinearLayout
+                android:id="@+id/linearNewCall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Добавить звонок"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/txtCallback"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:layout_marginRight="5dp"
+                        android:layout_weight="2"
+                        android:background="@drawable/blue_corners_text"
+                        android:gravity="center|left"
+                        android:onClick="onButtonCallback"
+                        android:paddingLeft="5dp"
+                        android:textColor="#000000"
+                        tools:ignore="HardcodedText" />
+
+                    <EditText
+                        android:id="@+id/txtCallbackComment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginRight="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/blue_corners_text"
+                        android:gravity="center|left"
+                        android:minHeight="40dp"
+                        android:paddingLeft="5dp"
+                        android:textSize="15dp"
+                        tools:ignore="HardcodedText" />
+
+                    <ImageButton
+                        android:id="@+id/btnAddCallback"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/without_corners_text"
+                        android:onClick="btnAddCallback"
+                        android:scaleType="fitCenter"
+                        android:src="@raw/check_fat" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:text="История клиента"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/blue_corners_text"
+                android:orientation="vertical">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/listHistoryClient"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_weight="1"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="5dp" />
+
+                <View
+                    android:layout_width="wrap_content"
+                    android:layout_height="2dp"
+                    android:background="#43358c" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <android.support.v4.widget.NestedScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1">
+
+                        <EditText
+                            android:id="@+id/editCommentClient"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/without_corners_text"
+                            android:hint="Добавить комментарий"
+                            android:minHeight="40dp"
+                            android:paddingLeft="6dp"
+                            android:scrollbars="vertical"
+                            tools:ignore="HardcodedText" />
+                    </android.support.v4.widget.NestedScrollView>
+
+                    <ImageButton
+                        android:id="@+id/btnAddVoiceComment"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center|bottom"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/rounded_button"
+                        android:onClick="onButtonAddVoiceComment"
+                        android:padding="6dp"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone"
+                        app:srcCompat="@drawable/ic_settings_voice_black_24dp" />
+
+                    <ImageButton
+                        android:id="@+id/btnAddComment"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center|bottom"
+                        android:background="@drawable/rounded_button"
+                        android:onClick="onButtonAddComment"
+                        android:padding="6dp"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/ic_send_24dp" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </RelativeLayout>
 </ScrollView>

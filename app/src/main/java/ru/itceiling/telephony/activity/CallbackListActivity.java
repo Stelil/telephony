@@ -29,7 +29,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 
-import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.data.AdapterList;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.comparators.ComparatorComment;
 import ru.itceiling.telephony.comparators.ComparatorDate;

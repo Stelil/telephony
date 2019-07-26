@@ -11,7 +11,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -34,7 +33,7 @@ import com.amigold.fundapter.extractors.StringExtractor;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.data.AdapterList;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.comparators.ComparatorCreate;
 import ru.itceiling.telephony.comparators.ComparatorName;

@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.internal.NavigationMenu;
@@ -39,7 +38,7 @@ import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.adapter.RVAdapterClient;
 import ru.itceiling.telephony.adapter.RVAdapterLabels;
 import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
-import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.data.AdapterList;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.DBHelper;
@@ -241,8 +240,10 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     public void onResume() {
         super.onResume();
 
-        MyTask mt = new MyTask();
-        mt.execute();
+        //MyTask mt = new MyTask();
+        //mt.execute();
+
+        listClients("", 0, "");
 
         ExportDataReceiver exportDataReceiver = new ExportDataReceiver();
         Intent intent = new Intent(getActivity(), ExportDataReceiver.class);
@@ -468,7 +469,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                             Log.d(TAG, "phone: " + phone);
 
                             persons.add(0, new Person(name, phone, nameManager, "#000000",
-                                    " ", "Необработанный", Integer.valueOf(maxIdClient)));
+                                    " ", "Необработанный", Integer.valueOf(maxIdClient), "0"));
                             adapter.notifyItemInserted(0);
                             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(0, 0);
 
@@ -702,7 +703,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
         if (query.equals("")) {
             sqlQuewy = "SELECT cl._id, cl.client_name, " +
-                    "s.title, u.name, c.phone, cl.label_id " +
+                    "s.title, u.name, c.phone, cl.label_id, dc.contact " +
                     "FROM rgzbn_gm_ceiling_clients AS cl " +
                     "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
                     "ON cl._id = sm.client_id " +
@@ -712,6 +713,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                     "ON cl._id = c.client_id " +
                     "INNER JOIN rgzbn_users AS u " +
                     "ON cl.manager_id = u._id " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_dop_contacts AS dc " +
+                    "ON cl._id = dc.client_id and dc.type_id <> 1 " +
                     "WHERE cl.dealer_id = ? " +
                     sqlWhere +
                     " AND cl._id <> ? " +
@@ -720,7 +723,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                     sqlOrder;
         } else {
             sqlQuewy = "SELECT cl._id, cl.client_name, " +
-                    "s.title, u.name, c.phone, cl.label_id " +
+                    "s.title, u.name, c.phone, cl.label_id, dc.contact " +
                     "FROM rgzbn_gm_ceiling_clients AS cl " +
                     "LEFT JOIN rgzbn_gm_ceiling_clients_statuses_map AS sm " +
                     "ON cl._id = sm.client_id " +
@@ -728,6 +731,8 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                     "ON s._id = sm.status_id " +
                     "LEFT JOIN rgzbn_gm_ceiling_clients_contacts AS c " +
                     "ON cl._id = c.client_id " +
+                    "LEFT JOIN rgzbn_gm_ceiling_clients_dop_contacts AS dc " +
+                    "ON cl._id = dc.client_id and dc.type_id <> 1 " +
                     "INNER JOIN rgzbn_users AS u " +
                     "ON cl.manager_id = u._id " +
                     "WHERE cl.dealer_id = ? " +
@@ -777,15 +782,29 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                         cc.close();
                     }
 
+                    String contact = "";
+                    if (c.getString(c.getColumnIndex(c.getColumnName(6))) != null) {
+                        contact = c.getString(c.getColumnIndex(c.getColumnName(6)));
+                    } else {
+                        contact = "0";
+                    }
+
                     persons.add(new Person(client_name, phone, nameManager, "#000000",
-                            label_code, title, Integer.valueOf(id_client)));
+                            label_code, title, Integer.valueOf(id_client), contact));
                 } while (c.moveToNext());
             }
         }
         c.close();
 
         adapter = new RVAdapterClient(persons, this);
-        try {
+        recyclerView.setAdapter(adapter);
+
+        if (itemSelected == 0) {
+            recyclerView.scrollToPosition(itemSelected);
+        } else {
+            recyclerView.scrollToPosition(itemSelected - 1);
+        }
+        /*try {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -800,8 +819,7 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             });
         } catch (Exception e) {
             Log.d(TAG, "listClients error: " + e);
-        }
-
+        }*/
     }
 
     @Override

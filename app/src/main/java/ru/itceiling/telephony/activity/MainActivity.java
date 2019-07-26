@@ -39,6 +39,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.VKSdk;
+
 import org.json.simple.JSONObject;
 import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -56,16 +59,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import ru.itceiling.telephony.broadcaster.BroadcasterCallbackClient;
+import ru.itceiling.telephony.broadcaster.BroadcastMessagesFromMessengers;
 import ru.itceiling.telephony.broadcaster.CallReceiver;
 import ru.itceiling.telephony.broadcaster.CallbackReceiver;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.broadcaster.ImportDataReceiver;
 import ru.itceiling.telephony.broadcaster.SmsBroadcaster;
-import ru.itceiling.telephony.ClientCSV;
+import ru.itceiling.telephony.broadcaster.VKReceiver;
+import ru.itceiling.telephony.data.ClientCSV;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.fragments.AnalyticsFragment;
 import ru.itceiling.telephony.fragments.CallLogFragment;
@@ -76,9 +79,10 @@ import ru.itceiling.telephony.R;
 
 public class MainActivity extends AppCompatActivity {
 
-    public CallReceiver callRecv;
-    public CallbackReceiver callbackReceiver;
-    public SmsBroadcaster smsBroadcaster;
+    private CallReceiver callRecv;
+    private CallbackReceiver callbackReceiver;
+    private SmsBroadcaster smsBroadcaster;
+    private VKReceiver vkReceiver;
     DBHelper dbHelper;
     SQLiteDatabase db;
 
@@ -123,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         db = dbHelper.getReadableDatabase();
 
         registerReceiver();
-        registerCallbackReceiver();
 
         SharedPreferences SP = this.getSharedPreferences("dealer_id", MODE_PRIVATE);
         dealer_id = SP.getString("", "");
@@ -853,10 +856,6 @@ public class MainActivity extends AppCompatActivity {
                     HelperClass.addHistory(text, MainActivity.this, String.valueOf(id));
                 }
             }
-
-            //} catch (Exception e) {
-            //    Log.d(TAG, "createClientCSV: " + e);
-            //}
         }
 
     }
@@ -900,9 +899,15 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
         filter.addAction(Intent.EXTRA_PHONE_NUMBER);
         registerReceiver(callRecv, filter);
-    }
 
-    private void registerCallbackReceiver() {
+        smsBroadcaster = new SmsBroadcaster();
+        filter = new IntentFilter();
+        registerReceiver(smsBroadcaster, filter);
+
+        if (VKSdk.isLoggedIn()) {
+            vkReceiver = new VKReceiver(this, true);
+        }
+
         callbackReceiver = new CallbackReceiver();
         if (callbackReceiver != null)
             callbackReceiver.SetAlarm(this);

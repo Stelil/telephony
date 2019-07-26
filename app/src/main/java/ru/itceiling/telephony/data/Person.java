@@ -8,8 +8,9 @@ public class Person {
     public String label;
     public String status;
     public Integer id;
+    public String type_contact;
 
-    public Person(String name, String phone, String manager, String color, String label, String status, Integer id) {
+    public Person(String name, String phone, String manager, String color, String label, String status, Integer id, String type_contact) {
         this.name = name;
         this.phone = phone;
         this.manager = manager;
@@ -17,6 +18,7 @@ public class Person {
         this.label = label;
         this.status = status;
         this.id = id;
+        this.type_contact = type_contact;
     }
 
     public String getName() {
@@ -73,5 +75,13 @@ public class Person {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getType_contact() {
+        return type_contact;
+    }
+
+    public void setType_contact(String type_contact) {
+        this.type_contact = type_contact;
     }
 }

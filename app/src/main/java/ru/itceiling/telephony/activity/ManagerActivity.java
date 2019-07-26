@@ -25,7 +25,7 @@ import com.amigold.fundapter.extractors.StringExtractor;
 
 import java.util.ArrayList;
 
-import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.data.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;

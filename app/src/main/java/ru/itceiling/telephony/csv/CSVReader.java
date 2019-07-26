@@ -1,4 +1,4 @@
-package ru.itceiling.telephony;
+package ru.itceiling.telephony.csv;
 
 /**
  Copyright 2005 Bytecode Pty Ltd.

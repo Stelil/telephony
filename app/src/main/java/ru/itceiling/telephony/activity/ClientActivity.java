@@ -2,6 +2,7 @@ package ru.itceiling.telephony.activity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -37,6 +38,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -81,6 +83,8 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
     private List<TextView> txtPhoneList = new ArrayList<TextView>();
     private List<TextView> txtEmailList = new ArrayList<TextView>();
     private RVAdapterHistoryClient adapter;
+    private ImageView imageMessenger;
+    private int contact;
     String TAG = "logd";
 
     Calendar dateAndTime = new GregorianCalendar();
@@ -106,8 +110,6 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
         id_client = getIntent().getStringExtra("id_client");
 
         Log.d(TAG, "onCreate: " + id_client);
-
-        Log.d(TAG, "onCreate: " + getIntent().getStringExtra("check"));
 
         nameClient = findViewById(R.id.nameClient);
         nameClient.setOnLongClickListener(new View.OnLongClickListener() {
@@ -140,6 +142,8 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
 
         layoutPhonesClient = findViewById(R.id.layoutPhonesClient);
         layoutEmailClient = findViewById(R.id.layoutEmailClient);
+
+        imageMessenger = findViewById(R.id.imageMessanger);
 
         info();
         historyClient();
@@ -394,6 +398,24 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
             }
         }
         c.close();
+
+        sqlQuewy = "SELECT dc.contact, dc.type_id "
+                + "FROM rgzbn_gm_ceiling_clients_dop_contacts AS dc " +
+                "WHERE dc.client_id = ? and dc.type_id <> 1";
+        c = db.rawQuery(sqlQuewy, new String[]{id_client});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                int contact = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                String type = c.getString(c.getColumnIndex(c.getColumnName(1)));
+
+                this.contact = contact;
+                if (type.equals("2")) {
+                    imageMessenger.setImageResource(R.drawable.vk);
+                }
+            }
+        }
+        c.close();
+
     }
 
     private void historyClient() {
@@ -667,7 +689,7 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
         int countTxt = 0;
         String sqlQuewy = "SELECT contact "
                 + "FROM rgzbn_gm_ceiling_clients_dop_contacts" +
-                " WHERE client_id = ? ";
+                " WHERE client_id = ? and type_id = 1";
         Cursor c = db.rawQuery(sqlQuewy, new String[]{id_client});
         if (c != null) {
             if (c.moveToFirst()) {
@@ -1354,6 +1376,16 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
         set.addAnimation(rotate); //11
 
         btnAddVoiceComment.startAnimation(set); //12
+    }
+
+    public void onBtnMessenger(View view) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("http://vk.com/id" + contact));
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     class listener implements RecognitionListener {

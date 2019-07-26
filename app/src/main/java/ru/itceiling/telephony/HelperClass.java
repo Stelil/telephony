@@ -7,24 +7,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.system.ErrnoException;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -33,13 +19,9 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,11 +31,10 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import static android.content.Context.MODE_PRIVATE;
-import static ru.itceiling.telephony.SubscriptionsActivity.TAG;
 
 public class HelperClass {
 
-    static String TAG = "ImportLog";
+    static String TAG = "vkRec";
 
     public static boolean isOnline(Context context) {
         ConnectivityManager cm =
@@ -112,10 +93,10 @@ public class HelperClass {
         if (str1.equals("7")) {
 
         } else if (str1.equals("+8") || str1.equals("+7")) {
-            str2 = phone.substring(2, phone.length());
+            str2 = phone.substring(2);
             str2 = "7" + str2;
         } else {
-            str2 = phone.substring(1, phone.length());
+            str2 = phone.substring(1);
             str2 = "7" + str2;
         }
 
@@ -160,6 +141,8 @@ public class HelperClass {
 
     public static void addHistory(String text, Context context, String id_client, int type) {
 
+        Log.d("vkRec", "addHistory: " + text + " " + id_client);
+
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
@@ -183,7 +166,6 @@ public class HelperClass {
                 max_id,
                 "rgzbn_gm_ceiling_client_history",
                 "send");
-
     }
 
     public static void addHistory(String text, Context context, String id_client, boolean bool) {
@@ -587,5 +569,91 @@ public class HelperClass {
             result[i] = (byte) (data[i] ^ keyarr[i % keyarr.length]);
         }
         return new String(result);
+    }
+
+    public static int addClient(Context context, String name, String phone, String history, String id_user, int type) {
+
+        int maxIdClient = 0;
+        try {
+            DBHelper dbHelper = new DBHelper(context);
+            SQLiteDatabase db;
+            db = dbHelper.getWritableDatabase();
+
+            SharedPreferences SP = context.getSharedPreferences("dealer_id", MODE_PRIVATE);
+            String dealer_id = SP.getString("", "");
+
+            SP = context.getSharedPreferences("user_id", MODE_PRIVATE);
+            String user_id = SP.getString("", "");
+
+            maxIdClient = lastIdTable("rgzbn_gm_ceiling_clients",
+                    context, user_id);
+            String nowDate = nowDate();
+            ContentValues values = new ContentValues();
+            values.put(DBHelper.KEY_ID, maxIdClient);
+            values.put(DBHelper.KEY_CLIENT_NAME, name);
+            values.put(DBHelper.KEY_TYPE_ID, "1");
+            values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+            values.put(DBHelper.KEY_MANAGER_ID, user_id);
+            values.put(DBHelper.KEY_CREATED, nowDate);
+            values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+            values.put(DBHelper.KEY_DELETED_BY_USER, 0);
+            values.put(DBHelper.KEY_API_PHONE_ID, "null");
+            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
+
+            addExportData(
+                    context,
+                    maxIdClient,
+                    "rgzbn_gm_ceiling_clients",
+                    "send");
+
+            if (!phone.equals("")) {
+
+                if (!phoneCheck(phone)) {
+                    phone = phoneEdit(phone);
+                }
+
+                int maxIdContacts = lastIdTable("rgzbn_gm_ceiling_clients_contacts",
+                        context, user_id);
+                values = new ContentValues();
+                values.put(DBHelper.KEY_ID, maxIdContacts);
+                values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                values.put(DBHelper.KEY_PHONE, phone);
+                values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+                addExportData(
+                        context,
+                        maxIdContacts,
+                        "rgzbn_gm_ceiling_clients_contacts",
+                        "send");
+            }
+
+            if (!id_user.equals("")) {
+                int maxIdDopContacts = lastIdTable("rgzbn_gm_ceiling_clients_dop_contacts",
+                        context, user_id);
+                values = new ContentValues();
+                values.put(DBHelper.KEY_ID, maxIdDopContacts);
+                values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                values.put(DBHelper.KEY_TYPE_ID, "2");
+                values.put(DBHelper.KEY_CONTACT, id_user);
+                values.put(DBHelper.KEY_CHANGE_TIME, nowDate());
+                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, null, values);
+
+                addExportData(
+                        context,
+                        maxIdDopContacts,
+                        "rgzbn_gm_ceiling_clients_dop_contacts",
+                        "send");
+            }
+
+            if (!history.equals("")) {
+                addHistory(history, context, String.valueOf(maxIdClient), type);
+            }
+
+        } catch (Exception e) {
+            Log.d(TAG, "addClient: " + e);
+        }
+
+        return maxIdClient;
     }
 }

@@ -5,7 +5,6 @@
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -13,8 +12,12 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+    <uses-permission android:name="com.android.vending.BILLING" />
+    -->
 
     <application
         android:name=".App"
@@ -29,6 +32,11 @@
         tools:replace="android:icon, android:theme">
 
         <activity
+            android:name="com.vk.sdk.VKServiceActivity"
+            android:label="ServiceActivity"
+            android:theme="@style/VK.Transparent" />
+
+        <activity
             android:name=".activity.AuthorizationActivity"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -37,9 +45,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activity.MainActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait">
+        </activity>
+
         <activity
             android:name=".activity.ClientActivity"
             android:screenOrientation="portrait"
@@ -69,15 +80,14 @@
             android:name=".activity.PhoneBookActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".SubscriptionsActivity"
+            android:name=".activity.SubscriptionsActivity"
             android:screenOrientation="portrait" />
 
         <receiver
             android:name=".broadcaster.CallbackReceiver"
             android:enabled="true">
             <intent-filter>
-                <action
-                    android:name="android.intent.action.NEW_OUTGOING_CALL"/>
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
             </intent-filter>
         </receiver>
         <receiver android:name=".broadcaster.ImportDataReceiver" />
@@ -98,13 +108,16 @@
             android:name=".broadcaster.BroadcasterCallbackClient"
             android:enabled="true" />
         <receiver
+            android:name=".broadcaster.BroadcastMessagesFromMessengers"
+            android:enabled="true" />
+
+        <receiver
             android:name=".broadcaster.SmsBroadcaster"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-
 
     </application>
 </manifest>

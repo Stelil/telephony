@@ -64,6 +64,10 @@ public class RVAdapterHistoryClient extends RecyclerView.Adapter<RVAdapterHistor
                 bd = context.getResources().getDrawable(R.drawable.ic_message);
                 personViewHolder.typeMessage.setImageDrawable(bd);
                 break;
+            case 3:
+                bd = context.getResources().getDrawable(R.drawable.vk);
+                personViewHolder.typeMessage.setImageDrawable(bd);
+                break;
             default:
                 personViewHolder.typeMessage.setImageDrawable(bd);
                 break;

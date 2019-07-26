@@ -54,7 +54,7 @@ import java.util.Map;
 import ru.itceiling.telephony.activity.ClientActivity;
 import ru.itceiling.telephony.adapter.RVAdapterClient;
 import ru.itceiling.telephony.adapter.RecyclerViewClickListener;
-import ru.itceiling.telephony.AdapterList;
+import ru.itceiling.telephony.data.AdapterList;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.data.Person;
@@ -460,7 +460,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                                 cc.close();
 
                                 persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                        "Холодный", title, Integer.valueOf(id_client)));
+                                        "Холодный", title, Integer.valueOf(id_client), "0"));
                             }
                         }
                         c.close();
@@ -534,7 +534,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                             cc.close();
 
                             persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                    "Холодный", title, Integer.valueOf(id_client)));
+                                    "Холодный", title, Integer.valueOf(id_client), "0"));
                         }
                     }
                     c.close();
@@ -616,7 +616,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                                 cc.close();
 
                                 persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                        "Холодный", title, Integer.valueOf(id_client)));
+                                        "Холодный", title, Integer.valueOf(id_client), "0"));
 
                             }
                         }
@@ -692,7 +692,7 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
                             cc.close();
 
                             persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                    "Холодный", title, Integer.valueOf(id_client)));
+                                    "Холодный", title, Integer.valueOf(id_client), "0"));
                         }
                     }
                     c.close();

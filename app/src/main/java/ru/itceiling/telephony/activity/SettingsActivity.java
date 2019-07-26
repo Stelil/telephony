@@ -7,23 +7,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -35,33 +29,24 @@ import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.VKCallback;
+import com.vk.sdk.VKScope;
+import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.VKError;
 
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.solovyev.android.checkout.Billing;
-import org.solovyev.android.checkout.BillingRequests;
-import org.solovyev.android.checkout.Checkout;
-import org.solovyev.android.checkout.EmptyRequestListener;
-import org.solovyev.android.checkout.ProductTypes;
-import org.solovyev.android.checkout.Purchase;
-import org.solovyev.android.checkout.Purchases;
-import org.solovyev.android.checkout.RequestListener;
 
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.HashMap;
 
-import javax.annotation.Nonnull;
-
-import butterknife.BindView;
 import butterknife.ButterKnife;
-import ru.itceiling.telephony.App;
 import ru.itceiling.telephony.DBHelper;
 import ru.itceiling.telephony.HelperClass;
 import ru.itceiling.telephony.R;
-import ru.itceiling.telephony.SubscriptionsActivity;
+import ru.itceiling.telephony.broadcaster.VKReceiver;
 
 public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
 
@@ -129,16 +114,18 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
             ButterKnife.bind(this);
 
-            final Adapter adapter = new Adapter();
+            /*final Adapter adapter = new Adapter();
             mRecycler.setLayoutManager(new LinearLayoutManager(this));
             mRecycler.setAdapter(adapter);
 
             final Billing billing = App.get().getBilling();
             mCheckout = Checkout.forActivity(this, billing);
             mCheckout.start();
-            mCheckout.whenReady(new HistoryLoader(adapter));
+            mCheckout.whenReady(new HistoryLoader(adapter));*/
 
         }
+
+        //afterVK();
     }
 
     AlertDialog dialog;
@@ -394,7 +381,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
     }
 
-    @BindView(R.id.recycler)
+    /*@BindView(R.id.recycler)
     RecyclerView mRecycler;
     private Checkout mCheckout;
 
@@ -473,6 +460,58 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         public void update(Purchases purchases) {
             mPurchases = purchases;
             notifyDataSetChanged();
+        }
+    }
+    */
+
+    public void btnVK(View view) {
+        if (!VKSdk.isLoggedIn()) {
+            String[] scope = {VKScope.GROUPS};
+            VKSdk.login(this, scope);
+        } else {
+            dialogVK();
+        }
+    }
+
+    private void dialogVK() {
+        String title = "Выйти из аккаунта?";
+        String button1String = "Да";
+        String button2String = "Нет";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title); // сообщение
+        builder.setPositiveButton(button1String, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                VKSdk.logout();
+                Toast.makeText(SettingsActivity.this, "Вы вышли из аккаунта",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+        builder.setNegativeButton(button2String, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+            }
+        });
+
+        builder.setCancelable(true);
+        builder.create();
+        builder.show();
+    }
+
+    VKReceiver vkReceiver;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
+            @Override
+            public void onResult(VKAccessToken res) {
+                vkReceiver = new VKReceiver(SettingsActivity.this, true);
+            }
+
+            @Override
+            public void onError(VKError error) {
+                Toast.makeText(SettingsActivity.this, error.errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        })) {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 }
