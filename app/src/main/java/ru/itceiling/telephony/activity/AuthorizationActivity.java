@@ -1173,7 +1173,6 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
 
                             try {
                                 JSONArray rgzbn_gm_ceiling_client_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_client_history");
-                                Log.d(TAG, "onResponse: rgzbn_gm_ceiling_client_history " + rgzbn_gm_ceiling_client_history.length());
                                 for (int i = 0; i < rgzbn_gm_ceiling_client_history.length(); i++) {
 
                                     values = new ContentValues();
@@ -1183,11 +1182,13 @@ public class AuthorizationActivity extends AppCompatActivity implements View.OnC
                                     String client_id = client_history.getString("client_id");
                                     String date_time = client_history.getString("date_time");
                                     String text = client_history.getString("text");
+                                    String type_id = client_history.getString("type_id");
                                     String change_time = client_history.getString("change_time");
 
                                     values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                     values.put(DBHelper.KEY_DATE_TIME, date_time);
                                     values.put(DBHelper.KEY_TEXT, text);
+                                    values.put(DBHelper.KEY_TYPE_ID, type_id);
                                     values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                     String sqlQuewy = "SELECT * "

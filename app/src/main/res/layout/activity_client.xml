@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_margin="20dp"
-            android:onClick="onBtnMessenger"/>
+            android:onClick="onBtnMessenger" />
 
         <LinearLayout
             android:layout_width="fill_parent"
@@ -42,8 +42,8 @@
                 style="@style/text_style_spisok"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
                 android:layout_gravity="center"
+                android:layout_marginTop="5dp"
                 android:onClick="onButtonEditNameClient"
                 android:text="Имя"
                 android:textSize="20dp" />
@@ -515,7 +515,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:background="@drawable/blue_corners_text"
                 android:orientation="vertical">
 
@@ -535,26 +535,21 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="horizontal">
 
-                    <android.support.v4.widget.NestedScrollView
+                    <EditText
+                        android:id="@+id/editCommentClient"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1">
-
-                        <EditText
-                            android:id="@+id/editCommentClient"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="@drawable/without_corners_text"
-                            android:hint="Добавить комментарий"
-                            android:minHeight="40dp"
-                            android:paddingLeft="6dp"
-                            android:scrollbars="vertical"
-                            tools:ignore="HardcodedText" />
-                    </android.support.v4.widget.NestedScrollView>
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/without_corners_text"
+                        android:hint="Добавить комментарий"
+                        android:maxLines="4"
+                        android:minHeight="40dp"
+                        android:paddingLeft="6dp"
+                        android:scrollbars="vertical" />
 
                     <ImageButton
                         android:id="@+id/btnAddVoiceComment"
@@ -566,7 +561,6 @@
                         android:onClick="onButtonAddVoiceComment"
                         android:padding="6dp"
                         android:scaleType="fitCenter"
-                        android:visibility="gone"
                         app:srcCompat="@drawable/ic_settings_voice_black_24dp" />
 
                     <ImageButton

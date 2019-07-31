@@ -928,6 +928,7 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.READ_CONTACTS,
                             Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.RECORD_AUDIO,
                             Manifest.permission.READ_SMS},
                     1);
         }
@@ -939,6 +940,29 @@ public class MainActivity extends AppCompatActivity {
             if (c.moveToFirst()) {
                 do {
                     Log.d(TAG, "onStart: " + c.getString(c.getColumnIndex(c.getColumnName(0))));
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
+
+
+        sqlQuewy = "SELECT  date_time, text, type_id, client_id "
+                + "FROM rgzbn_gm_ceiling_client_history " +
+                "order by date_time";
+        c = db.rawQuery(sqlQuewy, new String[]{});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    String date_time = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                    String text = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                    int type = c.getInt(c.getColumnIndex(c.getColumnName(2)));
+                    int client_id = c.getInt(c.getColumnIndex(c.getColumnName(3)));
+
+                    if (date_time.length() == 19) {
+                        date_time = date_time.substring(0, date_time.length() - 3);
+                    }
+
+                    Log.d(TAG, "historyClient: " + client_id + " " + type + " " + text + " " + date_time);
                 } while (c.moveToNext());
             }
         }

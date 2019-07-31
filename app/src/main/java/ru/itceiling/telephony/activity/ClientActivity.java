@@ -439,12 +439,10 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
                     }
 
                     historyClients.add(new HistoryClient(date_time, text, type));
-
                 } while (c.moveToNext());
             }
         }
         c.close();
-
 
         adapter = new RVAdapterHistoryClient(historyClients, this);
         try {
@@ -1410,12 +1408,13 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
         }
 
         public void onError(int error) {
-            Log.d(TAG, "onError!");
+            Log.d(TAG, "onError! " + error);
+            btnAddVoiceComment.clearAnimation();
         }
 
         public void onResults(Bundle results) {
             ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            editCommentClient.setText(String.valueOf(data.get(0)));
+            editCommentClient.setText(editCommentClient.getText() + " " + data.get(0));
         }
 
         public void onPartialResults(Bundle partialResults) {

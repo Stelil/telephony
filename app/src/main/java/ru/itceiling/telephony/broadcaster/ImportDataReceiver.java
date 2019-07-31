@@ -387,11 +387,13 @@ public class ImportDataReceiver extends BroadcastReceiver {
                                     String client_id = client_history.getString("client_id");
                                     String date_time = client_history.getString("date_time");
                                     String text = client_history.getString("text");
+                                    String type_id = client_history.getString("type_id");
                                     String change_time = client_history.getString("change_time");
 
                                     values.put(DBHelper.KEY_CLIENT_ID, client_id);
                                     values.put(DBHelper.KEY_DATE_TIME, date_time);
                                     values.put(DBHelper.KEY_TEXT, text);
+                                    values.put(DBHelper.KEY_TYPE_ID, type_id);
                                     values.put(DBHelper.KEY_CHANGE_TIME, change_time);
 
                                     String sqlQuewy = "SELECT * "
@@ -416,6 +418,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
                             } catch (Exception e) {
                                 Log.d(TAG, "onResponse: rgzbn_gm_ceiling_client_history " + e);
                             }
+
 
                             try {
                                 JSONArray rgzbn_gm_ceiling_calls_status_history = jsonObject.getJSONArray("rgzbn_gm_ceiling_calls_status_history");
@@ -825,7 +828,7 @@ public class ImportDataReceiver extends BroadcastReceiver {
 
     }
 
-    static private Date compareDate(Date change_max, String change_time){
+    static private Date compareDate(Date change_max, String change_time) {
         SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date change = null;
         try {
