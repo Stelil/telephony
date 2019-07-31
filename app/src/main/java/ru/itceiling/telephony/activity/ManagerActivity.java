@@ -97,7 +97,6 @@ public class ManagerActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View view) {
-                        // TODO Do something
 
                         String name = nameClient.getText().toString();
                         String phone = phoneClient.getText().toString();

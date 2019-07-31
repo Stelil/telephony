@@ -200,7 +200,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
         builder.setItems(array, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                // TODO Auto-generated method stub
                 switch (item) {
                     case 0:
                         listClients("", 0, "cl.client_name");
@@ -842,7 +841,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
             builder.setItems(array, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int item) {
-                    // TODO Auto-generated method stub
                     switch (item) {
                         case 0:
                             int idLabel = labels.get(pos).getId();

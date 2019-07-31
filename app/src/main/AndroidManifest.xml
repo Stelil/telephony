@@ -29,7 +29,8 @@
         android:supportsRtl="true"
         android:theme="@style/themeWhite"
         tools:ignore="GoogleAppIndexingWarning"
-        tools:replace="android:icon, android:theme">
+        tools:replace="android:icon, android:theme"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name="com.vk.sdk.VKServiceActivity"
@@ -109,6 +110,9 @@
             android:enabled="true" />
         <receiver
             android:name=".broadcaster.BroadcastMessagesFromMessengers"
+            android:enabled="true" />
+        <receiver
+            android:name=".broadcaster.CallTypeWindow"
             android:enabled="true" />
 
         <receiver

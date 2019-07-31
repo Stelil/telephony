@@ -741,8 +741,6 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
                 builder.setItems(array, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
-                        // TODO Auto-generated method stub
-
                         switch (item) {
                             case 0:
 

@@ -272,8 +272,6 @@ public class CallbackListActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            int pos, long id) {
-                // TODO Auto-generated method stub
-
                 AdapterList selectedid = client_mas.get(pos);
                 final int cId = Integer.parseInt(selectedid.getFour());
 

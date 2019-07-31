@@ -199,7 +199,6 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
 
                     @Override
                     public void onClick(View view) {
-                        // TODO Do something
 
                         String name = nameClient.getText().toString();
                         String phone = phoneClient.getText().toString();
@@ -469,7 +468,6 @@ public class ClientsListActivity extends AppCompatActivity implements SearchView
         //    @Override
         //    public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
         //                                   int pos, long id) {
-        //        // TODO Auto-generated method stub
 
         //        AdapterList selectedid = client_mas.get(pos);
         //        final String cId = selectedid.getId();

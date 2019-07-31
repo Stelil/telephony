@@ -306,9 +306,27 @@ public class CallReceiver extends BroadcastReceiver {
 
         }*/
 
+        // TODO : выводить окошко, в котором будет выбор типа звонка
+        if (client_id != 0) {
+            long sec = (date2 - date1) / 1000;
+            Log.d(TAG, "addHistoryClientCall: " + sec);
+            try {
+                if (sec <= json.getInt("CheckTimeCall")) {
+                    String text = "Пропущенный";
+                    HelperClass.addHistory(text, ctx, String.valueOf(client_id), bool);
+                    HelperClass.addCallsStatusHistory(ctx, client_id, 1, 0, bool);
+                } else {
+                    Intent intent = new Intent(ctx, CallTypeWindow.class);
+                    intent.putExtra("id", String.valueOf(client_id));
+                    intent.putExtra("bool", bool);
+                    ctx.sendBroadcast(intent);
+                }
+            } catch (JSONException e) {
+                Log.d(TAG, "addHistoryClientCall Exception: " + e);
+            }
+        }
 
-        int[] call = getCallDetails();
-
+        /*int[] call = getCallDetails();
         try {
             if (call[1] <= json.getInt("CheckTimeCall") || call[0] == 3 || call[0] == 5) {
                 String text = "Hедозвон";
@@ -329,7 +347,8 @@ public class CallReceiver extends BroadcastReceiver {
             }
         } catch (Exception e) {
             Log.d(TAG, "addHistoryClientCall: error " + e);
-        }
+        }*/
+
     }
 
     private void historyClient() {

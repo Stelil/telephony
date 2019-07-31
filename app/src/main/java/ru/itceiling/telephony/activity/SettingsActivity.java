@@ -162,7 +162,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
                     button.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            // TODO Do something
 
                             if (HelperClass.isOnline(SettingsActivity.this)) {
 

@@ -245,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
         if (c != null) {
             if (c.moveToFirst()) {
                 count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
+                Log.d("ImportLog", "bubbleCount: " + count);
             }
         }
         c.close();
@@ -931,8 +932,18 @@ public class MainActivity extends AppCompatActivity {
                     1);
         }
 
+        String sqlQuewy = "SELECT _id "
+                + "FROM rgzbn_gm_ceiling_clients";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    Log.d(TAG, "onStart: " + c.getString(c.getColumnIndex(c.getColumnName(0))));
+                } while (c.moveToNext());
+            }
+        }
+        c.close();
 
-        Log.d(TAG, "onStart: ");
     }
 
     void alertDialogPermission() {
