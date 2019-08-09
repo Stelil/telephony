@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.constraint.solver.widgets.Helper;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -572,8 +573,10 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
                                                                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                                                                 ContentValues values = new ContentValues();
                                                                 values.put(DBHelper.KEY_PHONE, phoneClient.getText().toString());
-                                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, values, "_id = ?",
-                                                                        new String[]{finalNumber_id});
+                                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
+                                                                        values,
+                                                                        "_id = ? and client_id =?",
+                                                                        new String[]{finalNumber_id, id_client});
 
                                                                 phonesClient();
 
@@ -637,8 +640,8 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
                                                         cc.close();
 
                                                         db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
-                                                                "_id = ?",
-                                                                new String[]{id_phone});
+                                                                "_id = ? and client_id = ?",
+                                                                new String[]{id_phone, id_client});
 
                                                         HelperClass.addExportData(
                                                                 ClientActivity.this,
@@ -790,8 +793,10 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
                                                                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                                                                 ContentValues values = new ContentValues();
                                                                 values.put(DBHelper.KEY_CONTACT, emailClient.getText().toString());
-                                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS, values, "_id = ?",
-                                                                        new String[]{finalNumber_id});
+                                                                db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS,
+                                                                        values,
+                                                                        "_id = ? and client_id = ? ",
+                                                                        new String[]{finalNumber_id, id_client});
 
                                                                 emailClient();
 
@@ -842,24 +847,24 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
 
                                                         dbHelper = new DBHelper(ClientActivity.this);
                                                         SQLiteDatabase db = dbHelper.getReadableDatabase();
-                                                        String id_phone = "";
+                                                        String id_mail = "";
                                                         String sqlQuewy = "SELECT _id "
                                                                 + "FROM rgzbn_gm_ceiling_clients_dop_contacts" +
                                                                 " WHERE contact = ? and client_id = ? ";
                                                         Cursor cc = db.rawQuery(sqlQuewy, new String[]{txt.getText().toString(), id_client});
                                                         if (cc != null) {
                                                             if (cc.moveToFirst()) {
-                                                                id_phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                                                id_mail = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
                                                             }
                                                         }
                                                         cc.close();
 
                                                         db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_DOP_CONTACTS,
-                                                                "_id = ?", new String[]{id_phone});
+                                                                "_id = ?", new String[]{id_mail});
 
                                                         HelperClass.addExportData(
                                                                 ClientActivity.this,
-                                                                Integer.valueOf(id_phone),
+                                                                Integer.valueOf(id_mail),
                                                                 "rgzbn_gm_ceiling_clients_dop_contacts",
                                                                 "delete");
 
@@ -1463,33 +1468,53 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
     public void onButtonAddPhone(View view) {
         TextView addPhoneClient = findViewById(R.id.addPhoneClient);
         String phone = addPhoneClient.getText().toString();
-        if (phone.length() == 11) {
 
-            try {
-                int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
-                        ClientActivity.this, user_id);
-                ContentValues values = new ContentValues();
-                values.put(DBHelper.KEY_ID, maxId);
-                values.put(DBHelper.KEY_CLIENT_ID, id_client);
-                values.put(DBHelper.KEY_PHONE, phone);
-                values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
-                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+        phone = HelperClass.phoneEdit(phone);
 
-                HelperClass.addExportData(
-                        ClientActivity.this,
-                        maxId,
-                        "rgzbn_gm_ceiling_clients_contacts",
-                        "send");
-
-            } catch (Exception e) {
-                Log.d("logd", "error: " + e);
+        boolean bool = false;
+        String sqlQuewy = "SELECT _id "
+                + "   FROM rgzbn_gm_ceiling_clients_contacts " +
+                "    WHERE phone = ? ";
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(phone)});
+        if (c != null) {
+            if (c.moveToFirst()) {
+                bool = true;
             }
+        }
+        c.close();
 
-            Toast.makeText(getApplicationContext(), "Телефон добавлен", Toast.LENGTH_LONG).show();
-            phonesClient();
-            addPhoneClient.setText("");
+        if (!bool) {
+            if (phone.length() == 11) {
+                try {
+                    int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
+                            ClientActivity.this, user_id);
+                    ContentValues values = new ContentValues();
+                    values.put(DBHelper.KEY_ID, maxId);
+                    values.put(DBHelper.KEY_CLIENT_ID, id_client);
+                    values.put(DBHelper.KEY_PHONE, phone);
+                    values.put(DBHelper.KEY_CHANGE_TIME, HelperClass.nowDate());
+                    db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+                    HelperClass.addExportData(
+                            ClientActivity.this,
+                            maxId,
+                            "rgzbn_gm_ceiling_clients_contacts",
+                            "send");
+
+                } catch (Exception e) {
+                    Log.d("logd", "error: " + e);
+                }
+
+                Toast.makeText(getApplicationContext(), "Телефон добавлен", Toast.LENGTH_LONG).show();
+                phonesClient();
+                addPhoneClient.setText("");
+            } else {
+                Toast.makeText(getApplicationContext(), "Неверный формат номера", Toast.LENGTH_LONG).show();
+            }
         } else {
-            Toast.makeText(getApplicationContext(), "Неверный формат номера", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),
+                    "Клиент с данным номером уже существует",
+                    Toast.LENGTH_SHORT).show();
         }
     }
 

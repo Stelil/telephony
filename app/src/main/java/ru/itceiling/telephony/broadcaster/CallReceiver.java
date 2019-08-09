@@ -63,36 +63,34 @@ public class CallReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             //получаем исходящий номер
+            Log.d(TAG, "onReceive: NEW_OUTGOING_CALL");
+            TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            telephony.listen(new PhoneStateListener() {
+                @Override
+                public void onCallStateChanged(int state, final String number) {
+                    super.onCallStateChanged(state, number);
+                    phoneNumber = number;
+                }
+            }, PhoneStateListener.LISTEN_CALL_STATE);
 
-            Log.d(TAG, "onReceive: input call");
-            //TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            //telephony.listen(new PhoneStateListener() {
-            //    @Override
-            //    public void onCallStateChanged(int state, final String number) {
-            //        super.onCallStateChanged(state, number);
-            //        phoneNumber = number;
-            //    }
-            //}, PhoneStateListener.LISTEN_CALL_STATE);
-
-            phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
+            //phoneNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
             callStatus = 2;
         } else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
+            Log.d(TAG, "onReceive: PHONE_STATE");
             String phone_state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             if (!phone_state.equals(mLastState)) {
-
-                try {
-                    if (!intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER).equals(null) ||
-                            !intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER).equals("")) {
-                        phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                    }
-                } catch (Exception e) {
-                    Log.d(TAG, "onReceive: " + e);
+                if (TelephonyManager.EXTRA_INCOMING_NUMBER != null) {
+                    Log.d(TAG, "onReceive: " + TelephonyManager.EXTRA_INCOMING_NUMBER);
+                    phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                 }
-                if (!boolHis) {
+
+                if (!boolHis && TelephonyManager.EXTRA_INCOMING_NUMBER != null) {
                     boolHis = true;
                     historyClient();
                 }
+
                 mLastState = phone_state;
+
                 if (phone_state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
                     Log.d(TAG, "onReceive: EXTRA_STATE_RINGING");
                     //телефон звонит, получаем входящий номер
@@ -111,7 +109,6 @@ public class CallReceiver extends BroadcastReceiver {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
                     boolHis = false;
                     newClient();
                     addHistoryClientCall();

@@ -160,9 +160,29 @@ public class CallbackListFragment extends Fragment implements SearchView.OnQuery
         intent = new Intent(getActivity(), ImportDataReceiver.class);
         importDataReceiver.onReceive(getActivity(), intent);
 
+        String users = "(";
+        if (user_id.equals(dealer_id)) {
+            String sqlQuewy = "SELECT s._id " +
+                    "FROM rgzbn_users AS s ";
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    do {
+                        users += c.getString(c.getColumnIndex(c.getColumnName(0))) + ", ";
+                    } while (c.moveToNext());
+                }
+            }
+            c.close();
+            users = users.substring(0, users.length() - 2);
+            users += ")";
+        } else {
+            users = "(" + user_id + ")";
+        }
+
         int count = 0;
         String sqlQuewy = "SELECT count(_id) "
-                + "FROM rgzbn_gm_ceiling_callback ";
+                + "FROM rgzbn_gm_ceiling_callback " +
+                "where manager_id in " + users;
         Cursor c = db.rawQuery(sqlQuewy, new String[]{});
         if (c != null) {
             if (c.moveToFirst()) {

@@ -56,8 +56,8 @@ public class CallbackReceiver extends BroadcastReceiver {
                     } catch (Exception e) {
                     }
 
-                    if (client_id.equals("")) {
-                    } else if (two.getTime() < one.getTime()) {
+                    Log.d(TAG, "onReceive: ");
+                    if ((two.getTime() < one.getTime()) && !client_id.equals("")) {
 
                         SharedPreferences SP = context.getSharedPreferences("dealer_id", MODE_PRIVATE);
                         String dealer_id = SP.getString("", "");
@@ -128,6 +128,6 @@ public class CallbackReceiver extends BroadcastReceiver {
         Intent intent = new Intent(context, CallbackReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(sender);//Отменяем будильник, связанный с интентом данного класса
+        alarmManager.cancel(sender);
     }
 }

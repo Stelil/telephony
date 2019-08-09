@@ -147,14 +147,18 @@ public class CallTypeWindow extends BroadcastReceiver {
         String text = "";
         switch (status) {
             case 1:
-                text = "Исходящий дозвон. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(status));
+                text = "Исходящий недозвон";
                 break;
             case 2:
-                text = "Входящий звонок. \nДлина разговора = " + HelperClass.editTimeCall(String.valueOf(status));
+                text = "Исходящий дозвон";
+                break;
+            case 3:
+                text = "Входящий дозвон";
                 break;
         }
         HelperClass.addHistory(text, ctx, client_id, bool);
         HelperClass.addCallsStatusHistory(ctx, Integer.parseInt(client_id), status, 0, bool);
+        windowManager.removeView(view);
     }
 
 }

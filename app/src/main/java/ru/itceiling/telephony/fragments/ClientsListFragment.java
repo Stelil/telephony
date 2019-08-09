@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.constraint.solver.widgets.Helper;
 import android.support.design.internal.NavigationMenu;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -319,165 +320,186 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
             @Override
             public void onShow(DialogInterface dialogInterface) {
-
                 Button button = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
                 button.setOnClickListener(new View.OnClickListener() {
-
                     @Override
                     public void onClick(View view) {
 
                         String name = nameClient.getText().toString();
                         String phone = phoneClient.getText().toString();
+                        phone = HelperClass.phoneEdit(phone);
 
-                        if (name.length() > 0) {
-                            int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
-                                    getActivity(), user_id);
-                            String nowDate = HelperClass.nowDate();
-                            ContentValues values = new ContentValues();
-                            values.put(DBHelper.KEY_ID, maxIdClient);
-                            values.put(DBHelper.KEY_CLIENT_NAME, name);
-                            values.put(DBHelper.KEY_TYPE_ID, "1");
-                            values.put(DBHelper.KEY_DEALER_ID, dealer_id);
-                            values.put(DBHelper.KEY_MANAGER_ID, user_id);
-                            values.put(DBHelper.KEY_CREATED, nowDate);
-                            values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
-                            values.put(DBHelper.KEY_API_PHONE_ID, "null");
-                            values.put(DBHelper.KEY_DELETED_BY_USER, 0);
-                            values.put(DBHelper.KEY_LABEL_ID, "null");
-                            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
-
-                            HelperClass.addExportData(
-                                    context,
-                                    maxIdClient,
-                                    "rgzbn_gm_ceiling_clients",
-                                    "send");
-
-                            int idOldClient = 0;
-                            String sqlQuewy = "SELECT c.client_id " +
-                                    "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
-                                    "WHERE c.phone = ?";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{phone});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-
-                                    values = new ContentValues();
-                                    values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
-                                    db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, values, "client_id = ? ",
-                                            new String[]{String.valueOf(idOldClient)});
-
-                                    int idCallsStatusHistory = 0;
-                                    sqlQuewy = "SELECT _id "
-                                            + "   FROM rgzbn_gm_ceiling_calls_status_history" +
-                                            "    WHERE client_id = ? ";
-                                    cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
-                                    if (cc != null) {
-                                        if (cc.moveToLast()) {
-                                            idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                                        }
-                                    }
-                                    cc.close();
-
-                                    HelperClass.addExportData(
-                                            context,
-                                            idCallsStatusHistory,
-                                            "rgzbn_gm_ceiling_calls_status_history",
-                                            "send");
-
-                                    values = new ContentValues();
-                                    values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
-                                    db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, values, "client_id = ? ",
-                                            new String[]{String.valueOf(idOldClient)});
-
-                                    int idClientHistory = 0;
-                                    sqlQuewy = "SELECT _id "
-                                            + "   FROM rgzbn_gm_ceiling_client_history" +
-                                            "    WHERE client_id = ? ";
-                                    cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
-                                    if (cc != null) {
-                                        if (cc.moveToLast()) {
-                                            idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                                        }
-                                    }
-                                    cc.close();
-
-                                    HelperClass.addExportData(
-                                            context,
-                                            idClientHistory,
-                                            "rgzbn_gm_ceiling_client_history",
-                                            "send");
-
-                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
-                                            "_id = ?",
-                                            new String[]{String.valueOf(idOldClient)});
-
-                                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
-                                            "client_id = ?",
-                                            new String[]{String.valueOf(idOldClient)});
-                                }
+                        Log.d(TAG, "onClick: " + phone);
+                        boolean bool = false;
+                        String sqlQuewy = "SELECT cc._id "
+                                + "FROM rgzbn_gm_ceiling_clients_contacts  as cc " +
+                                "inner join rgzbn_gm_ceiling_clients as c " +
+                                "on cc.client_id = c._id " +
+                                "WHERE cc.phone = ? and c.deleted_by_user = 0 ";
+                        Cursor c = db.rawQuery(sqlQuewy, new String[]{String.valueOf(phone)});
+                        if (c != null) {
+                            if (c.moveToLast()) {
+                                Log.d(TAG, "onButtonAddPhone: " + c.getInt(c.getColumnIndex(c.getColumnName(0))));
+                                bool = true;
                             }
-                            cc.close();
+                        }
+                        c.close();
 
-                            HelperClass.addHistory("Новый клиент", getActivity(), String.valueOf(maxIdClient));
-
-                            int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
-                                    getActivity(), user_id);
-                            values = new ContentValues();
-                            values.put(DBHelper.KEY_ID, maxId);
-                            values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
-                            values.put(DBHelper.KEY_STATUS_ID, "1");
-                            values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
-                            db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
-
-                            HelperClass.addExportData(
-                                    context,
-                                    maxId,
-                                    "rgzbn_gm_ceiling_clients_statuses_map",
-                                    "send");
-
-                            if ((phone.length() == 11)) {
-                                int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
+                        if (!bool) {
+                            if (name.length() > 0) {
+                                int maxIdClient = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients",
                                         getActivity(), user_id);
-                                values = new ContentValues();
-                                values.put(DBHelper.KEY_ID, maxIdContacts);
-                                values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
-                                values.put(DBHelper.KEY_PHONE, HelperClass.phoneEdit(phone));
+                                String nowDate = HelperClass.nowDate();
+                                ContentValues values = new ContentValues();
+                                values.put(DBHelper.KEY_ID, maxIdClient);
+                                values.put(DBHelper.KEY_CLIENT_NAME, name);
+                                values.put(DBHelper.KEY_TYPE_ID, "1");
+                                values.put(DBHelper.KEY_DEALER_ID, dealer_id);
+                                values.put(DBHelper.KEY_MANAGER_ID, user_id);
+                                values.put(DBHelper.KEY_CREATED, nowDate);
                                 values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
-                                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+                                values.put(DBHelper.KEY_API_PHONE_ID, "null");
+                                values.put(DBHelper.KEY_DELETED_BY_USER, 0);
+                                values.put(DBHelper.KEY_LABEL_ID, "null");
+                                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS, null, values);
 
                                 HelperClass.addExportData(
                                         context,
-                                        maxIdContacts,
-                                        "rgzbn_gm_ceiling_clients_contacts",
+                                        maxIdClient,
+                                        "rgzbn_gm_ceiling_clients",
                                         "send");
-                            }
 
-                            String nameManager = "-";
-                            sqlQuewy = "SELECT name "
-                                    + "   FROM rgzbn_users" +
-                                    "    WHERE _id = ? " +
-                                    "order by _id";
-                            cc = db.rawQuery(sqlQuewy, new String[]{user_id});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                int idOldClient = 0;
+                                sqlQuewy = "SELECT c.client_id " +
+                                        "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
+                                        "WHERE c.phone = ?";
+                                Cursor cc = db.rawQuery(sqlQuewy, new String[]{phone});
+                                if (cc != null) {
+                                    if (cc.moveToLast()) {
+                                        idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+
+                                        values = new ContentValues();
+                                        values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, values, "client_id = ? ",
+                                                new String[]{String.valueOf(idOldClient)});
+
+                                        int idCallsStatusHistory = 0;
+                                        sqlQuewy = "SELECT _id "
+                                                + "   FROM rgzbn_gm_ceiling_calls_status_history" +
+                                                "    WHERE client_id = ? ";
+                                        cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
+                                        if (cc != null) {
+                                            if (cc.moveToLast()) {
+                                                idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                                            }
+                                        }
+                                        cc.close();
+
+                                        HelperClass.addExportData(
+                                                context,
+                                                idCallsStatusHistory,
+                                                "rgzbn_gm_ceiling_calls_status_history",
+                                                "send");
+
+                                        values = new ContentValues();
+                                        values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                        db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, values, "client_id = ? ",
+                                                new String[]{String.valueOf(idOldClient)});
+
+                                        int idClientHistory = 0;
+                                        sqlQuewy = "SELECT _id "
+                                                + "   FROM rgzbn_gm_ceiling_client_history" +
+                                                "    WHERE client_id = ? ";
+                                        cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
+                                        if (cc != null) {
+                                            if (cc.moveToLast()) {
+                                                idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                                            }
+                                        }
+                                        cc.close();
+
+                                        HelperClass.addExportData(
+                                                context,
+                                                idClientHistory,
+                                                "rgzbn_gm_ceiling_client_history",
+                                                "send");
+
+                                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
+                                                "_id = ?",
+                                                new String[]{String.valueOf(idOldClient)});
+
+                                        db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS,
+                                                "client_id = ?",
+                                                new String[]{String.valueOf(idOldClient)});
+                                    }
                                 }
+                                cc.close();
+
+                                HelperClass.addHistory("Новый клиент", getActivity(), String.valueOf(maxIdClient));
+
+                                int maxId = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_statuses_map",
+                                        getActivity(), user_id);
+                                values = new ContentValues();
+                                values.put(DBHelper.KEY_ID, maxId);
+                                values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                values.put(DBHelper.KEY_STATUS_ID, "1");
+                                values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                                db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_STATUSES_MAP, null, values);
+
+                                HelperClass.addExportData(
+                                        context,
+                                        maxId,
+                                        "rgzbn_gm_ceiling_clients_statuses_map",
+                                        "send");
+
+                                if ((phone.length() == 11)) {
+                                    int maxIdContacts = HelperClass.lastIdTable("rgzbn_gm_ceiling_clients_contacts",
+                                            getActivity(), user_id);
+                                    values = new ContentValues();
+                                    values.put(DBHelper.KEY_ID, maxIdContacts);
+                                    values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
+                                    values.put(DBHelper.KEY_PHONE, HelperClass.phoneEdit(phone));
+                                    values.put(DBHelper.KEY_CHANGE_TIME, nowDate);
+                                    db.insert(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS_CONTACTS, null, values);
+
+                                    HelperClass.addExportData(
+                                            context,
+                                            maxIdContacts,
+                                            "rgzbn_gm_ceiling_clients_contacts",
+                                            "send");
+                                }
+
+                                String nameManager = "-";
+                                sqlQuewy = "SELECT name "
+                                        + "   FROM rgzbn_users" +
+                                        "    WHERE _id = ? " +
+                                        "order by _id";
+                                cc = db.rawQuery(sqlQuewy, new String[]{user_id});
+                                if (cc != null) {
+                                    if (cc.moveToLast()) {
+                                        nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
+                                    }
+                                }
+                                cc.close();
+
+                                Log.d(TAG, "phone: " + phone);
+
+                                persons.add(0, new Person(name, phone, nameManager, "#000000",
+                                        " ", "Необработанный", Integer.valueOf(maxIdClient), "0"));
+                                adapter.notifyItemInserted(0);
+                                ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(0, 0);
+
+                                getActivity().getIntent().removeExtra("phone");
+
+                                dialog.dismiss();
+                                Toast.makeText(getActivity().getApplicationContext(), "Клиент добавлен", Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(getActivity().getApplicationContext(), "Введите имя", Toast.LENGTH_LONG).show();
                             }
-                            cc.close();
-
-                            Log.d(TAG, "phone: " + phone);
-
-                            persons.add(0, new Person(name, phone, nameManager, "#000000",
-                                    " ", "Необработанный", Integer.valueOf(maxIdClient), "0"));
-                            adapter.notifyItemInserted(0);
-                            ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(0, 0);
-
-                            getActivity().getIntent().removeExtra("phone");
-
-                            dialog.dismiss();
-                            Toast.makeText(getActivity().getApplicationContext(), "Клиент добавлен", Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(getActivity().getApplicationContext(), "Введите имя", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context,
+                                    "Клиент с данным номером уже существует",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

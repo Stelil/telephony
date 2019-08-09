@@ -101,7 +101,8 @@
                     android:background="@drawable/blue_corners_text"
                     android:gravity="center"
                     android:inputType="textEmailAddress"
-                    tools:ignore="HardcodedText">
+                    tools:ignore="HardcodedText"
+                    android:hint="Введите e-mail адрес клиента (xxx@xxx.xx)">
 
                     <requestFocus />
                 </EditText>
@@ -173,7 +174,8 @@
                     android:gravity="center"
                     android:inputType="number"
                     android:maxLength="11"
-                    tools:ignore="HardcodedText" />
+                    tools:ignore="HardcodedText"
+                    android:hint="Введите номер клиента"/>
 
                 <Button
                     android:layout_width="wrap_content"
@@ -413,7 +415,8 @@
                         android:onClick="onEditButtonCallback"
                         android:paddingLeft="5dp"
                         android:textColor="#000000"
-                        tools:ignore="HardcodedText" />
+                        tools:ignore="HardcodedText"
+                        android:hint="Дата звонка"/>
 
                     <EditText
                         android:id="@+id/txtEditCallbackComment"
@@ -427,7 +430,8 @@
                         android:minHeight="40dp"
                         android:paddingLeft="5dp"
                         android:textSize="15dp"
-                        tools:ignore="HardcodedText" />
+                        tools:ignore="HardcodedText"
+                        android:hint="Введите комментарий"/>
 
                     <ImageButton
                         android:id="@+id/btnEditAddCallback"
@@ -476,7 +480,8 @@
                         android:onClick="onButtonCallback"
                         android:paddingLeft="5dp"
                         android:textColor="#000000"
-                        tools:ignore="HardcodedText" />
+                        tools:ignore="HardcodedText"
+                        android:hint="Дата звонка"/>
 
                     <EditText
                         android:id="@+id/txtCallbackComment"
@@ -490,7 +495,8 @@
                         android:minHeight="40dp"
                         android:paddingLeft="5dp"
                         android:textSize="15dp"
-                        tools:ignore="HardcodedText" />
+                        tools:ignore="HardcodedText"
+                        android:hint="Введите комментарий"/>
 
                     <ImageButton
                         android:id="@+id/btnAddCallback"

@@ -82,7 +82,9 @@ public class BroadcasterCallbackClient extends BroadcastReceiver {
         callClient.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(TAG, "onReceive: " + finalPhone);
                 Intent resultIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + finalPhone));
+                resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(resultIntent);
                 windowManager.removeView(view);
             }

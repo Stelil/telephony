@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#ecedef">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -44,14 +44,13 @@
 
             <ImageButton
                 android:id="@+id/btnClearDay"
-                android:layout_width="30dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:background="@drawable/without_corners_text"
                 android:onClick="onButtonClearDay"
-                android:scaleType="fitCenter"
-                android:src="@raw/cross" />
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/without_corners_text"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/ic_clear_black_24dp"/>
 
         </LinearLayout>
 

@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.constraint.solver.widgets.Helper;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
@@ -174,22 +175,6 @@ public class MainActivity extends AppCompatActivity {
 
         bubble();
 
-        /*String sqlQuewy = "SELECT h._id " +
-                "FROM rgzbn_gm_ceiling_client_history AS h " +
-                "LEFT JOIN rgzbn_gm_ceiling_clients AS c " +
-                "ON c._id = h.client_id " +
-                "WHERE c._id IS NULL";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    String id = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, "_id=?", new String[]{id});
-                } while (c.moveToNext());
-            }
-        }
-        c.close();*/
-
         myExternalFile = new File(getExternalFilesDir(filepath), filename);
     }
 
@@ -218,11 +203,30 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences SP = this.getSharedPreferences("user_id", MODE_PRIVATE);
         String user_id = SP.getString("", "");
 
+        String users = "(";
+        if (user_id.equals(dealer_id)) {
+            String sqlQuewy = "SELECT s._id " +
+                    "FROM rgzbn_users AS s ";
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    do {
+                        users += c.getString(c.getColumnIndex(c.getColumnName(0))) + ", ";
+                    } while (c.moveToNext());
+                }
+            }
+            c.close();
+            users = users.substring(0, users.length() - 2);
+            users += ")";
+        } else {
+            users = "(" + user_id + ")";
+        }
+
         int count = 0;
-        String sqlQuewy = "SELECT count(_id) "
+        String sqlQuewy = "SELECT COUNT(distinct client_id) "
                 + "FROM rgzbn_gm_ceiling_callback " +
-                "WHERE substr(date_time,1,10) <= ?";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{HelperClass.nowDate().substring(0, 10)});
+                "WHERE SUBSTR(date_time,1,10) = '" + HelperClass.nowDate().substring(0, 10) + "' and manager_id in " + users;
+        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
         if (c != null) {
             if (c.moveToFirst()) {
                 count = c.getInt(c.getColumnIndex(c.getColumnName(0)));
@@ -894,24 +898,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void registerReceiver() {
-        callRecv = new CallReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-        filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
-        filter.addAction(Intent.EXTRA_PHONE_NUMBER);
-        registerReceiver(callRecv, filter);
 
-        smsBroadcaster = new SmsBroadcaster();
-        filter = new IntentFilter();
-        registerReceiver(smsBroadcaster, filter);
+        try {
+            callRecv = new CallReceiver();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+            filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+            filter.addAction(Intent.EXTRA_PHONE_NUMBER);
+            registerReceiver(callRecv, filter);
 
-        if (VKSdk.isLoggedIn()) {
-            vkReceiver = new VKReceiver(this, true);
+            smsBroadcaster = new SmsBroadcaster();
+            filter = new IntentFilter();
+            registerReceiver(smsBroadcaster, filter);
+
+            if (VKSdk.isLoggedIn()) {
+                vkReceiver = new VKReceiver(this, true);
+            }
+
+            callbackReceiver = new CallbackReceiver();
+            if (callbackReceiver != null)
+                callbackReceiver.SetAlarm(this);
+        } catch (Exception e) {
+            Log.d(TAG, "registerReceiver: Exception " + e);
         }
 
-        callbackReceiver = new CallbackReceiver();
-        if (callbackReceiver != null)
-            callbackReceiver.SetAlarm(this);
     }
 
     @Override
@@ -926,6 +936,7 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.READ_CALL_LOG,
                             Manifest.permission.INTERNET,
                             Manifest.permission.READ_CONTACTS,
+                            Manifest.permission.READ_CALL_LOG,
                             Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.READ_EXTERNAL_STORAGE,
                             Manifest.permission.RECORD_AUDIO,
@@ -933,41 +944,7 @@ public class MainActivity extends AppCompatActivity {
                     1);
         }
 
-        String sqlQuewy = "SELECT _id "
-                + "FROM rgzbn_gm_ceiling_clients";
-        Cursor c = db.rawQuery(sqlQuewy, new String[]{});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    Log.d(TAG, "onStart: " + c.getString(c.getColumnIndex(c.getColumnName(0))));
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
-
-        sqlQuewy = "SELECT  date_time, text, type_id, client_id "
-                + "FROM rgzbn_gm_ceiling_client_history " +
-                "order by date_time";
-        c = db.rawQuery(sqlQuewy, new String[]{});
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    String date_time = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                    String text = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                    int type = c.getInt(c.getColumnIndex(c.getColumnName(2)));
-                    int client_id = c.getInt(c.getColumnIndex(c.getColumnName(3)));
-
-                    if (date_time.length() == 19) {
-                        date_time = date_time.substring(0, date_time.length() - 3);
-                    }
-
-                    Log.d(TAG, "historyClient: " + client_id + " " + type + " " + text + " " + date_time);
-                } while (c.moveToNext());
-            }
-        }
-        c.close();
-
+        Log.d(TAG, "onStart: " + HelperClass.nowDate());
     }
 
     void alertDialogPermission() {
