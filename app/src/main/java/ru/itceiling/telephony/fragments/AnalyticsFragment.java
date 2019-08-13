@@ -374,7 +374,6 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
     };
 
     private void ListClients(Integer id, RecyclerView listView) {
-
         client_mas.clear();
         persons = new ArrayList<>();
 
@@ -388,316 +387,102 @@ public class AnalyticsFragment extends Fragment implements RecyclerViewClickList
         }
 
         if (id == null || countStatuses < id) {
+
+            String array_clients = "(";
             for (int i = 0; ar.length > i; i++) {
-                String clientId = ar[i];
-                if (ar[i].contains(",")) {
-                    for (String clienId : ar[i].split(",")) {
-                        String sqlQuewy = "SELECT c.created, " +
-                                "c.client_name, " +
-                                "c._id, " +
-                                "c.manager_id "
-                                + "FROM rgzbn_gm_ceiling_clients c " +
-                                "WHERE c._id = ?";
-                        Cursor c = db.rawQuery(sqlQuewy, new String[]{clienId});
-                        if (c != null) {
-                            if (c.moveToLast()) {
-
-                                String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                                String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                                String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                                String title = "-";
-
-                                String client_status = null;
-                                sqlQuewy = "SELECT status_id, change_time "
-                                        + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                                        "    WHERE client_id = ? " +
-                                        "order by _id";
-                                Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                                if (cc != null) {
-                                    if (cc.moveToLast()) {
-                                        client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-
-                                try {
-                                    sqlQuewy = "SELECT title "
-                                            + "FROM rgzbn_gm_ceiling_clients_statuses" +
-                                            " WHERE _id = ? ";
-                                    cc = db.rawQuery(sqlQuewy, new String[]{client_status});
-                                    if (cc != null) {
-                                        if (cc.moveToFirst()) {
-                                            title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                        }
-                                    }
-                                    cc.close();
-                                } catch (Exception e) {
-                                }
-
-                                String phone = "-";
-                                sqlQuewy = "SELECT phone "
-                                        + "   FROM rgzbn_gm_ceiling_clients_contacts" +
-                                        "    WHERE client_id = ?";
-                                cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                                if (cc != null) {
-                                    if (cc.moveToLast()) {
-                                        phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-
-                                String nameManager = "-";
-                                sqlQuewy = "SELECT name "
-                                        + "   FROM rgzbn_users" +
-                                        "    WHERE _id = ? " +
-                                        "order by _id";
-                                cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
-                                if (cc != null) {
-                                    if (cc.moveToLast()) {
-                                        nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-
-                                persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                        "Холодный", title, Integer.valueOf(id_client), "0"));
-                            }
-                        }
-                        c.close();
-                    }
-                } else {
-                    Log.d(TAG, "ListClients: " + clientId);
-                    String sqlQuewy = "SELECT c.created, " +
-                            "c.client_name, " +
-                            "c._id, " +
-                            "c.manager_id "
-                            + "FROM rgzbn_gm_ceiling_clients c " +
-                            "WHERE c._id = ?";
-                    Cursor c = db.rawQuery(sqlQuewy, new String[]{clientId});
-                    if (c != null) {
-                        if (c.moveToLast()) {
-                            String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                            String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                            String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                            String title = "-";
-
-                            String client_status = null;
-                            sqlQuewy = "SELECT status_id, change_time "
-                                    + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                                    "    WHERE client_id = ? " +
-                                    "order by _id";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                }
-                            }
-                            cc.close();
-
-                            try {
-                                sqlQuewy = "SELECT title "
-                                        + "FROM rgzbn_gm_ceiling_clients_statuses" +
-                                        " WHERE _id = ? ";
-                                cc = db.rawQuery(sqlQuewy, new String[]{client_status});
-                                if (cc != null) {
-                                    if (cc.moveToFirst()) {
-                                        title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-                            } catch (Exception e) {
-                            }
-
-                            String phone = "-";
-                            sqlQuewy = "SELECT phone "
-                                    + "   FROM rgzbn_gm_ceiling_clients_contacts" +
-                                    "    WHERE client_id = ?";
-                            cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                }
-                            }
-                            cc.close();
-
-                            String nameManager = "-";
-                            sqlQuewy = "SELECT name "
-                                    + "   FROM rgzbn_users" +
-                                    "    WHERE _id = ? " +
-                                    "order by _id";
-                            cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                }
-                            }
-                            cc.close();
-
-                            persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                    "Холодный", title, Integer.valueOf(id_client), "0"));
-                        }
-                    }
-                    c.close();
+                Log.d(TAG, "ListClients:1 " + ar[i]);
+                if (!array_clients.contains(ar[i])) {
+                    array_clients += ar[i] + ", ";
                 }
             }
+            array_clients = array_clients.substring(0, array_clients.length() - 2);
+            array_clients += ")";
+
+            String sqlQuewy = "SELECT DISTINCT (c._id)," +
+                    "c.client_name," +
+                    "c.manager_id," +
+                    "cs.title, " +
+                    "cc.phone, " +
+                    "us.name " +
+                    "FROM rgzbn_gm_ceiling_clients as c " +
+                    "left join rgzbn_gm_ceiling_clients_statuses_map as csm " +
+                    "on csm.client_id = c._id " +
+                    "left join rgzbn_gm_ceiling_clients_statuses as cs " +
+                    "on cs._id = csm.status_id " +
+                    "inner join rgzbn_gm_ceiling_clients_contacts as cc " +
+                    "on c._id = cc.client_id " +
+                    "inner join rgzbn_users as us " +
+                    "on us._id = c.manager_id " +
+                    "WHERE c._id in " + array_clients +
+                    " GROUP BY c._id";
+
+            Log.d(TAG, "ListClients:1 " + sqlQuewy);
+
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    do {
+                        String id_client = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                        String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                        String title = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                        String phone = c.getString(c.getColumnIndex(c.getColumnName(4)));
+                        String nameManager = c.getString(c.getColumnIndex(c.getColumnName(5)));
+
+                        persons.add(new Person(client_name, phone, nameManager, "#000000",
+                                "Холодный", title, Integer.valueOf(id_client), "0"));
+                    } while (c.moveToNext());
+                }
+            }
+            c.close();
         } else {
+
+            String array_clients = "(";
             for (int i = 0; ar.length > i; i++) {
-                String clientId = ar[i];
-                if (ar[i].contains(",")) {
-                    for (String clienId : ar[i].split(",")) {
-                        String sqlQuewy = "SELECT c.created, " +
-                                "                 c.client_name, " +
-                                "                 c._id, " +
-                                "                 c.manager_id "
-                                + "          FROM rgzbn_gm_ceiling_clients c " +
-                                "                 inner join rgzbn_gm_ceiling_clients_statuses_map s " +
-                                "                 on c._id = s.client_id " +
-                                "           WHERE c._id = ?";
-                        Cursor c = db.rawQuery(sqlQuewy,
-                                new String[]{clienId});
-                        if (c != null) {
-                            if (c.moveToLast()) {
-
-                                String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                                String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                                String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                                String title = "-";
-
-                                String client_status = null;
-                                sqlQuewy = "SELECT status_id, change_time "
-                                        + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                                        "    WHERE client_id = ? " +
-                                        "order by _id";
-                                Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                                if (cc != null) {
-                                    if (cc.moveToLast()) {
-                                        client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-
-                                try {
-                                    sqlQuewy = "SELECT title "
-                                            + "FROM rgzbn_gm_ceiling_clients_statuses" +
-                                            " WHERE _id = ? ";
-                                    cc = db.rawQuery(sqlQuewy, new String[]{client_status});
-                                    if (cc != null) {
-                                        if (cc.moveToFirst()) {
-                                            title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                        }
-                                    }
-                                    cc.close();
-                                } catch (Exception e) {
-                                }
-
-                                String phone = "-";
-                                sqlQuewy = "SELECT phone "
-                                        + "   FROM rgzbn_gm_ceiling_clients_contacts" +
-                                        "    WHERE client_id = ?";
-                                cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                                if (cc != null) {
-                                    if (cc.moveToLast()) {
-                                        phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-
-                                String nameManager = "-";
-                                sqlQuewy = "SELECT name "
-                                        + "   FROM rgzbn_users" +
-                                        "    WHERE _id = ? " +
-                                        "order by _id";
-                                cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
-                                if (cc != null) {
-                                    if (cc.moveToLast()) {
-                                        nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-
-                                persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                        "Холодный", title, Integer.valueOf(id_client), "0"));
-
-                            }
-                        }
-                        c.close();
-                    }
-                } else {
-                    Log.d(TAG, "ListClients: " + clientId);
-                    String sqlQuewy = "SELECT c.created, " +
-                            "                 c.client_name, " +
-                            "                 c._id, " +
-                            "                 c.manager_id "
-                            + "FROM rgzbn_gm_ceiling_clients c " +
-                            " WHERE c._id = ?";
-                    Cursor c = db.rawQuery(sqlQuewy,
-                            new String[]{clientId});
-                    if (c != null) {
-                        if (c.moveToLast()) {
-                            String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
-                            String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-                            String manager_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                            String title = "-";
-
-                            String client_status = null;
-                            sqlQuewy = "SELECT status_id, change_time "
-                                    + "   FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                                    "    WHERE client_id = ? " +
-                                    "order by _id";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    client_status = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                }
-                            }
-                            cc.close();
-
-                            try {
-                                sqlQuewy = "SELECT title "
-                                        + "FROM rgzbn_gm_ceiling_clients_statuses" +
-                                        " WHERE _id = ? ";
-                                cc = db.rawQuery(sqlQuewy, new String[]{client_status});
-                                if (cc != null) {
-                                    if (cc.moveToFirst()) {
-                                        title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                    }
-                                }
-                                cc.close();
-                            } catch (Exception e) {
-                            }
-
-                            String phone = "-";
-                            sqlQuewy = "SELECT phone "
-                                    + "   FROM rgzbn_gm_ceiling_clients_contacts" +
-                                    "    WHERE client_id = ?";
-                            cc = db.rawQuery(sqlQuewy, new String[]{id_client});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    phone = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                }
-                            }
-                            cc.close();
-
-                            String nameManager = "-";
-                            sqlQuewy = "SELECT name "
-                                    + "   FROM rgzbn_users" +
-                                    "    WHERE _id = ? " +
-                                    "order by _id";
-                            cc = db.rawQuery(sqlQuewy, new String[]{manager_id});
-                            if (cc != null) {
-                                if (cc.moveToLast()) {
-                                    nameManager = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                }
-                            }
-                            cc.close();
-
-                            persons.add(new Person(client_name, phone, nameManager, "#000000",
-                                    "Холодный", title, Integer.valueOf(id_client), "0"));
-                        }
-                    }
-                    c.close();
+                Log.d(TAG, "ListClients:2 " + ar[i]);
+                if (!array_clients.contains(ar[i])) {
+                    array_clients += ar[i] + ", ";
                 }
             }
+            array_clients = array_clients.substring(0, array_clients.length() - 2);
+            array_clients += ")";
+
+            String sqlQuewy = "SELECT DISTINCT (c._id)," +
+                    "c.client_name," +
+                    "c.manager_id," +
+                    "cs.title, " +
+                    "cc.phone, " +
+                    "us.name " +
+                    "FROM rgzbn_gm_ceiling_clients as c " +
+                    "left join rgzbn_gm_ceiling_clients_statuses_map as csm " +
+                    "on csm.client_id = c._id " +
+                    "left join rgzbn_gm_ceiling_clients_statuses as cs " +
+                    "on cs._id = csm.status_id " +
+                    "inner join rgzbn_gm_ceiling_clients_contacts as cc " +
+                    "on c._id = cc.client_id " +
+                    "inner join rgzbn_users as us " +
+                    "on us._id = c.manager_id " +
+                    "WHERE c._id in " + array_clients +
+                    " GROUP BY c._id";
+
+            Log.d(TAG, "ListClients:2 " + sqlQuewy);
+
+            Cursor c = db.rawQuery(sqlQuewy, new String[]{});
+            if (c != null) {
+                if (c.moveToFirst()) {
+                    do {
+                        String id_client = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                        String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
+                        String title = c.getString(c.getColumnIndex(c.getColumnName(3)));
+                        String phone = c.getString(c.getColumnIndex(c.getColumnName(4)));
+                        String nameManager = c.getString(c.getColumnIndex(c.getColumnName(5)));
+
+                        persons.add(new Person(client_name, phone, nameManager, "#000000",
+                                "Холодный", title, Integer.valueOf(id_client), "0"));
+                    } while (c.moveToNext());
+
+                }
+            }
+            c.close();
         }
 
         adapter = new RVAdapterClient(persons, this);

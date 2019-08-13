@@ -338,26 +338,17 @@ public class ClientActivity extends AppCompatActivity implements RecyclerViewCli
         }
         c.close();
 
-        sqlQuewy = "SELECT status_id "
-                + "FROM rgzbn_gm_ceiling_clients_statuses_map" +
-                " WHERE client_id = ? " +
-                "order by _id";
+        sqlQuewy = "SELECT cs.title "
+                + "FROM rgzbn_gm_ceiling_clients_statuses_map as csm " +
+                "inner join rgzbn_gm_ceiling_clients_statuses as cs " +
+                "on cs._id = csm.status_id " +
+                "WHERE csm.client_id = ? " +
+                "order by csm._id";
         c = db.rawQuery(sqlQuewy, new String[]{id_client});
         if (c != null) {
             if (c.moveToLast()) {
-                String status_id = c.getString(c.getColumnIndex(c.getColumnName(0)));
-
-                sqlQuewy = "SELECT title "
-                        + "FROM rgzbn_gm_ceiling_clients_statuses" +
-                        " WHERE _id = ? ";
-                c = db.rawQuery(sqlQuewy, new String[]{status_id});
-                if (c != null) {
-                    if (c.moveToFirst()) {
-                        String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
-                        txtStatusOfClient.setText(title);
-                    }
-                }
-                c.close();
+                String title = c.getString(c.getColumnIndex(c.getColumnName(0)));
+                txtStatusOfClient.setText(title);
             }
         }
         c.close();

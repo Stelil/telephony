@@ -33,14 +33,14 @@ import com.amigold.fundapter.extractors.StringExtractor;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import ru.itceiling.telephony.data.AdapterList;
+import ru.itceiling.telephony.DBHelper;
+import ru.itceiling.telephony.HelperClass;
+import ru.itceiling.telephony.R;
 import ru.itceiling.telephony.broadcaster.ExportDataReceiver;
 import ru.itceiling.telephony.comparators.ComparatorCreate;
 import ru.itceiling.telephony.comparators.ComparatorName;
 import ru.itceiling.telephony.comparators.ComparatorStatus;
-import ru.itceiling.telephony.DBHelper;
-import ru.itceiling.telephony.HelperClass;
-import ru.itceiling.telephony.R;
+import ru.itceiling.telephony.data.AdapterList;
 
 public class ClientsListActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 

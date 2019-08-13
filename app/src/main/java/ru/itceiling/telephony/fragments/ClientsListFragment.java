@@ -327,7 +327,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
 
                         String name = nameClient.getText().toString();
                         String phone = phoneClient.getText().toString();
-                        phone = HelperClass.phoneEdit(phone);
 
                         Log.d(TAG, "onClick: " + phone);
                         boolean bool = false;
@@ -370,30 +369,26 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                                         "send");
 
                                 int idOldClient = 0;
-                                sqlQuewy = "SELECT c.client_id " +
+                                sqlQuewy = "SELECT c.client_id, " +
+                                        "sh._id, " +
+                                        "ch._id " +
                                         "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
+                                        "left join rgzbn_gm_ceiling_calls_status_history as sh " +
+                                        "on sh.client_id = c._id " +
+                                        "left join rgzbn_gm_ceiling_client_history as ch " +
+                                        "on ch.client_id = c._id " +
                                         "WHERE c.phone = ?";
                                 Cursor cc = db.rawQuery(sqlQuewy, new String[]{phone});
                                 if (cc != null) {
                                     if (cc.moveToLast()) {
                                         idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                                        int idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(1)));
+                                        int idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(3)));
 
                                         values = new ContentValues();
                                         values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
                                         db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, values, "client_id = ? ",
                                                 new String[]{String.valueOf(idOldClient)});
-
-                                        int idCallsStatusHistory = 0;
-                                        sqlQuewy = "SELECT _id "
-                                                + "   FROM rgzbn_gm_ceiling_calls_status_history" +
-                                                "    WHERE client_id = ? ";
-                                        cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
-                                        if (cc != null) {
-                                            if (cc.moveToLast()) {
-                                                idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                                            }
-                                        }
-                                        cc.close();
 
                                         HelperClass.addExportData(
                                                 context,
@@ -405,18 +400,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                                         values.put(DBHelper.KEY_CLIENT_ID, maxIdClient);
                                         db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, values, "client_id = ? ",
                                                 new String[]{String.valueOf(idOldClient)});
-
-                                        int idClientHistory = 0;
-                                        sqlQuewy = "SELECT _id "
-                                                + "   FROM rgzbn_gm_ceiling_client_history" +
-                                                "    WHERE client_id = ? ";
-                                        cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(maxIdClient)});
-                                        if (cc != null) {
-                                            if (cc.moveToLast()) {
-                                                idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                                            }
-                                        }
-                                        cc.close();
 
                                         HelperClass.addExportData(
                                                 context,
@@ -960,15 +943,21 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
     void addPhone(int id) {
 
         int idOldClient = 0;
-        String sqlQuewy = "SELECT h.client_id " +
+        String sqlQuewy = "SELECT h.client_id, " +
+                "h._id, " +
+                "ch._id " +
                 "FROM rgzbn_gm_ceiling_clients_contacts AS c " +
                 "INNER JOIN rgzbn_gm_ceiling_calls_status_history AS h " +
                 "ON c.client_id = h.client_id " +
+                "INNER JOIN rgzbn_gm_ceiling_client_history AS ch " +
+                "ON c.client_id = ch.client_id " +
                 "WHERE c.phone = ?";
         Cursor cc = db.rawQuery(sqlQuewy, new String[]{getPhone});
         if (cc != null) {
             if (cc.moveToLast()) {
                 idOldClient = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
+                int idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(1)));
+                int idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(2)));
 
                 db.delete(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENTS,
                         "_id = ?",
@@ -983,18 +972,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                 db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CALLS_STATUS_HISTORY, values, "client_id = ? ",
                         new String[]{String.valueOf(idOldClient)});
 
-                int idCallsStatusHistory = 0;
-                sqlQuewy = "SELECT _id "
-                        + "   FROM rgzbn_gm_ceiling_calls_status_history" +
-                        "    WHERE client_id = ? ";
-                cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
-                if (cc != null) {
-                    if (cc.moveToLast()) {
-                        idCallsStatusHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                    }
-                }
-                cc.close();
-
                 HelperClass.addExportData(
                         getActivity(),
                         idCallsStatusHistory,
@@ -1005,18 +982,6 @@ public class ClientsListFragment extends Fragment implements RecyclerViewClickLi
                 values.put(DBHelper.KEY_CLIENT_ID, id);
                 db.update(DBHelper.TABLE_RGZBN_GM_CEILING_CLIENT_HISTORY, values, "client_id = ? ",
                         new String[]{String.valueOf(idOldClient)});
-
-                int idClientHistory = 0;
-                sqlQuewy = "SELECT _id "
-                        + "   FROM rgzbn_gm_ceiling_client_history" +
-                        "    WHERE client_id = ? ";
-                cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(id)});
-                if (cc != null) {
-                    if (cc.moveToLast()) {
-                        idClientHistory = cc.getInt(cc.getColumnIndex(cc.getColumnName(0)));
-                    }
-                }
-                cc.close();
 
                 HelperClass.addExportData(
                         getActivity(),

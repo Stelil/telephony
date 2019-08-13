@@ -167,15 +167,19 @@ public class CallbackListActivity extends AppCompatActivity {
         String sqlQuewy;
         Cursor c;
         if (date.equals("")) {
-            sqlQuewy = "SELECT client_id, date_time, comment, _id "
-                    + "FROM rgzbn_gm_ceiling_callback " +
+            sqlQuewy = "SELECT ca.client_id, ca.date_time, ca.comment, ca._id, c.client_name "
+                    + "FROM rgzbn_gm_ceiling_callback as ca" +
+                    "inner join rgzbn_gm_ceiling_clients as c " +
+                    "on c._id = ca.client_id " +
                     " order by date_time desc";
             c = db.rawQuery(sqlQuewy, new String[]{});
         } else {
-            sqlQuewy = "SELECT client_id, date_time, comment, _id "
-                    + "FROM rgzbn_gm_ceiling_callback " +
-                    "where substr(date_time,1,10) <= ? " +
-                    " order by date_time desc";
+            sqlQuewy = "SELECT ca.client_id, ca.date_time, ca.comment, ca._id, c.client_name  "
+                    + "FROM rgzbn_gm_ceiling_callback as ca" +
+                    "inner join rgzbn_gm_ceiling_clients as c " +
+                    "on c._id = ca.client_id " +
+                    "where substr(ca.date_time,1,10) <= ? " +
+                    " order by ca.date_time desc";
             c = db.rawQuery(sqlQuewy, new String[]{date});
         }
         if (c != null) {
@@ -188,25 +192,13 @@ public class CallbackListActivity extends AppCompatActivity {
                     if (comment.isEmpty())
                         comment = "-";
 
-                    String client_name = "";
-                    sqlQuewy = "SELECT client_name "
-                            + "FROM rgzbn_gm_ceiling_clients" +
-                            " WHERE _id = ? ";
-                    Cursor cc = db.rawQuery(sqlQuewy, new String[]{client_id});
-                    if (cc != null) {
-                        if (cc.moveToFirst()) {
-                            do {
-                                client_name = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                            } while (cc.moveToNext());
-                        }
-                    }
-                    cc.close();
-
                     String id = c.getString(c.getColumnIndex(c.getColumnName(3)));
 
                     if (date_time.length() == 19) {
                         date_time = date_time.substring(0, 16);
                     }
+
+                    String client_name = c.getString(c.getColumnIndex(c.getColumnName(4)));
 
                     AdapterList fc = new AdapterList(client_id,
                             client_name, date_time, comment, id, null);

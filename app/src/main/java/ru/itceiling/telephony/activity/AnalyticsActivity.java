@@ -330,10 +330,12 @@ public class AnalyticsActivity extends AppCompatActivity {
             if (ar[i].contains(",")) {
                 for (String clienId : ar[i].split(",")) {
 
-                    String sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
+                    String sqlQuewy = "SELECT c.created, c.client_name, c._id, cs.title "
                             + "FROM rgzbn_gm_ceiling_clients c " +
                             "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
                             "       on c._id = s.client_id " +
+                            "       inner join rgzbn_gm_ceiling_clients_statuses as cs " +
+                            "       on cs._id = s.status_id " +
                             " WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
                     Cursor c = db.rawQuery(sqlQuewy,
                             new String[]{clienId,
@@ -344,18 +346,7 @@ public class AnalyticsActivity extends AppCompatActivity {
                             String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                             String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                             String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
-
-                            String status_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                            sqlQuewy = "SELECT title "
-                                    + "FROM rgzbn_gm_ceiling_clients_statuses " +
-                                    " WHERE _id = ? ";
-                            Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
-                            if (cc != null) {
-                                if (cc.moveToFirst()) {
-                                    title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                                }
-                            }
-                            cc.close();
+                            title = c.getString(c.getColumnIndex(c.getColumnName(3)));
 
                             AdapterList fc = new AdapterList(id_client,
                                     client_name, title, created, null, null);
@@ -366,10 +357,12 @@ public class AnalyticsActivity extends AppCompatActivity {
                     c.close();
                 }
             } else {
-                String sqlQuewy = "SELECT c.created, c.client_name, c._id, s.status_id "
+                String sqlQuewy = "SELECT c.created, c.client_name, c._id, cs.title "
                         + "FROM rgzbn_gm_ceiling_clients c " +
                         "       inner join rgzbn_gm_ceiling_clients_statuses_map s " +
                         "       on c._id = s.client_id " +
+                        "       inner join rgzbn_gm_ceiling_clients_statuses as cs " +
+                        "       on cs._id = s.status_id " +
                         " WHERE c._id = ? and s.change_time > ? and s.change_time <= ?";
                 Cursor c = db.rawQuery(sqlQuewy,
                         new String[]{clientId,
@@ -380,18 +373,8 @@ public class AnalyticsActivity extends AppCompatActivity {
                         String created = c.getString(c.getColumnIndex(c.getColumnName(0)));
                         String client_name = c.getString(c.getColumnIndex(c.getColumnName(1)));
                         String id_client = c.getString(c.getColumnIndex(c.getColumnName(2)));
+                        title = c.getString(c.getColumnIndex(c.getColumnName(3)));
 
-                        String status_id = c.getString(c.getColumnIndex(c.getColumnName(3)));
-                        sqlQuewy = "SELECT title "
-                                + "FROM rgzbn_gm_ceiling_clients_statuses " +
-                                " WHERE _id = ? ";
-                        Cursor cc = db.rawQuery(sqlQuewy, new String[]{String.valueOf(status_id)});
-                        if (cc != null) {
-                            if (cc.moveToFirst()) {
-                                title = cc.getString(cc.getColumnIndex(cc.getColumnName(0)));
-                            }
-                        }
-                        cc.close();
                         AdapterList fc = new AdapterList(id_client,
                                 client_name, title, created, null, null);
                         client_mas.add(fc);
